@@ -1,13 +1,5 @@
 import { JSONSchemaType } from "ajv";
-
-type Duration = number;
-type Delay = number;
-type When = "now" | "absolute" | "relative" | "last"
-
-export type Animate = {
-    name: "animate",
-    arguments: [Duration, Delay, When]
-}
+import { Animate } from "../../../models/animation/instruction/animate";
 
 export const animateSchema: JSONSchemaType<Animate> = {
     type: "object",

@@ -1,14 +1,10 @@
 import { JSONSchemaType } from "ajv"
+import { Height } from "../../../models/animation/instruction/resize"
 
-export type DY = {
-    name: "dy"
-    arguments: [number]
-}
-
-export const dySchema: JSONSchemaType<DY> = {
+export const heightSchema: JSONSchemaType<Height> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "dy" },
+        name: { type: "string", const: "height" },
         arguments: {
             type:"array",
             items: [

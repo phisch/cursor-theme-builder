@@ -1,19 +1,14 @@
 import { JSONSchemaType } from "ajv"
+import { Radius } from "../../../models/animation/instruction/resize"
 
-// TODO: implement (number, number) and (null, number)
-export type Size = {
-    name: "size",
-    arguments: [number]
-}
-
-export const sizeSchema: JSONSchemaType<Size> = {
+export const radiusSchema: JSONSchemaType<Radius> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "size"},
+        name: { type: "string", const: "radius" },
         arguments: {
             type:"array",
             items: [
-                { type: "number" }
+                { type: "number" },
             ],
             minItems: 1,
             additionalItems: false

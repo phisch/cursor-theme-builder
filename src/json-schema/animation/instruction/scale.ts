@@ -1,21 +1,16 @@
 import { JSONSchemaType } from "ajv"
+import { Scale } from "../../../models/animation/instruction/transform"
 
-export type Translate = {
-    name: "translate",
-    arguments: [number, number]
-}
-
-export const translateSchema: JSONSchemaType<Translate> = {
+export const scaleSchema: JSONSchemaType<Scale> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "translate"},
+        name: { type: "string", const: "scale"},
         arguments: {
             type:"array",
             items: [
                 { type: "number"},
-                { type: "number"},
             ],
-            minItems: 2,
+            minItems: 1,
             additionalItems: false
         }
     },

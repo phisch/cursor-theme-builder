@@ -3,7 +3,7 @@ import './styles.scss'
 import * as monaco from 'monaco-editor'
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import { cursorThemeSchema } from './schema/cursor-theme'
+import { cursorThemeSchema } from './json-schema/cursor-theme'
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -13,10 +13,6 @@ self.MonacoEnvironment = {
     return new editorWorker()
   }
 }
-
-//import example from "../example/animations.json"
-//var code = JSON.stringify(example, null, 2);
-var model = monaco.editor.createModel("", 'json');
 
 monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
   validate: true,
@@ -29,11 +25,11 @@ monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
   ]
 });
 
-const editor = document.querySelector("#schema-validator .editor");
-if (editor != null) {
-  monaco.editor.create(editor as HTMLElement, {
+const cursor_theme_editor = document.querySelector("#schema-validator .editor");
+if (cursor_theme_editor != null) {
+  monaco.editor.create(cursor_theme_editor as HTMLElement, {
     language: 'json',
-    model: model,
+    model: monaco.editor.createModel("", 'json'),
     theme: "vs-dark",
     automaticLayout: true,
     tabSize: 2

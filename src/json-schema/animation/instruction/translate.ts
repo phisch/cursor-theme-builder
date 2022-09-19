@@ -1,14 +1,10 @@
 import { JSONSchemaType } from "ajv"
+import { Translate } from "../../../models/animation/instruction/transform"
 
-export type Move = {
-    name: "move",
-    arguments: [number, number]
-}
-
-export const moveSchema: JSONSchemaType<Move> = {
+export const translateSchema: JSONSchemaType<Translate> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "move"},
+        name: { type: "string", const: "translate"},
         arguments: {
             type:"array",
             items: [

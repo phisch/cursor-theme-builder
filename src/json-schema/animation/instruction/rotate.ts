@@ -1,16 +1,12 @@
 import { JSONSchemaType } from "ajv"
+import { Rotate } from "../../../models/animation/instruction/transform"
 
-export type Width = {
-    name: "width"
-    arguments: [number]
-}
-
-export const widthSchema: JSONSchemaType<Width> = {
+export const rotateSchema: JSONSchemaType<Rotate> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "width" },
+        name: { type: "string", const: "rotate" },
         arguments: {
-            type:"array",
+            type: "array",
             items: [
                 { type: "number" },
             ],

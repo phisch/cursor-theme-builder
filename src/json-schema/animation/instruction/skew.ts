@@ -1,21 +1,17 @@
 import { JSONSchemaType } from "ajv"
+import { Skew } from "../../../models/animation/instruction/transform"
 
-// TODO: implement x and y (2 arguments) scaling and scale center point (3 arguments)
-export type Scale = {
-    name: "scale",
-    arguments: [number]
-}
-
-export const scaleSchema: JSONSchemaType<Scale> = {
+export const skewSchema: JSONSchemaType<Skew> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "scale"},
+        name: { type: "string", const: "skew"},
         arguments: {
             type:"array",
             items: [
                 { type: "number"},
+                { type: "number"},
             ],
-            minItems: 1,
+            minItems: 2,
             additionalItems: false
         }
     },

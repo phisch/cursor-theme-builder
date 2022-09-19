@@ -1,15 +1,10 @@
 import { JSONSchemaType } from "ajv"
+import { Width } from "../../../models/animation/instruction/resize"
 
-// TODO: support ellipses (which take 2 arguments)
-export type Radius = {
-    name: "radius"
-    arguments: [number]
-}
-
-export const radiusSchema: JSONSchemaType<Radius> = {
+export const widthSchema: JSONSchemaType<Width> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "radius" },
+        name: { type: "string", const: "width" },
         arguments: {
             type:"array",
             items: [

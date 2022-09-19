@@ -1,14 +1,10 @@
 import { JSONSchemaType } from "ajv"
+import { CY } from "../../../models/animation/instruction/position"
 
-export type Y = {
-    name: "y"
-    arguments: [number]
-}
-
-export const ySchema: JSONSchemaType<Y> = {
+export const cySchema: JSONSchemaType<CY> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "y" },
+        name: { type: "string", const: "cy" },
         arguments: {
             type:"array",
             items: [

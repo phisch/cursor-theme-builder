@@ -1,17 +1,12 @@
 import { JSONSchemaType } from "ajv"
+import { Y } from "../../../models/animation/instruction/position"
 
-// TODO: support specific rotation point (3 arguments)
-export type Rotate = {
-    name: "rotate"
-    arguments: [number]
-}
-
-export const rotateSchema: JSONSchemaType<Rotate> = {
+export const ySchema: JSONSchemaType<Y> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "rotate" },
+        name: { type: "string", const: "y" },
         arguments: {
-            type: "array",
+            type:"array",
             items: [
                 { type: "number" },
             ],

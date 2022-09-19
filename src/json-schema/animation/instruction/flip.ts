@@ -1,9 +1,5 @@
 import { JSONSchemaType } from "ajv"
-
-export type Flip = {
-    name: "flip"
-    arguments: ["x" | "y" | "both"]
-}
+import { Flip } from "../../../models/animation/instruction/transform"
 
 export const flipSchema: JSONSchemaType<Flip> = {
     type: "object",

@@ -1,14 +1,10 @@
 import { JSONSchemaType } from "ajv"
+import { Move } from "../../../models/animation/instruction/position"
 
-export type Center = {
-    name: "center",
-    arguments: [number, number]
-}
-
-export const centerSchema: JSONSchemaType<Center> = {
+export const moveSchema: JSONSchemaType<Move> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "center"},
+        name: { type: "string", const: "move"},
         arguments: {
             type:"array",
             items: [

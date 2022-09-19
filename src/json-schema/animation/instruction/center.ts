@@ -1,14 +1,10 @@
 import { JSONSchemaType } from "ajv"
+import { Center } from "../../../models/animation/instruction/position"
 
-export type Skew = {
-    name: "skew",
-    arguments: [number, number]
-}
-
-export const skewSchema: JSONSchemaType<Skew> = {
+export const centerSchema: JSONSchemaType<Center> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "skew"},
+        name: { type: "string", const: "center"},
         arguments: {
             type:"array",
             items: [

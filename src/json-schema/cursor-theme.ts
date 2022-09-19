@@ -1,11 +1,7 @@
 import { JSONSchemaType } from "ajv"
-import { Animation, animationSchema } from "./animations"
+import { Cursor, CursorTheme, Sprite, Variant } from "../models/cursor-theme"
+import { animationSchema } from "./animation"
 
-export type Sprite = {
-    file: string,
-    flips?: string[],
-    animations?: Animation[]
-}
 const spriteSchema: JSONSchemaType<Sprite> = {
     type: "object",
     properties: {
@@ -20,11 +16,6 @@ const spriteSchema: JSONSchemaType<Sprite> = {
     required: ["file"]
 }
 
-export type Cursor = {
-    name: string,
-    aliases?: string[],
-    sprites: Sprite[]
-}
 const cursorSchema: JSONSchemaType<Cursor> = {
     type: "object",
     properties: {
@@ -42,11 +33,6 @@ const cursorSchema: JSONSchemaType<Cursor> = {
     required: ["name", "sprites"]
 }
 
-export type Variant = {
-    name: string,
-    cursors: Cursor[],
-    variants?: Variant[]
-}
 // casting the items $ref as any is necessary because of a limitation ajv,
 // it **is** linked correctly though!
 const variantSchema: JSONSchemaType<Variant> = {
@@ -64,13 +50,6 @@ const variantSchema: JSONSchemaType<Variant> = {
         }
     },
     required: ["name", "cursors"]
-}
-
-export type CursorTheme = {
-    name: string,
-    description?: string,
-    author?: string,
-    variants: Variant[]
 }
 
 export const cursorThemeSchema: JSONSchemaType<CursorTheme> = {

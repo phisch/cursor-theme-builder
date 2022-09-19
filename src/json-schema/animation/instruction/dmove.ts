@@ -1,9 +1,5 @@
 import { JSONSchemaType } from "ajv"
-
-export type DMove = {
-    name: "dmove",
-    arguments: [number, number]
-}
+import { DMove } from "../../../models/animation/instruction/position"
 
 export const dmoveSchema: JSONSchemaType<DMove> = {
     type: "object",

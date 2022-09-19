@@ -1,18 +1,14 @@
 import { JSONSchemaType } from "ajv"
+import { Size } from "../../../models/animation/instruction/resize"
 
-export type Height = {
-    name: "height"
-    arguments: [number]
-}
-
-export const heightSchema: JSONSchemaType<Height> = {
+export const sizeSchema: JSONSchemaType<Size> = {
     type: "object",
     properties: {
-        name: { type: "string", const: "height" },
+        name: { type: "string", const: "size"},
         arguments: {
             type:"array",
             items: [
-                { type: "number" },
+                { type: "number" }
             ],
             minItems: 1,
             additionalItems: false

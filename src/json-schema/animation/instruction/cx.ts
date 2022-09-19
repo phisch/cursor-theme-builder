@@ -1,9 +1,5 @@
 import { JSONSchemaType } from "ajv"
-
-export type CX = {
-    name: "cx"
-    arguments: [number]
-}
+import { CX } from "../../../models/animation/instruction/position"
 
 export const cxSchema: JSONSchemaType<CX> = {
     type: "object",
