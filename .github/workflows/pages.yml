@@ -28,7 +28,7 @@ jobs:
           node-version: 16
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
+      - run: npm run build -- --base=/cursor-theme-generator
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
