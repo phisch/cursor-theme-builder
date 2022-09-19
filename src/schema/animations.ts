@@ -1,5 +1,5 @@
 import { JSONSchemaType } from "ajv"
-import { animateSchema } from "./instructions/animate"
+import { Animate, animateSchema } from "./instructions/animate"
 import { Center, centerSchema } from "./instructions/position/center"
 import { CX, cxSchema } from "./instructions/position/cx"
 import { CY, cySchema } from "./instructions/position/cy"
@@ -23,7 +23,7 @@ type PositionInstruction = Center | CX | CY | DMove | DX | DY | Move | X | Y
 type ResizeInstruction = Height | Radius | Size | Width
 type TransformInstruction = Flip | Rotate | Scale | Skew | Translate
 
-type Instruction = PositionInstruction | ResizeInstruction | TransformInstruction
+type Instruction = Animate | PositionInstruction | ResizeInstruction | TransformInstruction
 
 type Animation = {
     selector: string,
@@ -31,30 +31,42 @@ type Animation = {
 }
 
 type Animations = Animation[]
-
 export const animationsSchema: JSONSchemaType<Animations> = {
     type: "array",
     items: {
-        oneOf: [
-            animateSchema,
-            centerSchema,
-            cxSchema,
-            cySchema,
-            dmoveSchema,
-            dxSchema,
-            dySchema,
-            moveSchema,
-            xSchema,
-            ySchema,
-            heightSchema,
-            radiusSchema,
-            sizeSchema,
-            widthSchema,
-            flipSchema,
-            rotateSchema,
-            scaleSchema,
-            skewSchema,
-            translateSchema
-        ]
-    }
+        type: "object",
+        properties: {
+            selector: {
+                type: "string"
+            },
+            instructions: {
+                type: "array",
+                items: {
+                    oneOf: [
+                        animateSchema,
+                        centerSchema,
+                        cxSchema,
+                        cySchema,
+                        dmoveSchema,
+                        dxSchema,
+                        dySchema,
+                        moveSchema,
+                        xSchema,
+                        ySchema,
+                        heightSchema,
+                        radiusSchema,
+                        sizeSchema,
+                        widthSchema,
+                        flipSchema,
+                        rotateSchema,
+                        scaleSchema,
+                        skewSchema,
+                        translateSchema
+                    ]
+                }
+            }
+        },
+        required: ["selector", "instructions"]
+    },
+    minItems: 1
 }

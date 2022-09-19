@@ -4,7 +4,7 @@ type Duration = number;
 type Delay = number;
 type When = "now" | "absolute" | "relative" | "last"
 
-type Animate = {
+export type Animate = {
     name: "animate",
     arguments: [Duration, Delay, When]
 }

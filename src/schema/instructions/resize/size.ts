@@ -1,8 +1,9 @@
 import { JSONSchemaType } from "ajv"
 
+// TODO: implement (number, number) and (null, number)
 export type Size = {
     name: "size",
-    arguments: [number | null, number] | [number]
+    arguments: [number]
 }
 
 export const sizeSchema: JSONSchemaType<Size> = {
@@ -11,21 +12,10 @@ export const sizeSchema: JSONSchemaType<Size> = {
         name: { type: "string", const: "size"},
         arguments: {
             type:"array",
-            oneOf: [
-                {
-                    items: [
-                        { type: "number" }
-                    ],
-                    minItems: 1,
-                },
-                {
-                    items: [
-                        { type: "number", nullable: true },
-                        { type: "number" }
-                    ],
-                    minItems: 2
-                }
+            items: [
+                { type: "number" }
             ],
+            minItems: 1,
             additionalItems: false
         }
     },
