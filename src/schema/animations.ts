@@ -25,48 +25,50 @@ type TransformInstruction = Flip | Rotate | Scale | Skew | Translate
 
 type Instruction = Animate | PositionInstruction | ResizeInstruction | TransformInstruction
 
-type Animation = {
+export type Animation = {
     selector: string,
     instructions: Instruction[]
+}
+
+export const animationSchema: JSONSchemaType<Animation> = {
+    type: "object",
+    properties: {
+        selector: {
+            type: "string"
+        },
+        instructions: {
+            type: "array",
+            items: {
+                oneOf: [
+                    animateSchema,
+                    centerSchema,
+                    cxSchema,
+                    cySchema,
+                    dmoveSchema,
+                    dxSchema,
+                    dySchema,
+                    moveSchema,
+                    xSchema,
+                    ySchema,
+                    heightSchema,
+                    radiusSchema,
+                    sizeSchema,
+                    widthSchema,
+                    flipSchema,
+                    rotateSchema,
+                    scaleSchema,
+                    skewSchema,
+                    translateSchema
+                ]
+            }
+        }
+    },
+    required: ["selector", "instructions"]
 }
 
 type Animations = Animation[]
 export const animationsSchema: JSONSchemaType<Animations> = {
     type: "array",
-    items: {
-        type: "object",
-        properties: {
-            selector: {
-                type: "string"
-            },
-            instructions: {
-                type: "array",
-                items: {
-                    oneOf: [
-                        animateSchema,
-                        centerSchema,
-                        cxSchema,
-                        cySchema,
-                        dmoveSchema,
-                        dxSchema,
-                        dySchema,
-                        moveSchema,
-                        xSchema,
-                        ySchema,
-                        heightSchema,
-                        radiusSchema,
-                        sizeSchema,
-                        widthSchema,
-                        flipSchema,
-                        rotateSchema,
-                        scaleSchema,
-                        skewSchema,
-                        translateSchema
-                    ]
-                }
-            }
-        },
-        required: ["selector", "instructions"]
-    },
+    items: animationSchema,
     minItems: 1
 }

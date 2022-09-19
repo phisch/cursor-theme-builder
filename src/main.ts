@@ -1,10 +1,9 @@
 import './styles.scss'
 
-import { animationsSchema } from './schema/animations'
-
 import * as monaco from 'monaco-editor'
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+import { cursorThemeSchema } from './schema/cursor-theme'
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -24,8 +23,8 @@ monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
   schemas: [
     {
       fileMatch: ["*"],
-      schema: animationsSchema,
-      uri: "https://phisch.github.io/cursor-theme-generator/schemas/animation.json",
+      schema: cursorThemeSchema,
+      uri: "https://phisch.github.io/cursor-theme-generator/schemas/cursor-theme.json",
     },
   ]
 });
