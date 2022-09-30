@@ -1,0 +1,28 @@
+name: 'Figma Cursor Theme Asset Export'
+description: 'Downloads cursor theme sprites and generates a `cursor-theme.json` that can be used by the cursor theme generator.'
+inputs:
+  access_token:
+    description: 'Your personal Figma access token.'
+    required: true
+  file_key:
+    description: 'The `key` of the Figma file containing the cursor theme. Can be found in the url to of a figma file. `https://www.figma.com/file/:key/:title`'
+    required: true
+  theme_name:
+    description: 'Name of the cursor theme.'
+    required: true
+    default: 'Generated Cursor Theme'
+  theme_comment:
+    description: 'Short comment or description of the cursor theme.'
+    required: false
+    default: 'This is a generated cursor theme.'
+  export_directory:
+    description: 'Output directory for the `cursor-theme.json` and sprites.'
+    required: true
+    default: src
+outputs:
+  version:
+    description: 'The current version of the Figma file.'
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
