@@ -38,7 +38,11 @@ const cursorSchema: JSONSchemaType<Cursor> = {
 const variantSchema: JSONSchemaType<Variant> = {
     type: "object",
     properties: {
-        name: { type: "string" },
+        name: {
+            type: "string",
+            examples: ["light", "dark", "colorful", "animated"],
+            description: "The name of this cursor theme variant."
+        },
         cursors: {
             type: "array",
             items: cursorSchema
@@ -57,7 +61,11 @@ export const cursorThemeSchema: JSONSchemaType<CursorTheme> = {
     properties: {
         name: { type: "string" },
         description: { type: "string", nullable: true },
-        author: { type: "string", nullable: true },
+        author: {
+            type: "string",
+            nullable: true,
+            description: "The name of the author of this theme."
+        },
         variants: {
             type: "array",
             items: variantSchema
