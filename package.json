@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "figma-export": "vite-node src/figma-export.ts"
+    "figma-export": "vite-node src/actions/figma-export.ts"
   },
   "devDependencies": {
     "@actions/core": "^1.9.1",

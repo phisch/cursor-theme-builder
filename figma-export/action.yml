@@ -10,15 +10,19 @@ inputs:
   theme_name:
     description: 'Name of the cursor theme.'
     required: true
-    default: 'Generated Cursor Theme'
+  theme_author:
+    description: 'Author of the cursor theme.'
+    required: false
   theme_comment:
     description: 'Short comment or description of the cursor theme.'
     required: false
-    default: 'This is a generated cursor theme.'
-  export_directory:
+  target_directory:
     description: 'Output directory for the `cursor-theme.json` and sprites.'
-    required: true
-    default: src
+    required: false
+    default: './figma-export'
+  inline_sprites:
+    description: 'Whether to inline the sprites in the `cursor-theme.json`.'
+    required: false
 outputs:
   version:
     description: 'The current version of the Figma file.'
