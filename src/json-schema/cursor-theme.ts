@@ -1,11 +1,11 @@
 import { JSONSchemaType } from "ajv"
-import { Cursor, CursorTheme, Sprite, Variant } from "../models/cursor-theme"
+import { Cursor, CursorTheme, FileSprite, EmbeddedSprite, Sprite, Variant } from "../models/cursor-theme"
 import { animationSchema } from "./animation"
 
-const spriteSchema: JSONSchemaType<Sprite> = {
+const fileSpriteSchema: JSONSchemaType<FileSprite> = {
     type: "object",
     properties: {
-        file: { type: "string" },
+        path: { type: "string" },
         flips: { type: "array", items: { type: "string" }, nullable: true },
         animations: {
             type: "array",
@@ -13,7 +13,29 @@ const spriteSchema: JSONSchemaType<Sprite> = {
             nullable: true
         }
     },
-    required: ["file"]
+    required: ["path"]
+}
+
+const embeddedSpriteSchema: JSONSchemaType<EmbeddedSprite> = {
+    type: "object",
+    properties: {
+        svg: { type: "string" },
+        flips: { type: "array", items: { type: "string" }, nullable: true },
+        animations: {
+            type: "array",
+            items: animationSchema,
+            nullable: true
+        }
+    },
+    required: ["svg"]
+}
+
+const spriteSchema: JSONSchemaType<Sprite> = {
+    oneOf: [
+        fileSpriteSchema,
+        embeddedSpriteSchema
+    ],
+    
 }
 
 const cursorSchema: JSONSchemaType<Cursor> = {

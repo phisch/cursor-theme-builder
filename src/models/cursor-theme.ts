@@ -1,15 +1,10 @@
 import { Animation } from "./animation"
 
-export type Sprite = {
-    file: string,
-    flips?: string[],
-    animations?: Animation[]
-}
-
-export type Cursor = {
+export type CursorTheme = {
     name: string,
-    aliases?: string[],
-    sprites: Sprite[]
+    description?: string,
+    author?: string,
+    variants: Variant[]
 }
 
 export type Variant = {
@@ -18,9 +13,22 @@ export type Variant = {
     variants?: Variant[]
 }
 
-export type CursorTheme = {
+export type Cursor = {
     name: string,
-    description?: string,
-    author?: string,
-    variants: Variant[]
+    aliases?: string[],
+    sprites: Sprite[]
 }
+
+export type EmbeddedSprite = {
+    svg: string,
+    flips?: string[],
+    animations?: Animation[]
+}
+
+export type FileSprite = {
+    path: string,
+    flips?: string[],
+    animations?: Animation[]
+}
+
+export type Sprite = EmbeddedSprite | FileSprite
