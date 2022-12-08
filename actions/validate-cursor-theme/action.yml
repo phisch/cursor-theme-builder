@@ -1,0 +1,10 @@
+name: 'Validate Cursor Theme'
+description: 'Validates a `cursor-theme.json` file against the cursor theme schema.'
+inputs:
+  cursor_theme_json:
+    description: 'Path to the `cursor-theme.json` file.'
+    required: true
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
