@@ -4,7 +4,7 @@ import * as monaco from 'monaco-editor'
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import { cursorThemeSchema } from './json-schema/cursor-theme'
-import example_json from "../example/theme.json"
+import example_json from '../example/theme.json'
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
