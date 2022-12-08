@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import Ajv from 'ajv';
 import { existsSync, readFileSync } from 'fs';
-import { cursorThemeSchema } from '../json-schema/cursor-theme';
+import { cursorThemeSchema } from '../cursor-theme/schema/cursor-theme';
 
 async function run() {
   try {

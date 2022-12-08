@@ -10054,7 +10054,7 @@ var dist_ajv = __nccwpck_require__(2426);
 var ajv_default = /*#__PURE__*/__nccwpck_require__.n(dist_ajv);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(7147);
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/animate.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/animate.ts
 const animateSchema = {
     type: "object",
     properties: {
@@ -10089,7 +10089,7 @@ const animateSchema = {
     required: ["name", "arguments"],
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/center.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/center.ts
 const centerSchema = {
     type: "object",
     properties: {
@@ -10107,7 +10107,7 @@ const centerSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/cx.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/cx.ts
 const cxSchema = {
     type: "object",
     properties: {
@@ -10124,7 +10124,7 @@ const cxSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/cy.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/cy.ts
 const cySchema = {
     type: "object",
     properties: {
@@ -10141,7 +10141,7 @@ const cySchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/dmove.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/dmove.ts
 const dmoveSchema = {
     type: "object",
     properties: {
@@ -10159,7 +10159,7 @@ const dmoveSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/dx.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/dx.ts
 const dxSchema = {
     type: "object",
     properties: {
@@ -10176,7 +10176,7 @@ const dxSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/dy.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/dy.ts
 const dySchema = {
     type: "object",
     properties: {
@@ -10193,7 +10193,7 @@ const dySchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/flip.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/flip.ts
 const flipSchema = {
     type: "object",
     properties: {
@@ -10210,7 +10210,7 @@ const flipSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/height.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/height.ts
 const heightSchema = {
     type: "object",
     properties: {
@@ -10227,7 +10227,7 @@ const heightSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/move.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/move.ts
 const moveSchema = {
     type: "object",
     properties: {
@@ -10245,7 +10245,7 @@ const moveSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/radius.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/radius.ts
 const radiusSchema = {
     type: "object",
     properties: {
@@ -10262,7 +10262,7 @@ const radiusSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/rotate.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/rotate.ts
 const rotateSchema = {
     type: "object",
     properties: {
@@ -10279,7 +10279,7 @@ const rotateSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/scale.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/scale.ts
 const scaleSchema = {
     type: "object",
     properties: {
@@ -10296,7 +10296,7 @@ const scaleSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/size.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/size.ts
 const sizeSchema = {
     type: "object",
     properties: {
@@ -10313,7 +10313,7 @@ const sizeSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/skew.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/skew.ts
 const skewSchema = {
     type: "object",
     properties: {
@@ -10331,7 +10331,7 @@ const skewSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/translate.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/translate.ts
 const translateSchema = {
     type: "object",
     properties: {
@@ -10349,7 +10349,7 @@ const translateSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/width.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/width.ts
 const widthSchema = {
     type: "object",
     properties: {
@@ -10366,7 +10366,7 @@ const widthSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/x.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/x.ts
 const xSchema = {
     type: "object",
     properties: {
@@ -10383,7 +10383,7 @@ const xSchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction/y.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction/y.ts
 const ySchema = {
     type: "object",
     properties: {
@@ -10400,7 +10400,7 @@ const ySchema = {
     required: ["name", "arguments"]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation/instruction.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation/instruction.ts
 
 
 
@@ -10444,7 +10444,7 @@ const instructionSchema = {
     ]
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/animation.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/animation.ts
 
 const animationSchema = {
     type: "object",
@@ -10464,7 +10464,7 @@ const animationsSchema = {
     items: animationSchema
 };
 
-;// CONCATENATED MODULE: ./src/json-schema/cursor-theme.ts
+;// CONCATENATED MODULE: ./src/cursor-theme/schema/cursor-theme.ts
 
 const fileSpriteSchema = {
     type: "object",
@@ -10554,7 +10554,7 @@ const cursorThemeSchema = {
     required: ["name", "variants"]
 };
 
-;// CONCATENATED MODULE: ./src/actions/validate-cursor-theme.ts
+;// CONCATENATED MODULE: ./src/actions/validate-json.ts
 
 
 

@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { FigmaExporter } from '../export/figma-exporter';
-import { CursorTheme } from '../models/cursor-theme';
+import { CursorTheme } from '../cursor-theme/models/cursor-theme';
 
 async function run() {
   try {

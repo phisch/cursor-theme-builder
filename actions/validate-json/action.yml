@@ -1,4 +1,4 @@
-name: 'Validate Cursor Theme'
+name: 'Validate JSON'
 description: 'Validates a `cursor-theme.json` file against the cursor theme schema.'
 inputs:
   cursor_theme_json:

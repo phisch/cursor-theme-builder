@@ -1,6 +1,6 @@
-import { CursorTheme, Sprite, Variant } from "../models/cursor-theme";
+import { CursorTheme, Sprite, Variant } from "../cursor-theme/models/cursor-theme";
 import * as Figma from 'figma-js';
-import { Animation } from "../models/animation";
+import { Animation } from "../cursor-theme/models/animation";
 import { existsSync, mkdirSync, promises, writeFileSync } from "fs";
 import axios from "axios";
 import path from "path";
