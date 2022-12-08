@@ -7,11 +7,16 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "figma-export": "vite-node src/actions/figma-export.ts"
+    "figma-export": "vite-node src/actions/figma-export.ts",
+    "validate-cursor-theme": "vite-node src/actions/validate-cursor-theme.ts",
+    "build-actions": "npm run build-figma-export-action && npm run build-validate-cursor-theme-action",
+    "build-figma-export-action": "ncc build src/actions/figma-export.ts --out actions/figma-export/dist --source-map --license licenses.txt",
+    "build-validate-cursor-theme-action": "ncc build src/actions/validate-cursor-theme.ts --out actions/validate-cursor-theme/dist --source-map --license licenses.txt"
   },
   "devDependencies": {
     "@actions/core": "^1.9.1",
     "@types/node": "^18.7.18",
+    "@vercel/ncc": "^0.36.0",
     "ajv": "^8.11.0",
     "ajv-errors": "^3.0.0",
     "axios": "^0.27.2",
