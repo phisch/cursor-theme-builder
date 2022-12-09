@@ -3,8 +3,9 @@ import './styles.scss'
 import * as monaco from 'monaco-editor'
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import { cursorThemeSchema } from './cursor-theme/schema/cursor-theme'
 import example_json from '../example/theme.json'
+import { CursorTheme } from './cursor-theme/models/cursor-theme'
+
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -17,10 +18,11 @@ self.MonacoEnvironment = {
 
 monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
   validate: true,
+  schemaRequest: 'ignore',
   schemas: [
     {
       fileMatch: ["*"],
-      schema: cursorThemeSchema,
+      schema: CursorTheme,
       uri: "https://phisch.github.io/cursor-theme-generator/schemas/cursor-theme.json",
     },
   ]

@@ -1,6 +1,16 @@
-export type Animate = {
-    name: "animate",
-    arguments: [number, number, "now" | "absolute" | "relative" | "last"]
-}
+import { Type, Static } from '@sinclair/typebox'
 
-export type AnimateInstruction = Animate;
+type Animate = Static<typeof Animate>;
+export const Animate = Type.Object({
+    name: Type.Literal("animate"),
+    arguments: Type.Tuple([
+        Type.Number(),
+        Type.Number(),
+        Type.Union([
+            Type.Literal("now"),
+            Type.Literal("absolute"),
+            Type.Literal("relative"),
+            Type.Literal("last")
+        ])
+    ])
+});

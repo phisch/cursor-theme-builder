@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
-import Ajv from 'ajv';
 import { existsSync, readFileSync } from 'fs';
-import { cursorThemeSchema } from '../cursor-theme/schema/cursor-theme';
+import { TypeCompiler } from '@sinclair/typebox/compiler'
+import { CursorTheme } from '../cursor-theme/models/cursor-theme';
 
 async function run() {
   try {
@@ -12,15 +12,13 @@ async function run() {
     }
     
     const json = JSON.parse(readFileSync(cursorThemeJson, 'utf8'));
+    const C = TypeCompiler.Compile(CursorTheme);
 
-    const ajv = new Ajv();
-    const validate = ajv.compile(cursorThemeSchema);
-    
-    if (!validate(json)) {
-      core.info(JSON.stringify(validate.errors, null, 2));
+    if (!C.Check(json)) {
+      const errors = [...C.Errors(json)]
+      core.info(JSON.stringify(errors, null, 2));
       throw new Error(`Cursor theme json file is not valid!`);
     }
-
   }
   catch (error: any) {
     core.setFailed(error.message);
