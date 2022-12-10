@@ -4,7 +4,7 @@ import { Type, Static } from '@sinclair/typebox'
 type Scale = Static<typeof Scale>;
 export const Scale = Type.Object({
     name: Type.Literal("scale"),
-    arguments: Type.Tuple([
-        Type.Number()
-    ])
+    arguments: Type.Object({
+        factor: Type.Number()
+    })
 });

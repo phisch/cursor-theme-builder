@@ -4,7 +4,7 @@ import { Type, Static } from '@sinclair/typebox'
 type Rotate = Static<typeof Rotate>;
 export const Rotate = Type.Object({
     name: Type.Literal("rotate"),
-    arguments: Type.Tuple([
-        Type.Number()
-    ])
+    arguments: Type.Object({
+        degrees: Type.Number()
+    })
 });

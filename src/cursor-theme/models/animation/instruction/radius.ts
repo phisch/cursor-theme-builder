@@ -4,7 +4,7 @@ import { Type, Static } from '@sinclair/typebox'
 type Radius = Static<typeof Radius>;
 export const Radius = Type.Object({
     name: Type.Literal("radius"),
-    arguments: Type.Tuple([
-        Type.Number()
-    ])
+    arguments: Type.Object({
+        radius: Type.Number()
+    })
 });

@@ -6,8 +6,8 @@ import { Animation } from './animation/animation';
 export type Sprite = Static<typeof Sprite>;
 export const Sprite = IntersectAllOf([
     UnionOneOf([
-        Type.Object({ file: Type.String() }),
-        Type.Object({ svg: Type.String() })
+        Type.Object({ file: Type.String(), svg: Type.Optional(Type.Never()) }),
+        Type.Object({ svg: Type.String(), file: Type.Optional(Type.Never()) })
     ]),
     Type.Object({
         flips: Type.Optional(Type.Array(Type.String())),

@@ -19,30 +19,31 @@ import { Width } from './instruction/width';
 import { X } from './instruction/x';
 import { Y } from './instruction/y';
 
+export type AnimationInstruction = Static<typeof AnimationInstruction>;
+export const AnimationInstruction = Type.Union([
+    Animate,
+    Center,
+    CX,
+    CY,
+    DMove,
+    DX,
+    Dy,
+    Flip,
+    Height,
+    Move,
+    Radius,
+    Rotate,
+    Scale,
+    Size,
+    Skew,
+    Translate,
+    Width,
+    X,
+    Y
+]);
+
 export type Animation = Static<typeof Animation>;
 export const Animation = Type.Object({
     selector: Type.String(),
-    instructions: Type.Array(
-        Type.Union([
-            Animate,
-            Center,
-            CX,
-            CY,
-            DMove,
-            DX,
-            Dy,
-            Flip,
-            Height,
-            Move,
-            Radius,
-            Rotate,
-            Scale,
-            Size,
-            Skew,
-            Translate,
-            Width,
-            X,
-            Y
-        ])
-    )
+    instructions: Type.Array(AnimationInstruction)
 });
