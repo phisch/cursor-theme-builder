@@ -32,7 +32,7 @@ function calculateSize(chunk: Chunk): number {
     if (isImage(chunk)) {
         return 36 + 4 * chunk.width * chunk.height;
     } else {
-        return 20 + 4 * chunk.string.length;
+        return 20 + Buffer.byteLength(chunk.string, "utf-8");
     }
 }
 
@@ -59,7 +59,7 @@ export function encode(chunks: Chunk[]): Buffer {
 
     const buffer = Buffer.alloc(position);
 
-    buffer.write("Xcur", 0, 4, "ascii");
+    buffer.write("Xcur", 0, 4, "utf-8");
     buffer.writeUInt32LE(16, 4);
     buffer.writeUInt32LE(1, 8);
     buffer.writeUInt32LE(chunks.length, 12);
@@ -84,9 +84,10 @@ export function encode(chunks: Chunk[]): Buffer {
             buffer.writeUInt32LE(0xfffe0001, offset + 4);
             buffer.writeUInt32LE(chunk.type, offset + 8);
             buffer.writeUInt32LE(1, offset + 12);
-            buffer.writeUInt32LE(chunk.string.length, offset + 16);
-            buffer.write(chunk.string, offset + 20);
-            offset += 20 + chunk.string.length;
+            const stringByteLength = Buffer.byteLength(chunk.string, "utf-8");
+            buffer.writeUInt32LE(stringByteLength, offset + 16);
+            buffer.write(chunk.string, offset + 20, "utf-8");
+            offset += 20 + stringByteLength;
         } else if (isImage(chunk)) {
             buffer.writeUInt32LE(36, offset);
             buffer.writeUInt32LE(0xfffd0002, offset + 4);
