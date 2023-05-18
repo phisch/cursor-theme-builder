@@ -2,7 +2,7 @@ import { Animation, AnimationInstruction } from "../cursor-theme/models/animatio
 import { Element, Matrix, Runner, SVG, Timeline } from "@svgdotjs/svg.js";
 
 
-type Frame = {
+export type Frame = {
     svg: string;
     duration: number;
 };
@@ -15,7 +15,7 @@ export class SvgAnimator {
     runners: Runner[] = [];
     animatedElements: Element[] = [];
 
-    private fps = 25;
+    private fps = 30;
 
     constructor(svg: SVGElement | string) {
         this.element = SVG(svg);

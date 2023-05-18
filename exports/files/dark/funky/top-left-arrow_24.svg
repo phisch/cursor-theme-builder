@@ -1,0 +1,36 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="cursor=top-left-arrow, size=24, variant=dark/funky" clip-path="url(#clip0_725_111)" filter="url(#filter0_d_725_111)">
+<g id="cursor">
+<g id="cursor_2">
+<mask id="path-1-outside-1_725_111" maskUnits="userSpaceOnUse" x="2" y="2" width="10" height="16" fill="black">
+<rect fill="white" x="2" y="2" width="10" height="16"/>
+<path d="M11 11.3L3 3L3 14.5L6 14L8.3 17L9 16.7L8.7 13L11 11.3Z"/>
+</mask>
+<path d="M11 11.3L3 3L3 14.5L6 14L8.3 17L9 16.7L8.7 13L11 11.3Z" fill="#1F1F1F"/>
+<path d="M11 11.3L3 3L3 14.5L6 14L8.3 17L9 16.7L8.7 13L11 11.3Z" stroke="white" stroke-width="2" stroke-linejoin="round" mask="url(#path-1-outside-1_725_111)"/>
+</g>
+</g>
+<g id="hotspot">
+<rect id="Rectangle 1" x="2" y="2" width="1" height="1" fill="#FF0D0D" fill-opacity="0.5"/>
+<rect id="Rectangle 2" x="3" y="2" width="2" height="1" fill="#1EE4FF" fill-opacity="0.4"/>
+<rect id="Rectangle 3" y="2" width="2" height="1" fill="#1EE4FF" fill-opacity="0.4"/>
+<rect id="Rectangle 4" x="2" y="3" width="1" height="2" fill="#1EE4FF" fill-opacity="0.4"/>
+<rect id="Rectangle 5" x="2" width="1" height="2" fill="#1EE4FF" fill-opacity="0.4"/>
+</g>
+<path id="Star 1" d="M11 5L11.8981 7.76393H14.8042L12.4531 9.47214L13.3511 12.2361L11 10.5279L8.64886 12.2361L9.54692 9.47214L7.19577 7.76393H10.1019L11 5Z" fill="#F4E434"/>
+</g>
+<defs>
+<filter id="filter0_d_725_111" x="-2" y="-2" width="28" height="28" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset/>
+<feGaussianBlur stdDeviation="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_725_111"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_725_111" result="shape"/>
+</filter>
+<clipPath id="clip0_725_111">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,0 +1,243 @@
+{
+  "name": "My Cursor Theme",
+  "variants": [
+    {
+      "name": "dark",
+      "cursors": [
+        {
+          "name": "top-left-arrow",
+          "sprites": [
+            {
+              "path": "dark/top-left-arrow_24.svg"
+            },
+            {
+              "path": "dark/top-left-arrow_32.svg"
+            }
+          ],
+          "aliases": [
+            "default",
+            "pointer-left"
+          ]
+        },
+        {
+          "name": "progress",
+          "sprites": [
+            {
+              "path": "dark/progress_24.svg",
+              "animations": [
+                {
+                  "selector": "#spinner",
+                  "instructions": [
+                    {
+                      "name": "animate",
+                      "arguments": [
+                        1000,
+                        0,
+                        "now"
+                      ]
+                    },
+                    {
+                      "name": "rotate",
+                      "arguments": [
+                        360
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "flips": [
+                "svg > g, #cursor"
+              ]
+            },
+            {
+              "path": "dark/progress_32.svg",
+              "animations": [
+                {
+                  "selector": "#spinner",
+                  "instructions": [
+                    {
+                      "name": "animate",
+                      "arguments": [
+                        1000,
+                        0,
+                        "now"
+                      ]
+                    },
+                    {
+                      "name": "rotate",
+                      "arguments": [
+                        360
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "flips": [
+                "svg > g, #cursor"
+              ]
+            }
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "name": "funky",
+          "cursors": [
+            {
+              "name": "top-left-arrow",
+              "sprites": [
+                {
+                  "path": "dark/funky/top-left-arrow_24.svg"
+                },
+                {
+                  "path": "dark/funky/top-left-arrow_32.svg"
+                }
+              ]
+            }
+          ],
+          "variants": [
+            {
+              "name": "crazy",
+              "cursors": [
+                {
+                  "name": "progress",
+                  "sprites": [
+                    {
+                      "path": "dark/funky/crazy/progress_24.svg",
+                      "animations": [
+                        {
+                          "selector": "#spinner",
+                          "instructions": [
+                            {
+                              "name": "animate",
+                              "arguments": [
+                                1000,
+                                0,
+                                "now"
+                              ]
+                            },
+                            {
+                              "name": "rotate",
+                              "arguments": [
+                                360
+                              ]
+                            }
+                          ]
+                        }
+                      ],
+                      "flips": [
+                        "svg > g, #cursor"
+                      ]
+                    },
+                    {
+                      "path": "dark/funky/crazy/progress_32.svg",
+                      "animations": [
+                        {
+                          "selector": "#spinner",
+                          "instructions": [
+                            {
+                              "name": "animate",
+                              "arguments": [
+                                1000,
+                                0,
+                                "now"
+                              ]
+                            },
+                            {
+                              "name": "rotate",
+                              "arguments": [
+                                360
+                              ]
+                            }
+                          ]
+                        }
+                      ],
+                      "flips": [
+                        "svg > g, #cursor"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "light",
+      "cursors": [
+        {
+          "name": "top-left-arrow",
+          "sprites": [
+            {
+              "path": "light/top-left-arrow_24.svg"
+            },
+            {
+              "path": "light/top-left-arrow_32.svg"
+            }
+          ]
+        },
+        {
+          "name": "progress",
+          "sprites": [
+            {
+              "path": "light/progress_24.svg",
+              "animations": [
+                {
+                  "selector": "#spinner",
+                  "instructions": [
+                    {
+                      "name": "animate",
+                      "arguments": [
+                        1000,
+                        0,
+                        "now"
+                      ]
+                    },
+                    {
+                      "name": "rotate",
+                      "arguments": [
+                        360
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "flips": [
+                "svg > g, #cursor"
+              ]
+            },
+            {
+              "path": "light/progress_32.svg",
+              "animations": [
+                {
+                  "selector": "#spinner",
+                  "instructions": [
+                    {
+                      "name": "animate",
+                      "arguments": [
+                        1000,
+                        0,
+                        "now"
+                      ]
+                    },
+                    {
+                      "name": "rotate",
+                      "arguments": [
+                        360
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "flips": [
+                "svg > g, #cursor"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
