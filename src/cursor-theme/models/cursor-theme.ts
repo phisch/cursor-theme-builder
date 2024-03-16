@@ -1,10 +1,9 @@
-import { Type, Static } from '@sinclair/typebox'
-import { IntersectAllOf } from '../../typebox/intersect-all-of';
+import { Type, Static, Intersect } from '@sinclair/typebox'
 import { UnionOneOf } from '../../typebox/union-one-of';
 import { Animation } from './animation/animation';
 
 export type Sprite = Static<typeof Sprite>;
-export const Sprite = IntersectAllOf([
+export const Sprite = Intersect([
     UnionOneOf([
         Type.Object({ file: Type.String(), svg: Type.Optional(Type.Never()) }),
         Type.Object({ svg: Type.String(), file: Type.Optional(Type.Never()) })
