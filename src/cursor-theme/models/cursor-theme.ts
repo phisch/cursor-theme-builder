@@ -2,6 +2,21 @@ import { Type, Static, Intersect } from '@sinclair/typebox'
 import { UnionOneOf } from '../../typebox/union-one-of';
 import { Animation } from './animation/animation';
 
+export type HotSpotSelector = Static<typeof HotSpotSelector>;
+export const HotSpotSelector = Type.String(
+    {
+        title: "CSS selector",
+        description: "Select an element whose center should be used as the hotspot.",
+        examples: ["#hotspot"]
+    }
+);
+
+export type HotSpot = Static<typeof HotSpot>;
+export const HotSpot = Type.Object({
+    x: Type.Number(),
+    y: Type.Number()
+});
+
 export type Sprite = Static<typeof Sprite>;
 export const Sprite = Intersect([
     UnionOneOf([
@@ -10,7 +25,13 @@ export const Sprite = Intersect([
     ]),
     Type.Object({
         flips: Type.Optional(Type.Array(Type.String())),
-        animations: Type.Optional(Type.Array(Animation))
+        animations: Type.Optional(Type.Array(Animation)),
+        hotSpot: Type.Optional(
+            Type.Union([
+                HotSpot,
+                HotSpotSelector
+            ])
+        )
     })
 ]);
 
