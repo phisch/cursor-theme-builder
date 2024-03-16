@@ -12,7 +12,6 @@ async function run() {
     const themeDescription = core.getInput('theme_description', {required: false}) || undefined;
     
     const targetDirectory = core.getInput('target_directory', {required: false}) || './export';
-    const inlineSprites = core.getInput('inline_sprites', {required: false}) === 'true';
 
     const cursorTheme: CursorTheme = {
       name: themeName,
@@ -26,7 +25,6 @@ async function run() {
       fileKey,
       cursorTheme,
       targetDirectory,
-      { inline_sprites: inlineSprites }
     );
 
     core.setOutput('version', await exporter.export());

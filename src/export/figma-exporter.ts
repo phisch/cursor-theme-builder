@@ -1,9 +1,10 @@
 import { CursorTheme, Sprite, Variant } from "../cursor-theme/models/cursor-theme";
 import * as Figma from 'figma-js';
-import { Animation } from "../cursor-theme/models/animation";
+import { Animation } from "../cursor-theme/models/animation/animation";
 import { existsSync, mkdirSync, promises, writeFileSync } from "fs";
 import axios from "axios";
 import path from "path";
+import sharp from "sharp";
 
 type FigmaSprite = {
     properties: SpriteVariantProperties,
@@ -23,37 +24,21 @@ type SpriteVariantConfig = {
     animations?: Animation[]
 }
 
-type FigmaExporterOptions = {
-    inline_sprites: boolean
-}
-
 
 export class FigmaExporter {
-    private options: FigmaExporterOptions;
     private client: Figma.ClientInterface;
-    private figmaFile: Figma.FileResponse | undefined;
+    private figmaFile: Promise<Figma.FileResponse>;
 
     constructor(
         apiKey: string,
         private fileId: string,
         private cursorTheme: CursorTheme,
-        private targetDirectory: string,
-        options?: FigmaExporterOptions
+        private targetDirectory: string
     ) {
         this.client = Figma.Client({
             personalAccessToken: apiKey
         });
-        this.options = {
-            inline_sprites: false,
-            ...options
-        };
-    }
-
-    private async getFile(): Promise<Figma.FileResponse> {
-        if (!this.figmaFile) {
-            this.figmaFile = (await this.client.file(this.fileId)).data;
-        }
-        return this.figmaFile;
+        this.figmaFile = this.client.file(this.fileId).then(response => response.data);
     }
 
     async export(): Promise<string> {
@@ -65,7 +50,7 @@ export class FigmaExporter {
             path.join(this.targetDirectory, "cursor-theme.json"),
             JSON.stringify(this.cursorTheme, null, 2)
         );
-        return (await this.getFile()).version;
+        return (await this.figmaFile).version;
     }
 
     private parseName(name: string): SpriteVariantProperties {
@@ -86,7 +71,7 @@ export class FigmaExporter {
         const filePath = path.join(
             this.targetDirectory,
             figmaSprite.properties.variant,
-            `${figmaSprite.properties.cursor}_${figmaSprite.properties.size}.svg`
+            `${figmaSprite.properties.cursor}_${await this.getSvgSize(figmaSprite.svg)}.svg`
         );
         if (!existsSync(path.dirname(filePath))) {
             mkdirSync(path.dirname(filePath), { recursive: true });
@@ -96,27 +81,30 @@ export class FigmaExporter {
     }
 
     private async buildSprite(figmaSprite: FigmaSprite): Promise<Sprite> {
-        if (this.options.inline_sprites) {
-            return {
-                svg: figmaSprite.svg,
-                animations: figmaSprite.config.animations,
-                flips: figmaSprite.config.flips
-            }
-        } else {
-            const filePath = await this.saveFigmaSprite(figmaSprite);
-            return {
-                path: filePath,
-                animations: figmaSprite.config.animations,
-                flips: figmaSprite.config.flips
-            }
+        const filePath = await this.saveFigmaSprite(figmaSprite);
+        return {
+            path: filePath,
+            animations: figmaSprite.config.animations,
+            flips: figmaSprite.config.flips
         }
+    }
+
+    private async getSvgSize(svg: string): Promise<number> {
+        const metadata = await sharp(Buffer.from(svg)).metadata();
+        if (!metadata.width || !metadata.height) {
+            throw new Error("Invalid SVG size");
+        } else if (metadata.width !== metadata.height) {
+            throw new Error("SVG sizes are set but not equal");
+        }
+
+        return metadata.width;
     }
 
     private async getVariants(): Promise<Variant[]> {
         const variantMap: Map<string, Variant> = new Map();
 
-        const spriteComponents = Object.entries((await this.getFile()).components).filter(([, component]) => {
-            return component.name.includes("cursor=") && component.name.includes("variant=");
+        const spriteComponents = Object.entries((await this.figmaFile).components).filter(([, component]) => {
+            return component.name.includes("name=") && component.name.includes("variant=");
         });
 
         const spriteComponentImageUrls = (await this.client.fileImages(
