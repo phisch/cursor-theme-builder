@@ -1,9 +1,13 @@
+import { createSVGWindow } from "svgdom";
 import { Animation, AnimationInstruction } from "../cursor-theme/models/animation/animation";
-import { Element, Matrix, Runner, SVG, Timeline } from "@svgdotjs/svg.js";
+import { Element, Matrix, Runner, SVG, Timeline, registerWindow } from "@svgdotjs/svg.js";
 
+const window = createSVGWindow();
+const document = window.document;
+registerWindow(window, document);
 
-type Frame = {
-    svg: string;
+export type Frame = {
+    svg: Element;
     duration: number;
 };
 
@@ -17,13 +21,16 @@ export class SvgAnimator {
 
     private fps = 25;
 
-    constructor(svg: SVGElement | string) {
+    constructor(svg: string, animations?: Animation[]) {
         this.element = SVG(svg);
+        this.applyAnimations(this.element, animations);
     }
 
-    saveFrames(): Frame[] {
+    animate(): Frame[] {
+        if (this.animatedElements.length === 0) {
+            return [{ svg: this.element, duration: 0 }];
+        }
         const frames: Frame[] = [];
-        
         const animationDuration = this.timeline.getEndTime();
         const frameCount = Math.ceil(animationDuration / 1000 * this.fps);
 
@@ -36,17 +43,16 @@ export class SvgAnimator {
                 mergeTransforms.call(element);
             }
             frames.push({
-                svg: this.element.svg(),
+                svg: this.element,
                 duration
             });
         }
-
         return frames;
     }
 
-    applyAnimations(animations: Animation[]) {
-        animations.forEach(animation => {
-            this.applyAnimation(this.element, animation);
+    private applyAnimations(element: Element, animations?: Animation[]) {
+        animations?.forEach(animation => {
+            this.applyAnimation(element, animation);
         });
     }
 
@@ -109,13 +115,13 @@ const lmultiply = (last: any, curr: any): any => last.lmultiplyO(curr);
 const getRunnerTransform = (runner: any): any => runner.transforms;
 
 function mergeTransforms(this: any): void {
-  const runners = this._transformationRunners.runners;
-  const netTransform = runners
-    .map(getRunnerTransform)
-    .reduce(lmultiply, new Matrix());
-  this.transform(netTransform);
-  this._transformationRunners.merge();
-  if (this._transformationRunners.length() === 1) {
-    this._frameId = null;
-  }
+    const runners = this._transformationRunners.runners;
+    const netTransform = runners
+        .map(getRunnerTransform)
+        .reduce(lmultiply, new Matrix());
+    this.transform(netTransform);
+    this._transformationRunners.merge();
+    if (this._transformationRunners.length() === 1) {
+        this._frameId = null;
+    }
 }
