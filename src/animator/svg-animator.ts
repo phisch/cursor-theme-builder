@@ -1,19 +1,13 @@
-import { createSVGWindow } from "svgdom";
 import { Animation, AnimationInstruction } from "../cursor-theme/models/animation/animation";
-import { Element, Matrix, Runner, SVG, Timeline, registerWindow } from "@svgdotjs/svg.js";
-
-const window = createSVGWindow();
-const document = window.document;
-registerWindow(window, document);
+import { Element, Matrix, Runner, SVG, Timeline } from "@svgdotjs/svg.js";
 
 export type Frame = {
     svg: Element;
     duration: number;
+    hotSpot?: { x: number, y: number };
 };
 
 export class SvgAnimator {
-
-    private element: Element;
     private timeline = new Timeline();
 
     runners: Runner[] = [];
@@ -21,8 +15,7 @@ export class SvgAnimator {
 
     private fps = 25;
 
-    constructor(svg: string, animations?: Animation[]) {
-        this.element = SVG(svg);
+    constructor(private element: Element, animations?: Animation[]) {
         this.applyAnimations(this.element, animations);
     }
 
@@ -43,7 +36,7 @@ export class SvgAnimator {
                 mergeTransforms.call(element);
             }
             frames.push({
-                svg: this.element,
+                svg: SVG(this.element.svg()),
                 duration
             });
         }
