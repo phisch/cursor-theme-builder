@@ -49,6 +49,7 @@ if (cursor_theme_editor != null) {
 
 // get the example animation json
 import example_animation from '../example/animation.json'
+import { SVG } from '@svgdotjs/svg.js'
 
 const animation = JSON.stringify(example_animation, null, 2);
 
@@ -61,15 +62,15 @@ const monacoAnimator = monaco.editor.create(animationEditor as HTMLElement, {
     tabSize: 2,
 });
 
-monacoAnimator.onDidChangeModelDecorations((event) => {
+monacoAnimator.onDidChangeModelDecorations((_) => {
     const markers = monaco.editor.getModelMarkers({
         resource: monaco.Uri.parse('inmemory://animation.json'),
     });
 
     if (markers.length == 0) {
-        const animator = new SvgAnimator(document.querySelector('#svg-container svg') as SVGElement);
+        const element = SVG(document.querySelector('#svg-container svg'));
         const animation = JSON.parse(monacoAnimator.getModel()?.getValue()!) as Animation;
-        animator.applyAnimations([animation]);
+        new SvgAnimator(element, [animation]);
     }
 });
 
