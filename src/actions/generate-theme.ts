@@ -23,7 +23,6 @@ async function run() {
 		);
 
 		generator.generate();
-		
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

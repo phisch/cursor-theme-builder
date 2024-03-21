@@ -6,6 +6,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { TypeCompiler } from "@sinclair/typebox/compiler";
 import { SVG, registerWindow } from "@svgdotjs/svg.js";
 import { stringify } from "ini";
 import sharp from "sharp";
@@ -13,13 +14,13 @@ import { createSVGWindow } from "svgdom";
 import { type Frame, SvgAnimator } from "../animator/svg-animator";
 import { type Chunk, type Image, encode } from "../x11/xcursor";
 import {
-	type Cursor, CursorTheme,
+	type Cursor,
+	CursorTheme,
 	type Sprite,
 	type Variant,
 	isHotSpot,
 	isHotSpotSelector,
 } from "./models/cursor-theme";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
 
 const window = createSVGWindow();
 const document = window.document;
@@ -90,16 +91,31 @@ export class CursorThemeGenerator {
 
 		const index: IndexFile = {
 			"Icon Theme": {
-				Name: `${this.cursorTheme.name} (${variant.name})`,
-				...(this.cursorTheme.author && { Author: this.cursorTheme.author }),
-				...(this.cursorTheme.description && {
-					Comment: this.cursorTheme.description,
-				}),
-				...(parent && {
-					Inherits: this.slugify(this.cursorTheme.name, parent.name),
-				}),
+				Name: `${this.cursorTheme.name} (${variant.name}${
+					leftHanded ? " left handed" : ""
+				})`,
 			},
 		};
+
+		if (this.cursorTheme.author) {
+			index["Icon Theme"].Author = this.cursorTheme.author;
+		}
+
+		if (this.cursorTheme.description) {
+			index["Icon Theme"].Comment = this.cursorTheme.description;
+		}
+
+		if (leftHanded) {
+			index["Icon Theme"].Inherits = this.slugify(
+				this.cursorTheme.name,
+				variant.name,
+			);
+		} else if (parent) {
+			index["Icon Theme"].Inherits = this.slugify(
+				this.cursorTheme.name,
+				parent.name,
+			);
+		}
 
 		writeFileSync(
 			path.join(variant_directory, "index.theme"),
