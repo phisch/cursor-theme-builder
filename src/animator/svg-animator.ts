@@ -96,6 +96,9 @@ export class SvgAnimator {
 				case "dy":
 					runner = (runner as Element).dy(args.y);
 					break;
+				case "ease":
+					runner = (runner as Runner).ease(args.kind);
+					break;
 				default:
 					throw new Error(`Unknown animation instruction: ${name}`);
 			}
