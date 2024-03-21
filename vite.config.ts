@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { CursorTheme } from './src/cursor-theme/models/cursor-theme';
+import { CursorTheme, Variant } from './src/cursor-theme/models/cursor-theme';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,11 +12,12 @@ export default defineConfig({
                 const directory = 'dist/schemas';
                 fs.mkdirSync(directory, { recursive: true });
                 fs.writeFileSync(
-                    path.join(
-                        directory,
-                        'cursor-theme.json'
-                    ),
+                    path.join(directory, 'CursorTheme'),
                     JSON.stringify(CursorTheme, null, 2)
+                );
+                fs.writeFileSync(
+                    path.join(directory, 'Variant'),
+                    JSON.stringify(Variant, null, 2)
                 );
             },
         }
