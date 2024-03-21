@@ -83,7 +83,7 @@ export class FigmaExporter {
     private async buildSprite(figmaSprite: FigmaSprite): Promise<Sprite> {
         const filePath = await this.saveFigmaSprite(figmaSprite);
         return {
-            path: filePath,
+            file: filePath,
             animations: figmaSprite.config.animations,
             flips: figmaSprite.config.flips
         }
@@ -104,7 +104,7 @@ export class FigmaExporter {
         const variantMap: Map<string, Variant> = new Map();
 
         const spriteComponents = Object.entries((await this.figmaFile).components).filter(([, component]) => {
-            return component.name.includes("name=") && component.name.includes("variant=");
+            return component.name.includes("cursor=") && component.name.includes("variant=");
         });
 
         const spriteComponentImageUrls = (await this.client.fileImages(

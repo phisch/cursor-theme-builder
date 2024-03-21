@@ -1,6 +1,14 @@
-import { Type, Static, Intersect } from '@sinclair/typebox'
-import { UnionOneOf } from '../../typebox/union-one-of';
+import { Type, Static } from '@sinclair/typebox'
 import { Animation } from './animation/animation';
+
+
+export function isHotSpot(hotSpot?: HotSpot | HotSpotSelector): hotSpot is HotSpot {
+    return hotSpot !== undefined && (hotSpot as HotSpot).x !== undefined && (hotSpot as HotSpot).y !== undefined;
+}
+
+export function isHotSpotSelector(hotSpot?: HotSpot | HotSpotSelector): hotSpot is HotSpotSelector {
+    return typeof hotSpot === 'string';
+}
 
 export type HotSpotSelector = Static<typeof HotSpotSelector>;
 export const HotSpotSelector = Type.String(
@@ -18,22 +26,17 @@ export const HotSpot = Type.Object({
 });
 
 export type Sprite = Static<typeof Sprite>;
-export const Sprite = Intersect([
-    UnionOneOf([
-        Type.Object({ file: Type.String(), svg: Type.Optional(Type.Never()) }),
-        Type.Object({ svg: Type.String(), file: Type.Optional(Type.Never()) })
-    ]),
-    Type.Object({
-        flips: Type.Optional(Type.Array(Type.String())),
-        animations: Type.Optional(Type.Array(Animation)),
-        hotSpot: Type.Optional(
-            Type.Union([
-                HotSpot,
-                HotSpotSelector
-            ])
-        )
-    })
-]);
+export const Sprite = Type.Object({
+    file: Type.String(),
+    flips: Type.Optional(Type.Array(Type.String())),
+    animations: Type.Optional(Type.Array(Animation)),
+    hotSpot: Type.Optional(
+        Type.Union([
+            HotSpot,
+            HotSpotSelector
+        ])
+    )
+});
 
 export type Cursor = Static<typeof Cursor>;
 export const Cursor = Type.Object({
