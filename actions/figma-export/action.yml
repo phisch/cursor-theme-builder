@@ -20,9 +20,6 @@ inputs:
     description: 'Output directory for the `cursor-theme.json` and sprites.'
     required: false
     default: './figma-export'
-  inline_sprites:
-    description: 'Whether to inline the sprites in the `cursor-theme.json`.'
-    required: false
 outputs:
   version:
     description: 'The current version of the Figma file.'
