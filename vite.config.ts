@@ -2,9 +2,17 @@ import { defineConfig } from 'vite';
 import { CursorTheme, Variant } from './src/cursor-theme/models/cursor-theme';
 import fs from 'node:fs';
 import path from 'node:path';
+import biomePlugin from 'vite-plugin-biome';
 
 export default defineConfig({
     plugins: [
+        biomePlugin(
+            {
+                mode: 'lint',
+                files: 'src',
+                failOnError: true,
+            }
+        ),
         {
             name: 'generate-schema',
             apply: 'build',
