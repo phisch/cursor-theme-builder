@@ -26,25 +26,43 @@ THE SOFTWARE.
 
 ---------------------------------------------------------------------------*/
 
-import { TypeRegistry, Kind, Static, TSchema, SchemaOptions } from '@sinclair/typebox'
-import { Value } from '@sinclair/typebox/value'
+import {
+	Kind,
+	type SchemaOptions,
+	type Static,
+	type TSchema,
+	TypeRegistry,
+} from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 
 // -------------------------------------------------------------------------------------
 // TUnionOneOf
 // -------------------------------------------------------------------------------------
 export interface TUnionOneOf<T extends TSchema[]> extends TSchema {
-  [Kind]: 'UnionOneOf'
-  static: { [K in keyof T]: Static<T[K]> }[number]
-  oneOf: T
+	[Kind]: "UnionOneOf";
+	static: { [K in keyof T]: Static<T[K]> }[number];
+	oneOf: T;
 }
 // -------------------------------------------------------------------------------------
 // UnionOneOf
 // -------------------------------------------------------------------------------------
 /** `[Experimental]` Creates a Union type with a `oneOf` schema representation */
-export function UnionOneOf<T extends TSchema[]>(oneOf: [...T], options: SchemaOptions = {}) {
-  function UnionOneOfCheck(schema: TUnionOneOf<TSchema[]>, value: unknown) {
-    return 1 === schema.oneOf.reduce((acc: number, schema: any) => (Value.Check(schema, value) ? acc + 1 : acc), 0)
-  }
-  if (!TypeRegistry.Has('UnionOneOf')) TypeRegistry.Set('UnionOneOf', UnionOneOfCheck)
-  return { ...options, [Kind]: 'UnionOneOf', oneOf } as TUnionOneOf<T>
+export function UnionOneOf<T extends TSchema[]>(
+	oneOf: [...T],
+	options: SchemaOptions = {},
+) {
+	function UnionOneOfCheck(schema: TUnionOneOf<TSchema[]>, value: unknown) {
+		return (
+			1 ===
+			schema.oneOf.reduce(
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				(acc: number, schema: any) =>
+					Value.Check(schema, value) ? acc + 1 : acc,
+				0,
+			)
+		);
+	}
+	if (!TypeRegistry.Has("UnionOneOf"))
+		TypeRegistry.Set("UnionOneOf", UnionOneOfCheck);
+	return { ...options, [Kind]: "UnionOneOf", oneOf } as TUnionOneOf<T>;
 }
