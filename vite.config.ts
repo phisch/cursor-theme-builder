@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { CursorTheme, Variant } from './src/cursor-theme/models/cursor-theme';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export default defineConfig({
     plugins: [
