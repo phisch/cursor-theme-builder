@@ -2,7 +2,6 @@
   "name": "cursor-theme-generator",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -25,21 +24,18 @@
     "@svgdotjs/svg.js": "^3.2.0",
     "@types/ini": "^4.1.0",
     "@types/node": "^20.11.28",
-    "@types/sharp": "^0.32.0",
     "@types/svgdom": "^0.1.2",
-    "@vercel/ncc": "^0.38.1",
+    "@vercel/ncc": "^0.34.0",
     "axios": "^1.6.8",
     "figma-js": "^1.16.1-0",
     "ini": "^4.1.2",
     "monaco-editor": "^0.47.0",
     "sass": "^1.72.0",
-    "sharp": "^0.33.2",
+    "sharp": "^0.32.6",
     "svgdom": "^0.1.19",
     "typescript": "^5.4.2",
     "vite": "^5.1.6",
-    "vite-node": "^1.4.0"
-  },
-  "dependencies": {
+    "vite-node": "^1.4.0",
     "vite-plugin-biome": "^1.0.9"
   }
 }
