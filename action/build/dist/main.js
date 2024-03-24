@@ -29,7 +29,15 @@ import path$3, { dirname, join } from 'node:path';
 import require$$0$b from 'child_process';
 import { fileURLToPath } from 'node:url';
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? glob
+// -- Shims --
+import cjsUrl from 'node:url';
+import cjsPath from 'node:path';
+import cjsModule from 'node:module';
+const __filename = cjsUrl.fileURLToPath(import.meta.url);
+const __dirname = cjsPath.dirname(__filename);
+const require = cjsModule.createRequire(import.meta.url);
+al : typeof self !== 'undefined' ? self : {};
 
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;

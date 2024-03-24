@@ -3,6 +3,7 @@ import license from "rollup-plugin-license";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
+import commonjsShim from "@rollup/plugin-esm-shim";
 
 const config = [
 	{
@@ -14,6 +15,7 @@ const config = [
 		plugins: [
 			typescript(),
 			resolve(),
+			commonjsShim(),
 			commonjs(),
 			json(),
 			license({
@@ -35,6 +37,7 @@ const config = [
 		plugins: [
 			typescript(),
 			resolve(),
+			commonjsShim(),
 			commonjs(),
 			json(),
 			license({
@@ -56,6 +59,7 @@ const config = [
 		plugins: [
 			typescript(),
 			resolve(),
+			commonjsShim(),
 			commonjs(),
 			json(),
 			license({

@@ -27,6 +27,14 @@ import require$$6 from 'string_decoder';
 import require$$0$9 from 'diagnostics_channel';
 import { TypeCompiler } from '@sinclair/typebox/build/require/compiler';
 
+
+// -- Shims --
+import cjsUrl from 'node:url';
+import cjsPath from 'node:path';
+import cjsModule from 'node:module';
+const __filename = cjsUrl.fileURLToPath(import.meta.url);
+const __dirname = cjsPath.dirname(__filename);
+const require = cjsModule.createRequire(import.meta.url);
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function getAugmentedNamespace(n) {
