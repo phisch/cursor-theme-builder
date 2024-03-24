@@ -12,6 +12,7 @@ const config = [
 			file: "action/export/dist/main.js",
 			format: "es",
 		},
+		external: ["sharp"],
 		plugins: [
 			typescript(),
 			resolve(),
@@ -56,6 +57,7 @@ const config = [
 			file: "action/build/dist/main.js",
 			format: "es",
 		},
+		external: ["sharp"],
 		plugins: [
 			typescript(),
 			resolve(),
