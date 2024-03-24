@@ -1,0 +1,50 @@
+name: 'Figma Cursor Theme Asset Export'
+description: 'Downloads cursor theme sprites and generates a `cursor-theme.json` that can be used by the cursor theme generator.'
+inputs:
+  access_token:
+    description: 'Your personal Figma access token.'
+    required: true
+  file_key:
+    description: 'The `key` of the Figma file containing the cursor theme. Can be found in the url to of a figma file. `https://www.figma.com/file/:key/:title`'
+    required: true
+  theme_name:
+    description: 'Name of the cursor theme.'
+    required: true
+  theme_author:
+    description: 'Author of the cursor theme.'
+    required: false
+  theme_comment:
+    description: 'Short comment or description of the cursor theme.'
+    required: false
+  output_directory:
+    description: 'Output directory for the `cursor-theme.json` and sprites.'
+    required: false
+    default: './figma-export'
+outputs:
+  version:
+    description: 'The current version of the Figma file.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm install
+
+    - name: Run
+      working-directory: ${{ github.action_path }}
+      env:
+        FIGMA_ACCESS_TOKEN: ${{ inputs.access_token }}
+        FIGMA_FILE_KEY: ${{ inputs.file_key }}
+        CURSOR_THEME_NAME: ${{ inputs.theme_name }}
+        CURSOR_THEME_AUTHOR: ${{ inputs.theme_author }}
+        CURSOR_THEME_COMMENT: ${{ inputs.theme_comment }}
+        OUTPUT_DIRECTORY: ${{ inputs.output_directory }}
+      run: node dist/main.js
+      shell: bash
