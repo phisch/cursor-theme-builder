@@ -43307,7 +43307,7 @@ class FigmaExporter {
 async function run() {
     try {
         const cursor_theme = {
-            name: coreExports.getInput("cursor_theme_name", { required: true }),
+            name: coreExports.getInput("theme_name", { required: true }),
             variants: [],
         };
         const author_name = coreExports.getInput("author_name", { required: false });

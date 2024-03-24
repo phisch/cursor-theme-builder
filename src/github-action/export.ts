@@ -5,7 +5,7 @@ import { FigmaExporter } from "../export/figma-exporter";
 async function run() {
 	try {
 		const cursor_theme: CursorTheme = {
-			name: core.getInput("cursor_theme_name", { required: true }),
+			name: core.getInput("theme_name", { required: true }),
 			variants: [],
 		};
 

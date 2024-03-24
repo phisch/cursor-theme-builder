@@ -40,11 +40,11 @@ runs:
     - name: Run
       working-directory: ${{ github.action_path }}
       env:
-        INPUT_FIGMA_ACCESS_TOKEN: ${{ inputs.access_token }}
-        INPUT_FIGMA_FILE_KEY: ${{ inputs.file_key }}
-        INPUT_CURSOR_THEME_NAME: ${{ inputs.theme_name }}
-        INPUT_CURSOR_THEME_AUTHOR: ${{ inputs.theme_author }}
-        INPUT_CURSOR_THEME_COMMENT: ${{ inputs.theme_comment }}
+        INPUT_ACCESS_TOKEN: ${{ inputs.access_token }}
+        INPUT_FILE_KEY: ${{ inputs.file_key }}
+        INPUT_THEME_NAME: ${{ inputs.theme_name }}
+        INPUT_THEME_AUTHOR: ${{ inputs.theme_author }}
+        INPUT_THEME_COMMENT: ${{ inputs.theme_comment }}
         INPUT_OUTPUT_DIRECTORY: ${{ inputs.output_directory }}
       run: node dist/main.js
       shell: bash
