@@ -45,6 +45,6 @@ runs:
         INPUT_THEME_NAME: ${{ inputs.theme_name }}
         INPUT_THEME_AUTHOR: ${{ inputs.theme_author }}
         INPUT_THEME_COMMENT: ${{ inputs.theme_comment }}
-        INPUT_OUTPUT_DIRECTORY: ${{ inputs.output_directory }}
+        INPUT_OUTPUT_DIRECTORY: ${{ github.workspace }}/${{ inputs.output_directory }}
       run: node dist/main.js
       shell: bash
