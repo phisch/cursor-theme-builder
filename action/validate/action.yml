@@ -1,0 +1,26 @@
+name: 'Validate cursor-theme.json'
+description: 'Validates a `cursor-theme.json` file.'
+inputs:
+  cursor_theme_json:
+    description: 'The `cursor-theme.json` file to generate the cursor theme from.'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm install
+
+    - name: Run
+      working-directory: ${{ github.action_path }}
+      env:
+        INPUT_CURSOR_THEME_JSON: ${{ github.workspace }}/${{ inputs.cursor_theme_json }}
+      run: node dist/main.js
+      shell: bash
