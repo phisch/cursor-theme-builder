@@ -4,7 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "rollup --config",
+    "build": "npm run rollup",
+    "rollup": "rollup --config",
+    "build-export-action": "npm run rollup action/export/rollup.config.js",
+    "build-validate-action": "npm run rollup action/validate/rollup.config.js",
+    "build-build-action": "npm run rollup action/build/rollup.config.js",
     "lint": "biome check lib/",
     "format": "biome check --apply-unsafe lib/"
   },
