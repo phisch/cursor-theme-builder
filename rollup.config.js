@@ -57,7 +57,7 @@ const config = [
 			file: "action/build/dist/main.js",
 			format: "es",
 		},
-		external: ["sharp"],
+		external: ["sharp", "@svgdotjs/svg.js", "svgdom"],
 		plugins: [
 			typescript(),
 			resolve(),
