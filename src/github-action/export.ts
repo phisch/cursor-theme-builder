@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
-import type { CursorTheme } from "../cursor-theme/models/cursor-theme";
-import { FigmaExporter } from "../export/figma-exporter";
+import type { CursorTheme } from "../models/cursor-theme";
+import { FigmaExtractor } from "../extractor/figma";
 
 async function run() {
 	try {
@@ -19,7 +19,7 @@ async function run() {
 			cursor_theme.description = description;
 		}
 
-		const exporter = new FigmaExporter(
+		const exporter = new FigmaExtractor(
 			core.getInput("access_token", { required: true }),
 			core.getInput("file_key", { required: true }),
 			cursor_theme,

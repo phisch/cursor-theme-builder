@@ -32420,7 +32420,7 @@ const CursorTheme = Type.Object({
 const window$1 = createSVGWindow();
 const document = window$1.document;
 registerWindow(window$1, document);
-class CursorThemeGenerator {
+class CursorThemeBuilder {
     outputDirectory;
     cursorTheme;
     inputDirectory;
@@ -32438,9 +32438,9 @@ class CursorThemeGenerator {
             throw new Error("Cursor theme json file is not valid!");
         }
     }
-    generate() {
+    build() {
         for (const variant of this.cursorTheme.variants) {
-            this.generateVariant(variant);
+            this.buildVariant(variant);
         }
     }
     slugify(...args) {
@@ -32474,20 +32474,20 @@ class CursorThemeGenerator {
         }
         writeFileSync(path.join(variant_directory, "index.theme"), ini.stringify(index));
     }
-    generateVariant(variant, parent) {
+    buildVariant(variant, parent) {
         this.createDirectoryAndIndex(variant, parent);
         const leftHanded = variant.cursors.some((cursor) => cursor.sprites.some((sprite) => sprite.flips));
         if (leftHanded) {
             this.createDirectoryAndIndex(variant, parent, true);
         }
         for (const cursor of variant.cursors) {
-            this.generateCursor(cursor, variant);
+            this.buildCursor(cursor, variant);
         }
         for (const child_variant of variant.variants ?? []) {
-            this.generateVariant(child_variant, variant);
+            this.buildVariant(child_variant, variant);
         }
     }
-    generateLeftHandedFrames(animationFrameMap) {
+    buildLeftHandedFrames(animationFrameMap) {
         const leftHandedAnimationFrameMap = new Map();
         for (const [sprite, frames] of animationFrameMap) {
             if (sprite.flips) {
@@ -32574,7 +32574,7 @@ class CursorThemeGenerator {
             return chunks.sort((a, b) => a.width - b.width);
         });
     }
-    async generateCursor(cursor, variant) {
+    async buildCursor(cursor, variant) {
         const sizes = new Set();
         const frameMap = cursor.sprites.reduce((map, sprite) => {
             const element = SVG(this.getFile(sprite.file));
@@ -32590,7 +32590,7 @@ class CursorThemeGenerator {
         const chunks = await this.framesToChunks(frames, scaleMap);
         this.writeCursorFile(chunks, cursor, variant);
         if (cursor.sprites.find((sprite) => sprite.flips)) {
-            const frameMapLeftHanded = this.generateLeftHandedFrames(frameMap);
+            const frameMapLeftHanded = this.buildLeftHandedFrames(frameMap);
             const framesLeftHanded = cursor.sprites.flatMap((sprite) => this.withHotSpot(
             // biome-ignore lint/style/noNonNullAssertion: <explanation>
             frameMapLeftHanded.get(sprite) ?? frameMap.get(sprite), sprite));
@@ -32630,8 +32630,8 @@ async function run() {
         const outputDirectory = coreExports.getInput("output_directory", {
             required: true,
         });
-        const generator = new CursorThemeGenerator(cursorThemeJson, outputDirectory);
-        generator.generate();
+        const generator = new CursorThemeBuilder(cursorThemeJson, outputDirectory);
+        generator.build();
     }
     catch (error) {
         if (error instanceof Error) {

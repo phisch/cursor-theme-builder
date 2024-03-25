@@ -43177,7 +43177,7 @@ var Client = function (opts) {
     };
 };
 
-class FigmaExporter {
+class FigmaExtractor {
     fileId;
     cursorTheme;
     targetDirectory;
@@ -43318,7 +43318,7 @@ async function run() {
         if (description) {
             cursor_theme.description = description;
         }
-        const exporter = new FigmaExporter(coreExports.getInput("access_token", { required: true }), coreExports.getInput("file_key", { required: true }), cursor_theme, coreExports.getInput("output_directory", { required: true }));
+        const exporter = new FigmaExtractor(coreExports.getInput("access_token", { required: true }), coreExports.getInput("file_key", { required: true }), cursor_theme, coreExports.getInput("output_directory", { required: true }));
         await exporter.export();
     }
     catch (error) {

@@ -29292,7 +29292,7 @@ const CursorTheme = Type.Object({
 
 async function run() {
     try {
-        const cursorThemeJson = coreExports.getInput("input_file", { required: true });
+        const cursorThemeJson = coreExports.getInput("cursor_theme_json", { required: true });
         if (!existsSync(cursorThemeJson)) {
             throw new Error(`Cursor theme json file does not exist: ${cursorThemeJson}`);
         }

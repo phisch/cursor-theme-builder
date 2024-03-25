@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import * as core from "@actions/core";
-import { CursorThemeGenerator } from "../cursor-theme/generator";
+import { CursorThemeBuilder } from "../builder/cursor-theme";
 
 async function run() {
 	try {
@@ -18,12 +18,12 @@ async function run() {
 			required: true,
 		});
 
-		const generator = new CursorThemeGenerator(
+		const generator = new CursorThemeBuilder(
 			cursorThemeJson,
 			outputDirectory,
 		);
 
-		generator.generate();
+		generator.build();
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

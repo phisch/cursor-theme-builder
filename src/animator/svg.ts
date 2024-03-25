@@ -2,7 +2,7 @@ import { type Element, Matrix, Runner, SVG, Timeline } from "@svgdotjs/svg.js";
 import type {
 	Animation,
 	AnimationInstruction,
-} from "../cursor-theme/models/animation/animation";
+} from "../models/animation/animation";
 
 export type Frame = {
 	svg: Element;

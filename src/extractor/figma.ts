@@ -3,12 +3,12 @@ import path from "node:path";
 import axios from "axios";
 import * as Figma from "figma-js";
 import sharp from "sharp";
-import type { Animation } from "../cursor-theme/models/animation/animation";
+import type { Animation } from "../models/animation/animation";
 import type {
 	CursorTheme,
 	Sprite,
 	Variant,
-} from "../cursor-theme/models/cursor-theme";
+} from "../models/cursor-theme";
 
 type FigmaSprite = {
 	properties: SpriteVariantProperties;
@@ -28,7 +28,7 @@ type SpriteVariantConfig = {
 	animations?: Animation[];
 };
 
-export class FigmaExporter {
+export class FigmaExtractor {
 	private client: Figma.ClientInterface;
 	private figmaFile: Promise<Figma.FileResponse>;
 

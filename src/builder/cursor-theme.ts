@@ -11,7 +11,7 @@ import { SVG, registerWindow } from "@svgdotjs/svg.js";
 import { stringify } from "ini";
 import sharp from "sharp";
 import { createSVGWindow } from "svgdom";
-import { type Frame, SvgAnimator } from "../animator/svg-animator";
+import { type Frame, SvgAnimator } from "../animator/svg";
 import { type Chunk, type Image, encode } from "../x11/xcursor";
 import {
 	type Cursor,
@@ -20,7 +20,7 @@ import {
 	type Variant,
 	isHotSpot,
 	isHotSpotSelector,
-} from "./models/cursor-theme";
+} from "../models/cursor-theme";
 
 const window = createSVGWindow();
 const document = window.document;
@@ -35,7 +35,7 @@ type IndexFile = {
 	};
 };
 
-export class CursorThemeGenerator {
+export class CursorThemeBuilder {
 	private cursorTheme: CursorTheme;
 	private inputDirectory: string;
 
@@ -57,9 +57,9 @@ export class CursorThemeGenerator {
 		}
 	}
 
-	generate() {
+	build() {
 		for (const variant of this.cursorTheme.variants) {
-			this.generateVariant(variant);
+			this.buildVariant(variant);
 		}
 	}
 
@@ -123,7 +123,7 @@ export class CursorThemeGenerator {
 		);
 	}
 
-	private generateVariant(variant: Variant, parent?: Variant) {
+	private buildVariant(variant: Variant, parent?: Variant) {
 		this.createDirectoryAndIndex(variant, parent);
 		const leftHanded = variant.cursors.some((cursor) =>
 			cursor.sprites.some((sprite) => sprite.flips),
@@ -132,14 +132,14 @@ export class CursorThemeGenerator {
 			this.createDirectoryAndIndex(variant, parent, true);
 		}
 		for (const cursor of variant.cursors) {
-			this.generateCursor(cursor, variant);
+			this.buildCursor(cursor, variant);
 		}
 		for (const child_variant of variant.variants ?? []) {
-			this.generateVariant(child_variant, variant);
+			this.buildVariant(child_variant, variant);
 		}
 	}
 
-	private generateLeftHandedFrames(
+	private buildLeftHandedFrames(
 		animationFrameMap: Map<Sprite, Frame[]>,
 	): Map<Sprite, Frame[]> {
 		const leftHandedAnimationFrameMap = new Map<Sprite, Frame[]>();
@@ -252,7 +252,7 @@ export class CursorThemeGenerator {
 		});
 	}
 
-	private async generateCursor(cursor: Cursor, variant: Variant) {
+	private async buildCursor(cursor: Cursor, variant: Variant) {
 		const sizes = new Set<number>();
 
 		const frameMap = cursor.sprites.reduce((map, sprite) => {
@@ -273,7 +273,7 @@ export class CursorThemeGenerator {
 		this.writeCursorFile(chunks, cursor, variant);
 
 		if (cursor.sprites.find((sprite) => sprite.flips)) {
-			const frameMapLeftHanded = this.generateLeftHandedFrames(frameMap);
+			const frameMapLeftHanded = this.buildLeftHandedFrames(frameMap);
 			const framesLeftHanded: Frame[] = cursor.sprites.flatMap((sprite) =>
 				this.withHotSpot(
 					// biome-ignore lint/style/noNonNullAssertion: <explanation>
