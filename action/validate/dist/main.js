@@ -25,7 +25,6 @@ import require$$1$3 from 'url';
 import require$$3$1 from 'zlib';
 import require$$6 from 'string_decoder';
 import require$$0$9 from 'diagnostics_channel';
-import { TypeCompiler } from '@sinclair/typebox/build/require/compiler';
 
 
 // -- Shims --
@@ -25855,6 +25854,237 @@ function requireCore () {
 
 var coreExports = requireCore();
 
+// --------------------------------------------------------------------------
+// Iterators
+// --------------------------------------------------------------------------
+/** Returns true if this value is an async iterator */
+function IsAsyncIterator$2(value) {
+    return IsObject$2(value) && Symbol.asyncIterator in value;
+}
+/** Returns true if this value is an iterator */
+function IsIterator$2(value) {
+    return IsObject$2(value) && Symbol.iterator in value;
+}
+// --------------------------------------------------------------------------
+// Object Instances
+// --------------------------------------------------------------------------
+/** Returns true if this value is not an instance of a class */
+function IsStandardObject(value) {
+    return IsObject$2(value) && !IsArray$2(value) && IsFunction$2(value.constructor) && value.constructor.name === 'Object';
+}
+// --------------------------------------------------------------------------
+// JavaScript
+// --------------------------------------------------------------------------
+/** Returns true if this value is a Promise */
+function IsPromise$1(value) {
+    return value instanceof Promise;
+}
+/** Returns true if this value is a Date */
+function IsDate$2(value) {
+    return value instanceof Date && Number.isFinite(value.getTime());
+}
+/** Returns true if the value is a Uint8Array */
+function IsUint8Array$2(value) {
+    return value instanceof globalThis.Uint8Array;
+}
+/** Returns true of this value is an object type */
+function IsObject$2(value) {
+    return value !== null && typeof value === 'object';
+}
+/** Returns true if this value is an array, but not a typed array */
+function IsArray$2(value) {
+    return Array.isArray(value) && !ArrayBuffer.isView(value);
+}
+/** Returns true if this value is an undefined */
+function IsUndefined$2(value) {
+    return value === undefined;
+}
+/** Returns true if this value is an null */
+function IsNull$2(value) {
+    return value === null;
+}
+/** Returns true if this value is an boolean */
+function IsBoolean$2(value) {
+    return typeof value === 'boolean';
+}
+/** Returns true if this value is an number */
+function IsNumber$2(value) {
+    return typeof value === 'number';
+}
+/** Returns true if this value is an integer */
+function IsInteger$1(value) {
+    return IsNumber$2(value) && Number.isInteger(value);
+}
+/** Returns true if this value is bigint */
+function IsBigInt$2(value) {
+    return typeof value === 'bigint';
+}
+/** Returns true if this value is string */
+function IsString$2(value) {
+    return typeof value === 'string';
+}
+/** Returns true if this value is a function */
+function IsFunction$2(value) {
+    return typeof value === 'function';
+}
+/** Returns true if this value is a symbol */
+function IsSymbol$2(value) {
+    return typeof value === 'symbol';
+}
+/** Returns true if this value is a value type such as number, string, boolean */
+function IsValueType(value) {
+    // prettier-ignore
+    return (IsBigInt$2(value) ||
+        IsBoolean$2(value) ||
+        IsNull$2(value) ||
+        IsNumber$2(value) ||
+        IsString$2(value) ||
+        IsSymbol$2(value) ||
+        IsUndefined$2(value));
+}
+
+var TypeSystemPolicy;
+(function (TypeSystemPolicy) {
+    // ------------------------------------------------------------------
+    // TypeSystemPolicy
+    // ------------------------------------------------------------------
+    /** Shared assertion routines used by the value and errors modules */
+    /** Sets whether TypeBox should assert optional properties using the TypeScript `exactOptionalPropertyTypes` assertion policy. The default is `false` */
+    TypeSystemPolicy.ExactOptionalPropertyTypes = false;
+    /** Sets whether arrays should be treated as a kind of objects. The default is `false` */
+    TypeSystemPolicy.AllowArrayObject = false;
+    /** Sets whether `NaN` or `Infinity` should be treated as valid numeric values. The default is `false` */
+    TypeSystemPolicy.AllowNaN = false;
+    /** Sets whether `null` should validate for void types. The default is `false` */
+    TypeSystemPolicy.AllowNullVoid = false;
+    /** Asserts this value using the ExactOptionalPropertyTypes policy */
+    function IsExactOptionalProperty(value, key) {
+        return TypeSystemPolicy.ExactOptionalPropertyTypes ? key in value : value[key] !== undefined;
+    }
+    TypeSystemPolicy.IsExactOptionalProperty = IsExactOptionalProperty;
+    /** Asserts this value using the AllowArrayObjects policy */
+    function IsObjectLike(value) {
+        const isObject = IsObject$2(value);
+        return TypeSystemPolicy.AllowArrayObject ? isObject : isObject && !IsArray$2(value);
+    }
+    TypeSystemPolicy.IsObjectLike = IsObjectLike;
+    /** Asserts this value as a record using the AllowArrayObjects policy */
+    function IsRecordLike(value) {
+        return IsObjectLike(value) && !(value instanceof Date) && !(value instanceof Uint8Array);
+    }
+    TypeSystemPolicy.IsRecordLike = IsRecordLike;
+    /** Asserts this value using the AllowNaN policy */
+    function IsNumberLike(value) {
+        const isNumber = IsNumber$2(value);
+        return TypeSystemPolicy.AllowNaN ? isNumber : isNumber && Number.isFinite(value);
+    }
+    TypeSystemPolicy.IsNumberLike = IsNumberLike;
+    /** Asserts this value using the AllowVoidNull policy */
+    function IsVoidLike(value) {
+        const isUndefined = IsUndefined$2(value);
+        return TypeSystemPolicy.AllowNullVoid ? isUndefined || value === null : isUndefined;
+    }
+    TypeSystemPolicy.IsVoidLike = IsVoidLike;
+})(TypeSystemPolicy || (TypeSystemPolicy = {}));
+
+/** A registry for user defined string formats */
+const map$1 = new Map();
+/** Returns true if the user defined string format exists */
+function Has$1(format) {
+    return map$1.has(format);
+}
+/** Sets a validation function for a user defined string format */
+function Set$2(format, func) {
+    map$1.set(format, func);
+}
+/** Gets a validation function for a user defined string format */
+function Get$1(format) {
+    return map$1.get(format);
+}
+
+/** A registry for user defined types */
+const map = new Map();
+/** Returns true if this registry contains this kind */
+function Has(kind) {
+    return map.has(kind);
+}
+/** Sets a validation function for a user defined type */
+function Set$1(kind, func) {
+    map.set(kind, func);
+}
+/** Gets a custom validation function for a user defined type */
+function Get(kind) {
+    return map.get(kind);
+}
+
+/** Symbol key applied to transform types */
+const TransformKind = Symbol.for('TypeBox.Transform');
+/** Symbol key applied to readonly types */
+const ReadonlyKind = Symbol.for('TypeBox.Readonly');
+/** Symbol key applied to optional types */
+const OptionalKind = Symbol.for('TypeBox.Optional');
+/** Symbol key applied to types */
+const Hint = Symbol.for('TypeBox.Hint');
+/** Symbol key applied to types */
+const Kind = Symbol.for('TypeBox.Kind');
+
+/** `[Json]` Creates a Unsafe type that will infers as the generic argument T */
+function Unsafe(options = {}) {
+    return {
+        ...options,
+        [Kind]: options[Kind] ?? 'Unsafe',
+    };
+}
+
+/** The base Error type thrown for all TypeBox exceptions  */
+class TypeBoxError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
+
+// ------------------------------------------------------------------
+// Errors
+// ------------------------------------------------------------------
+class TypeSystemDuplicateTypeKind extends TypeBoxError {
+    constructor(kind) {
+        super(`Duplicate type kind '${kind}' detected`);
+    }
+}
+class TypeSystemDuplicateFormat extends TypeBoxError {
+    constructor(kind) {
+        super(`Duplicate string format '${kind}' detected`);
+    }
+}
+/** Creates user defined types and formats and provides overrides for value checking behaviours */
+var TypeSystem;
+(function (TypeSystem) {
+    /** Creates a new type */
+    function Type(kind, check) {
+        if (Has(kind))
+            throw new TypeSystemDuplicateTypeKind(kind);
+        Set$1(kind, check);
+        return (options = {}) => Unsafe({ ...options, [Kind]: kind });
+    }
+    TypeSystem.Type = Type;
+    /** Creates a new string format */
+    function Format(format, check) {
+        if (Has$1(format))
+            throw new TypeSystemDuplicateFormat(format);
+        Set$2(format, check);
+        return format;
+    }
+    TypeSystem.Format = Format;
+})(TypeSystem || (TypeSystem = {}));
+
+// prettier-ignore
+function MappedResult(properties) {
+    return {
+        [Kind]: 'MappedResult',
+        properties
+    };
+}
+
 /** Returns true if this value is an async iterator */
 function IsAsyncIterator$1(value) {
     return IsObject$1(value) && !IsArray$1(value) && !IsUint8Array$1(value) && Symbol.asyncIterator in value;
@@ -25916,35 +26146,35 @@ function IsUndefined$1(value) {
     return value === undefined;
 }
 
-function ArrayType(value) {
-    return value.map((value) => Visit$2(value));
+function ArrayType$1(value) {
+    return value.map((value) => Visit$8(value));
 }
-function DateType(value) {
+function DateType$1(value) {
     return new Date(value.getTime());
 }
-function Uint8ArrayType(value) {
+function Uint8ArrayType$1(value) {
     return new Uint8Array(value);
 }
 function RegExpType(value) {
     return new RegExp(value.source, value.flags);
 }
-function ObjectType(value) {
-    const clonedProperties = Object.getOwnPropertyNames(value).reduce((acc, key) => ({ ...acc, [key]: Visit$2(value[key]) }), {});
-    const clonedSymbols = Object.getOwnPropertySymbols(value).reduce((acc, key) => ({ ...acc, [key]: Visit$2(value[key]) }), {});
+function ObjectType$1(value) {
+    const clonedProperties = Object.getOwnPropertyNames(value).reduce((acc, key) => ({ ...acc, [key]: Visit$8(value[key]) }), {});
+    const clonedSymbols = Object.getOwnPropertySymbols(value).reduce((acc, key) => ({ ...acc, [key]: Visit$8(value[key]) }), {});
     return { ...clonedProperties, ...clonedSymbols };
 }
 // prettier-ignore
-function Visit$2(value) {
-    return (IsArray$1(value) ? ArrayType(value) :
-        IsDate$1(value) ? DateType(value) :
-            IsUint8Array$1(value) ? Uint8ArrayType(value) :
+function Visit$8(value) {
+    return (IsArray$1(value) ? ArrayType$1(value) :
+        IsDate$1(value) ? DateType$1(value) :
+            IsUint8Array$1(value) ? Uint8ArrayType$1(value) :
                 IsRegExp$1(value) ? RegExpType(value) :
-                    IsObject$1(value) ? ObjectType(value) :
+                    IsObject$1(value) ? ObjectType$1(value) :
                         value);
 }
 /** Clones a value */
 function Clone(value) {
-    return Visit$2(value);
+    return Visit$8(value);
 }
 
 /** Clones a Rest */
@@ -25956,23 +26186,64 @@ function CloneType(schema, options = {}) {
     return { ...Clone(schema), ...options };
 }
 
-/** The base Error type thrown for all TypeBox exceptions  */
-class TypeBoxError extends Error {
-    constructor(message) {
-        super(message);
-    }
+function DiscardKey(value, key) {
+    const { [key]: _, ...rest } = value;
+    return rest;
+}
+function Discard(value, keys) {
+    return keys.reduce((acc, key) => DiscardKey(acc, key), value);
 }
 
-/** Symbol key applied to transform types */
-const TransformKind = Symbol.for('TypeBox.Transform');
-/** Symbol key applied to readonly types */
-const ReadonlyKind = Symbol.for('TypeBox.Readonly');
-/** Symbol key applied to optional types */
-const OptionalKind = Symbol.for('TypeBox.Optional');
-/** Symbol key applied to types */
-const Hint = Symbol.for('TypeBox.Hint');
-/** Symbol key applied to types */
-const Kind = Symbol.for('TypeBox.Kind');
+/** `[Json]` Creates an Array type */
+function Array$1(schema, options = {}) {
+    return {
+        ...options,
+        [Kind]: 'Array',
+        type: 'array',
+        items: CloneType(schema),
+    };
+}
+
+/** `[JavaScript]` Creates a AsyncIterator type */
+function AsyncIterator(items, options = {}) {
+    return {
+        ...options,
+        [Kind]: 'AsyncIterator',
+        type: 'AsyncIterator',
+        items: CloneType(items),
+    };
+}
+
+/** `[JavaScript]` Creates a Constructor type */
+function Constructor(parameters, returns, options) {
+    return {
+        ...options,
+        [Kind]: 'Constructor',
+        type: 'Constructor',
+        parameters: CloneRest(parameters),
+        returns: CloneType(returns),
+    };
+}
+
+/** `[JavaScript]` Creates a Function type */
+function Function(parameters, returns, options) {
+    return {
+        ...options,
+        [Kind]: 'Function',
+        type: 'Function',
+        parameters: CloneRest(parameters),
+        returns: CloneType(returns),
+    };
+}
+
+/** `[Json]` Creates a Never type */
+function Never(options = {}) {
+    return {
+        ...options,
+        [Kind]: 'Never',
+        not: {},
+    };
+}
 
 const KnownTypes = [
     'Any',
@@ -26441,115 +26712,92 @@ function IsSchema(value) {
         IsKind(value));
 }
 
-const PatternBoolean = '(true|false)';
-const PatternNumber = '(0|[1-9][0-9]*)';
-const PatternString = '(.*)';
-const PatternNumberExact = `^${PatternNumber}$`;
-const PatternStringExact = `^${PatternString}$`;
-
-/** Returns true if element right is in the set of left */
-// prettier-ignore
-function SetIncludes(T, S) {
-    return T.includes(S);
+function RemoveOptional(schema) {
+    return Discard(CloneType(schema), [OptionalKind]);
 }
-/** Returns a distinct set of elements */
-function SetDistinct(T) {
-    return [...new Set(T)];
-}
-/** Returns the Intersect of the given sets */
-function SetIntersect(T, S) {
-    return T.filter((L) => S.includes(L));
+function AddOptional(schema) {
+    return { ...CloneType(schema), [OptionalKind]: 'Optional' };
 }
 // prettier-ignore
-function SetIntersectManyResolve(T, Init) {
-    return T.reduce((Acc, L) => {
-        return SetIntersect(Acc, L);
-    }, Init);
+function OptionalWithFlag(schema, F) {
+    return (F === false
+        ? RemoveOptional(schema)
+        : AddOptional(schema));
 }
-// prettier-ignore
-function SetIntersectMany(T) {
-    return (T.length === 1
-        ? T[0]
-        // Use left to initialize the accumulator for resolve
-        : T.length > 1
-            ? SetIntersectManyResolve(T.slice(1), T[0])
-            : []);
-}
-/** Returns the Union of multiple sets */
-function SetUnionMany(T) {
-    return T.reduce((Acc, L) => [...Acc, ...L], []);
-}
-
-/** `[Json]` Creates an Any type */
-function Any(options = {}) {
-    return { ...options, [Kind]: 'Any' };
-}
-
-/** `[Json]` Creates an Array type */
-function Array$1(schema, options = {}) {
-    return {
-        ...options,
-        [Kind]: 'Array',
-        type: 'array',
-        items: CloneType(schema),
-    };
-}
-
-/** `[JavaScript]` Creates a AsyncIterator type */
-function AsyncIterator(items, options = {}) {
-    return {
-        ...options,
-        [Kind]: 'AsyncIterator',
-        type: 'AsyncIterator',
-        items: CloneType(items),
-    };
-}
-
-function DiscardKey(value, key) {
-    const { [key]: _, ...rest } = value;
-    return rest;
-}
-function Discard(value, keys) {
-    return keys.reduce((acc, key) => DiscardKey(acc, key), value);
-}
-
-/** `[Json]` Creates a Never type */
-function Never(options = {}) {
-    return {
-        ...options,
-        [Kind]: 'Never',
-        not: {},
-    };
+/** `[Json]` Creates a Optional property */
+function Optional(schema, enable) {
+    const F = enable ?? true;
+    return IsMappedResult(schema) ? OptionalFromMappedResult(schema, F) : OptionalWithFlag(schema, F);
 }
 
 // prettier-ignore
-function MappedResult(properties) {
-    return {
-        [Kind]: 'MappedResult',
-        properties
-    };
+function FromProperties$i(P, F) {
+    return globalThis.Object.getOwnPropertyNames(P).reduce((Acc, K2) => {
+        return { ...Acc, [K2]: Optional(P[K2], F) };
+    }, {});
+}
+// prettier-ignore
+function FromMappedResult$b(R, F) {
+    return FromProperties$i(R.properties, F);
+}
+// prettier-ignore
+function OptionalFromMappedResult(R, F) {
+    const P = FromMappedResult$b(R, F);
+    return MappedResult(P);
 }
 
-/** `[JavaScript]` Creates a Constructor type */
-function Constructor(parameters, returns, options) {
-    return {
-        ...options,
-        [Kind]: 'Constructor',
-        type: 'Constructor',
-        parameters: CloneRest(parameters),
-        returns: CloneType(returns),
-    };
+// ------------------------------------------------------------------
+// IntersectCreate
+// ------------------------------------------------------------------
+// prettier-ignore
+function IntersectCreate(T, options) {
+    const allObjects = T.every((schema) => IsObject(schema));
+    const clonedUnevaluatedProperties = IsSchema(options.unevaluatedProperties)
+        ? { unevaluatedProperties: CloneType(options.unevaluatedProperties) }
+        : {};
+    return ((options.unevaluatedProperties === false || IsSchema(options.unevaluatedProperties) || allObjects
+        ? { ...options, ...clonedUnevaluatedProperties, [Kind]: 'Intersect', type: 'object', allOf: CloneRest(T) }
+        : { ...options, ...clonedUnevaluatedProperties, [Kind]: 'Intersect', allOf: CloneRest(T) }));
 }
 
-/** `[JavaScript]` Creates a Function type */
-function Function(parameters, returns, options) {
-    return {
-        ...options,
-        [Kind]: 'Function',
-        type: 'Function',
-        parameters: CloneRest(parameters),
-        returns: CloneType(returns),
-    };
+// prettier-ignore
+function IsIntersectOptional(T) {
+    return T.every(L => IsOptional(L));
+}
+// prettier-ignore
+function RemoveOptionalFromType$1(T) {
+    return (Discard(T, [OptionalKind]));
+}
+// prettier-ignore
+function RemoveOptionalFromRest$1(T) {
+    return T.map(L => IsOptional(L) ? RemoveOptionalFromType$1(L) : L);
+}
+// prettier-ignore
+function ResolveIntersect(T, options) {
+    return (IsIntersectOptional(T)
+        ? Optional(IntersectCreate(RemoveOptionalFromRest$1(T), options))
+        : IntersectCreate(RemoveOptionalFromRest$1(T), options));
+}
+/** `[Json]` Creates an evaluated Intersect type */
+function IntersectEvaluated(T, options = {}) {
+    if (T.length === 0)
+        return Never(options);
+    if (T.length === 1)
+        return CloneType(T[0], options);
+    if (T.some((schema) => IsTransform(schema)))
+        throw new Error('Cannot intersect transform types');
+    return ResolveIntersect(T, options);
+}
+
+/** `[Json]` Creates an evaluated Intersect type */
+function Intersect$1(T, options = {}) {
+    if (T.length === 0)
+        return Never(options);
+    if (T.length === 1)
+        return CloneType(T[0], options);
+    if (T.some((schema) => IsTransform(schema)))
+        throw new Error('Cannot intersect transform types');
+    return IntersectCreate(T, options);
 }
 
 function UnionCreate(T, options) {
@@ -26561,18 +26809,18 @@ function IsUnionOptional(T) {
     return T.some(L => IsOptional(L));
 }
 // prettier-ignore
-function RemoveOptionalFromRest$1(T) {
-    return T.map(L => IsOptional(L) ? RemoveOptionalFromType$1(L) : L);
+function RemoveOptionalFromRest(T) {
+    return T.map(L => IsOptional(L) ? RemoveOptionalFromType(L) : L);
 }
 // prettier-ignore
-function RemoveOptionalFromType$1(T) {
+function RemoveOptionalFromType(T) {
     return (Discard(T, [OptionalKind]));
 }
 // prettier-ignore
 function ResolveUnion(T, options) {
     return (IsUnionOptional(T)
-        ? Optional(UnionCreate(RemoveOptionalFromRest$1(T), options))
-        : UnionCreate(RemoveOptionalFromRest$1(T), options));
+        ? Optional(UnionCreate(RemoveOptionalFromRest(T), options))
+        : UnionCreate(RemoveOptionalFromRest(T), options));
 }
 /** `[Json]` Creates an evaluated Union type */
 function UnionEvaluated(T, options = {}) {
@@ -26583,7 +26831,7 @@ function UnionEvaluated(T, options = {}) {
 }
 
 /** `[Json]` Creates a Union type */
-function Union(T, options = {}) {
+function Union$1(T, options = {}) {
     // prettier-ignore
     return (T.length === 0 ? Never(options) :
         T.length === 1 ? CloneType(T[0], options) :
@@ -26876,7 +27124,7 @@ function Boolean$1(options = {}) {
 }
 
 /** `[JavaScript]` Creates a BigInt type */
-function BigInt(options = {}) {
+function BigInt$1(options = {}) {
     return {
         ...options,
         [Kind]: 'BigInt',
@@ -26902,11 +27150,11 @@ function String$1(options = {}) {
 // SyntaxParsers
 // ------------------------------------------------------------------
 // prettier-ignore
-function* FromUnion$8(syntax) {
+function* FromUnion$d(syntax) {
     const trim = syntax.trim().replace(/"|'/g, '');
     return (trim === 'boolean' ? yield Boolean$1() :
         trim === 'number' ? yield Number$1() :
-            trim === 'bigint' ? yield BigInt() :
+            trim === 'bigint' ? yield BigInt$1() :
                 trim === 'string' ? yield String$1() :
                     yield (() => {
                         const literals = trim.split('|').map((literal) => Literal(literal.trim()));
@@ -26924,7 +27172,7 @@ function* FromTerminal(syntax) {
     }
     for (let i = 2; i < syntax.length; i++) {
         if (syntax[i] === '}') {
-            const L = FromUnion$8(syntax.slice(2, i));
+            const L = FromUnion$d(syntax.slice(2, i));
             const R = FromSyntax(syntax.slice(i + 1));
             return yield* [...L, ...R];
         }
@@ -26947,6 +27195,12 @@ function TemplateLiteralSyntax(syntax) {
     return [...FromSyntax(syntax)];
 }
 
+const PatternBoolean = '(true|false)';
+const PatternNumber = '(0|[1-9][0-9]*)';
+const PatternString = '(.*)';
+const PatternNumberExact = `^${PatternNumber}$`;
+const PatternStringExact = `^${PatternString}$`;
+
 // ------------------------------------------------------------------
 // TemplateLiteralPatternError
 // ------------------------------------------------------------------
@@ -26959,9 +27213,9 @@ function Escape(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 // prettier-ignore
-function Visit$1(schema, acc) {
+function Visit$7(schema, acc) {
     return (IsTemplateLiteral(schema) ? schema.pattern.slice(1, schema.pattern.length - 1) :
-        IsUnion(schema) ? `(${schema.anyOf.map((schema) => Visit$1(schema, acc)).join('|')})` :
+        IsUnion(schema) ? `(${schema.anyOf.map((schema) => Visit$7(schema, acc)).join('|')})` :
             IsNumber(schema) ? `${acc}${PatternNumber}` :
                 IsInteger(schema) ? `${acc}${PatternNumber}` :
                     IsBigInt(schema) ? `${acc}${PatternNumber}` :
@@ -26971,7 +27225,7 @@ function Visit$1(schema, acc) {
                                     (() => { throw new TemplateLiteralPatternError(`Unexpected Kind '${schema[Kind]}'`); })());
 }
 function TemplateLiteralPattern(kinds) {
-    return `^${kinds.map((schema) => Visit$1(schema, '')).join('')}\$`;
+    return `^${kinds.map((schema) => Visit$7(schema, '')).join('')}\$`;
 }
 
 /** Returns a Union from the given TemplateLiteral */
@@ -26991,45 +27245,45 @@ function TemplateLiteral(unresolved, options = {}) {
 }
 
 // prettier-ignore
-function FromTemplateLiteral$2(T) {
+function FromTemplateLiteral$4(T) {
     const R = TemplateLiteralGenerate(T);
     return R.map(S => S.toString());
 }
 // prettier-ignore
-function FromUnion$7(T) {
+function FromUnion$c(T) {
     return T.reduce((Acc, L) => {
         return [...Acc, ...IndexPropertyKeys(L)];
     }, []);
 }
 // prettier-ignore
-function FromLiteral$1(T) {
+function FromLiteral$3(T) {
     return ([T.toString()] // TS 5.4 observes TLiteralValue as not having a toString()
     );
 }
 /** Returns a tuple of PropertyKeys derived from the given TSchema */
 // prettier-ignore
 function IndexPropertyKeys(T) {
-    return [...new Set((IsTemplateLiteral(T) ? FromTemplateLiteral$2(T) :
-            IsUnion(T) ? FromUnion$7(T.anyOf) :
-                IsLiteral(T) ? FromLiteral$1(T.const) :
+    return [...new Set((IsTemplateLiteral(T) ? FromTemplateLiteral$4(T) :
+            IsUnion(T) ? FromUnion$c(T.anyOf) :
+                IsLiteral(T) ? FromLiteral$3(T.const) :
                     IsNumber(T) ? ['[number]'] :
                         IsInteger(T) ? ['[number]'] :
                             []))];
 }
 
 // prettier-ignore
-function FromProperties$i(T, P, options) {
+function FromProperties$h(T, P, options) {
     return globalThis.Object.getOwnPropertyNames(P).reduce((Acc, K2) => {
         return { ...Acc, [K2]: Index(T, IndexPropertyKeys(P[K2]), options) };
     }, {});
 }
 // prettier-ignore
-function FromMappedResult$b(T, R, options) {
-    return FromProperties$i(T, R.properties, options);
+function FromMappedResult$a(T, R, options) {
+    return FromProperties$h(T, R.properties, options);
 }
 // prettier-ignore
 function IndexFromMappedResult(T, R, options) {
-    const P = FromMappedResult$b(T, R, options);
+    const P = FromMappedResult$a(T, R, options);
     return MappedResult(P);
 }
 
@@ -27042,7 +27296,7 @@ function FromIntersectRest(T) {
     return T.filter(L => !IsNever(L));
 }
 // prettier-ignore
-function FromIntersect$6(T, K) {
+function FromIntersect$b(T, K) {
     return (IntersectEvaluated(FromIntersectRest(FromRest$7(T, K))));
 }
 // prettier-ignore
@@ -27052,17 +27306,17 @@ function FromUnionRest(T) {
         : T);
 }
 // prettier-ignore
-function FromUnion$6(T, K) {
+function FromUnion$b(T, K) {
     return (UnionEvaluated(FromUnionRest(FromRest$7(T, K))));
 }
 // prettier-ignore
-function FromTuple$3(T, K) {
+function FromTuple$8(T, K) {
     return (K in T ? T[K] :
         K === '[number]' ? UnionEvaluated(T) :
             Never());
 }
 // prettier-ignore
-function FromArray$4(T, K) {
+function FromArray$9(T, K) {
     return (K === '[number]'
         ? T
         : Never());
@@ -27073,10 +27327,10 @@ function FromProperty$1(T, K) {
 }
 // prettier-ignore
 function IndexFromPropertyKey(T, K) {
-    return (IsIntersect(T) ? FromIntersect$6(T.allOf, K) :
-        IsUnion(T) ? FromUnion$6(T.anyOf, K) :
-            IsTuple(T) ? FromTuple$3(T.items ?? [], K) :
-                IsArray(T) ? FromArray$4(T.items, K) :
+    return (IsIntersect(T) ? FromIntersect$b(T.allOf, K) :
+        IsUnion(T) ? FromUnion$b(T.anyOf, K) :
+            IsTuple(T) ? FromTuple$8(T.items ?? [], K) :
+                IsArray(T) ? FromArray$9(T.items, K) :
                     IsObject(T) ? FromProperty$1(T.properties, K) :
                         Never());
 }
@@ -27170,18 +27424,18 @@ function Readonly(schema, enable) {
 }
 
 // prettier-ignore
-function FromProperties$h(K, F) {
+function FromProperties$g(K, F) {
     return globalThis.Object.getOwnPropertyNames(K).reduce((Acc, K2) => {
         return { ...Acc, [K2]: Readonly(K[K2], F) };
     }, {});
 }
 // prettier-ignore
-function FromMappedResult$a(R, F) {
-    return FromProperties$h(R.properties, F);
+function FromMappedResult$9(R, F) {
+    return FromProperties$g(R.properties, F);
 }
 // prettier-ignore
 function ReadonlyFromMappedResult(R, F) {
-    const P = FromMappedResult$a(R, F);
+    const P = FromMappedResult$9(R, F);
     return MappedResult(P);
 }
 
@@ -27195,8 +27449,41 @@ function Tuple(items, options = {}) {
         { ...options, [Kind]: 'Tuple', type: 'array', minItems, maxItems });
 }
 
+/** Returns true if element right is in the set of left */
 // prettier-ignore
-function FromMappedResult$9(K, P) {
+function SetIncludes(T, S) {
+    return T.includes(S);
+}
+/** Returns a distinct set of elements */
+function SetDistinct(T) {
+    return [...new Set(T)];
+}
+/** Returns the Intersect of the given sets */
+function SetIntersect(T, S) {
+    return T.filter((L) => S.includes(L));
+}
+// prettier-ignore
+function SetIntersectManyResolve(T, Init) {
+    return T.reduce((Acc, L) => {
+        return SetIntersect(Acc, L);
+    }, Init);
+}
+// prettier-ignore
+function SetIntersectMany(T) {
+    return (T.length === 1
+        ? T[0]
+        // Use left to initialize the accumulator for resolve
+        : T.length > 1
+            ? SetIntersectManyResolve(T.slice(1), T[0])
+            : []);
+}
+/** Returns the Union of multiple sets */
+function SetUnionMany(T) {
+    return T.reduce((Acc, L) => [...Acc, ...L], []);
+}
+
+// prettier-ignore
+function FromMappedResult$8(K, P) {
     return (K in P
         ? FromSchemaType(K, P[K])
         : MappedResult(P));
@@ -27220,14 +27507,14 @@ function MappedKeyToMappedResultProperties(K, P) {
 // prettier-ignore
 function FromMappedKey$3(K, P) {
     const R = MappedKeyToMappedResultProperties(K, P);
-    return FromMappedResult$9(K, R);
+    return FromMappedResult$8(K, R);
 }
 // prettier-ignore
 function FromRest$6(K, T) {
     return T.map(L => FromSchemaType(K, L));
 }
 // prettier-ignore
-function FromProperties$g(K, T) {
+function FromProperties$f(K, T) {
     return globalThis.Object.getOwnPropertyNames(T).reduce((Acc, K2) => {
         return { ...Acc, [K2]: FromSchemaType(K, T[K2]) };
     }, {});
@@ -27239,17 +27526,17 @@ function FromSchemaType(K, T) {
     IsOptional(T) ? Optional(FromSchemaType(K, Discard(T, [OptionalKind]))) :
         IsReadonly(T) ? Readonly(FromSchemaType(K, Discard(T, [ReadonlyKind]))) :
             // unevaluated mapped types
-            IsMappedResult(T) ? FromMappedResult$9(K, T.properties) :
+            IsMappedResult(T) ? FromMappedResult$8(K, T.properties) :
                 IsMappedKey(T) ? FromMappedKey$3(K, T.keys) :
                     // unevaluated types
                     IsConstructor(T) ? Constructor(FromRest$6(K, T.parameters), FromSchemaType(K, T.returns)) :
                         IsFunction(T) ? Function(FromRest$6(K, T.parameters), FromSchemaType(K, T.returns)) :
                             IsAsyncIterator(T) ? AsyncIterator(FromSchemaType(K, T.items)) :
                                 IsIterator(T) ? Iterator(FromSchemaType(K, T.items)) :
-                                    IsIntersect(T) ? Intersect(FromRest$6(K, T.allOf)) :
-                                        IsUnion(T) ? Union(FromRest$6(K, T.anyOf)) :
+                                    IsIntersect(T) ? Intersect$1(FromRest$6(K, T.allOf)) :
+                                        IsUnion(T) ? Union$1(FromRest$6(K, T.anyOf)) :
                                             IsTuple(T) ? Tuple(FromRest$6(K, T.items ?? [])) :
-                                                IsObject(T) ? Object$1(FromProperties$g(K, T.properties)) :
+                                                IsObject(T) ? Object$1(FromProperties$f(K, T.properties)) :
                                                     IsArray(T) ? Array$1(FromSchemaType(K, T.items)) :
                                                         IsPromise(T) ? Promise$1(FromSchemaType(K, T.item)) :
                                                             T);
@@ -27268,149 +27555,30 @@ function Mapped(key, map, options = {}) {
     return CloneType(Object$1(R), options);
 }
 
-function RemoveOptional(schema) {
-    return Discard(CloneType(schema), [OptionalKind]);
-}
-function AddOptional(schema) {
-    return { ...CloneType(schema), [OptionalKind]: 'Optional' };
-}
-// prettier-ignore
-function OptionalWithFlag(schema, F) {
-    return (F === false
-        ? RemoveOptional(schema)
-        : AddOptional(schema));
-}
-/** `[Json]` Creates a Optional property */
-function Optional(schema, enable) {
-    const F = enable ?? true;
-    return IsMappedResult(schema) ? OptionalFromMappedResult(schema, F) : OptionalWithFlag(schema, F);
-}
-
-// prettier-ignore
-function FromProperties$f(P, F) {
-    return globalThis.Object.getOwnPropertyNames(P).reduce((Acc, K2) => {
-        return { ...Acc, [K2]: Optional(P[K2], F) };
-    }, {});
-}
-// prettier-ignore
-function FromMappedResult$8(R, F) {
-    return FromProperties$f(R.properties, F);
-}
-// prettier-ignore
-function OptionalFromMappedResult(R, F) {
-    const P = FromMappedResult$8(R, F);
-    return MappedResult(P);
-}
-
-// ------------------------------------------------------------------
-// IntersectCreate
-// ------------------------------------------------------------------
-// prettier-ignore
-function IntersectCreate(T, options) {
-    const allObjects = T.every((schema) => IsObject(schema));
-    const clonedUnevaluatedProperties = IsSchema(options.unevaluatedProperties)
-        ? { unevaluatedProperties: CloneType(options.unevaluatedProperties) }
-        : {};
-    return ((options.unevaluatedProperties === false || IsSchema(options.unevaluatedProperties) || allObjects
-        ? { ...options, ...clonedUnevaluatedProperties, [Kind]: 'Intersect', type: 'object', allOf: CloneRest(T) }
-        : { ...options, ...clonedUnevaluatedProperties, [Kind]: 'Intersect', allOf: CloneRest(T) }));
-}
-
-// prettier-ignore
-function IsIntersectOptional(T) {
-    return T.every(L => IsOptional(L));
-}
-// prettier-ignore
-function RemoveOptionalFromType(T) {
-    return (Discard(T, [OptionalKind]));
-}
-// prettier-ignore
-function RemoveOptionalFromRest(T) {
-    return T.map(L => IsOptional(L) ? RemoveOptionalFromType(L) : L);
-}
-// prettier-ignore
-function ResolveIntersect(T, options) {
-    return (IsIntersectOptional(T)
-        ? Optional(IntersectCreate(RemoveOptionalFromRest(T), options))
-        : IntersectCreate(RemoveOptionalFromRest(T), options));
-}
-/** `[Json]` Creates an evaluated Intersect type */
-function IntersectEvaluated(T, options = {}) {
-    if (T.length === 0)
-        return Never(options);
-    if (T.length === 1)
-        return CloneType(T[0], options);
-    if (T.some((schema) => IsTransform(schema)))
-        throw new Error('Cannot intersect transform types');
-    return ResolveIntersect(T, options);
-}
-
-/** `[Json]` Creates an evaluated Intersect type */
-function Intersect(T, options = {}) {
-    if (T.length === 0)
-        return Never(options);
-    if (T.length === 1)
-        return CloneType(T[0], options);
-    if (T.some((schema) => IsTransform(schema)))
-        throw new Error('Cannot intersect transform types');
-    return IntersectCreate(T, options);
-}
-
 // prettier-ignore
 function FromRest$5(T) {
-    return T.map(L => AwaitedResolve(L));
-}
-// prettier-ignore
-function FromIntersect$5(T) {
-    return Intersect(FromRest$5(T));
-}
-// prettier-ignore
-function FromUnion$5(T) {
-    return Union(FromRest$5(T));
-}
-// prettier-ignore
-function FromPromise$2(T) {
-    return AwaitedResolve(T);
-}
-// ----------------------------------------------------------------
-// AwaitedResolve
-// ----------------------------------------------------------------
-// prettier-ignore
-function AwaitedResolve(T) {
-    return (IsIntersect(T) ? FromIntersect$5(T.allOf) :
-        IsUnion(T) ? FromUnion$5(T.anyOf) :
-            IsPromise(T) ? FromPromise$2(T.item) :
-                T);
-}
-/** `[JavaScript]` Constructs a type by recursively unwrapping Promise types */
-function Awaited(T, options = {}) {
-    return CloneType(AwaitedResolve(T), options);
-}
-
-// prettier-ignore
-function FromRest$4(T) {
     return T.reduce((Acc, L) => {
         return [...Acc, KeyOfPropertyKeys(L)];
     }, []);
 }
 // prettier-ignore
-function FromIntersect$4(T) {
-    const C = FromRest$4(T);
+function FromIntersect$a(T) {
+    const C = FromRest$5(T);
     const R = SetUnionMany(C);
     return R;
 }
 // prettier-ignore
-function FromUnion$4(T) {
-    const C = FromRest$4(T);
+function FromUnion$a(T) {
+    const C = FromRest$5(T);
     const R = SetIntersectMany(C);
     return R;
 }
 // prettier-ignore
-function FromTuple$2(T) {
+function FromTuple$7(T) {
     return T.map((_, I) => I.toString());
 }
 // prettier-ignore
-function FromArray$3(_) {
+function FromArray$8(_) {
     return (['[number]']);
 }
 // prettier-ignore
@@ -27422,18 +27590,37 @@ function FromProperties$e(T) {
 // ------------------------------------------------------------------
 // prettier-ignore
 function FromPatternProperties(patternProperties) {
-    return [];
+    if (!includePatternProperties)
+        return [];
+    const patternPropertyKeys = globalThis.Object.getOwnPropertyNames(patternProperties);
+    return patternPropertyKeys.map(key => {
+        return (key[0] === '^' && key[key.length - 1] === '$')
+            ? key.slice(1, key.length - 1)
+            : key;
+    });
 }
 /** Returns a tuple of PropertyKeys derived from the given TSchema. */
 // prettier-ignore
 function KeyOfPropertyKeys(T) {
-    return (IsIntersect(T) ? FromIntersect$4(T.allOf) :
-        IsUnion(T) ? FromUnion$4(T.anyOf) :
-            IsTuple(T) ? FromTuple$2(T.items ?? []) :
-                IsArray(T) ? FromArray$3(T.items) :
+    return (IsIntersect(T) ? FromIntersect$a(T.allOf) :
+        IsUnion(T) ? FromUnion$a(T.anyOf) :
+            IsTuple(T) ? FromTuple$7(T.items ?? []) :
+                IsArray(T) ? FromArray$8(T.items) :
                     IsObject(T) ? FromProperties$e(T.properties) :
                         IsRecord(T) ? FromPatternProperties(T.patternProperties) :
                             []);
+}
+// ----------------------------------------------------------------
+// KeyOfPattern
+// ----------------------------------------------------------------
+let includePatternProperties = false;
+/** Returns a regular expression pattern derived from the given TSchema */
+function KeyOfPattern(schema) {
+    includePatternProperties = true;
+    const keys = KeyOfPropertyKeys(schema);
+    includePatternProperties = false;
+    const pattern = keys.map((key) => `(${key})`);
+    return `^(${pattern.join('|')})$`;
 }
 
 // prettier-ignore
@@ -27467,6 +27654,3170 @@ function FromMappedResult$7(R, options) {
 function KeyOfFromMappedResult(R, options) {
     const P = FromMappedResult$7(R, options);
     return MappedResult(P);
+}
+
+/** Fast undefined check used for properties of type undefined */
+function Intersect(schema) {
+    return schema.allOf.every((schema) => ExtendsUndefinedCheck(schema));
+}
+function Union(schema) {
+    return schema.anyOf.some((schema) => ExtendsUndefinedCheck(schema));
+}
+function Not$1(schema) {
+    return !ExtendsUndefinedCheck(schema.not);
+}
+/** Fast undefined check used for properties of type undefined */
+// prettier-ignore
+function ExtendsUndefinedCheck(schema) {
+    return (schema[Kind] === 'Intersect' ? Intersect(schema) :
+        schema[Kind] === 'Union' ? Union(schema) :
+            schema[Kind] === 'Not' ? Not$1(schema) :
+                schema[Kind] === 'Undefined' ? true :
+                    false);
+}
+
+/** Creates an error message using en-US as the default locale */
+function DefaultErrorFunction(error) {
+    switch (error.errorType) {
+        case ValueErrorType.ArrayContains:
+            return 'Expected array to contain at least one matching value';
+        case ValueErrorType.ArrayMaxContains:
+            return `Expected array to contain no more than ${error.schema.maxContains} matching values`;
+        case ValueErrorType.ArrayMinContains:
+            return `Expected array to contain at least ${error.schema.minContains} matching values`;
+        case ValueErrorType.ArrayMaxItems:
+            return `Expected array length to be less or equal to ${error.schema.maxItems}`;
+        case ValueErrorType.ArrayMinItems:
+            return `Expected array length to be greater or equal to ${error.schema.minItems}`;
+        case ValueErrorType.ArrayUniqueItems:
+            return 'Expected array elements to be unique';
+        case ValueErrorType.Array:
+            return 'Expected array';
+        case ValueErrorType.AsyncIterator:
+            return 'Expected AsyncIterator';
+        case ValueErrorType.BigIntExclusiveMaximum:
+            return `Expected bigint to be less than ${error.schema.exclusiveMaximum}`;
+        case ValueErrorType.BigIntExclusiveMinimum:
+            return `Expected bigint to be greater than ${error.schema.exclusiveMinimum}`;
+        case ValueErrorType.BigIntMaximum:
+            return `Expected bigint to be less or equal to ${error.schema.maximum}`;
+        case ValueErrorType.BigIntMinimum:
+            return `Expected bigint to be greater or equal to ${error.schema.minimum}`;
+        case ValueErrorType.BigIntMultipleOf:
+            return `Expected bigint to be a multiple of ${error.schema.multipleOf}`;
+        case ValueErrorType.BigInt:
+            return 'Expected bigint';
+        case ValueErrorType.Boolean:
+            return 'Expected boolean';
+        case ValueErrorType.DateExclusiveMinimumTimestamp:
+            return `Expected Date timestamp to be greater than ${error.schema.exclusiveMinimumTimestamp}`;
+        case ValueErrorType.DateExclusiveMaximumTimestamp:
+            return `Expected Date timestamp to be less than ${error.schema.exclusiveMaximumTimestamp}`;
+        case ValueErrorType.DateMinimumTimestamp:
+            return `Expected Date timestamp to be greater or equal to ${error.schema.minimumTimestamp}`;
+        case ValueErrorType.DateMaximumTimestamp:
+            return `Expected Date timestamp to be less or equal to ${error.schema.maximumTimestamp}`;
+        case ValueErrorType.DateMultipleOfTimestamp:
+            return `Expected Date timestamp to be a multiple of ${error.schema.multipleOfTimestamp}`;
+        case ValueErrorType.Date:
+            return 'Expected Date';
+        case ValueErrorType.Function:
+            return 'Expected function';
+        case ValueErrorType.IntegerExclusiveMaximum:
+            return `Expected integer to be less than ${error.schema.exclusiveMaximum}`;
+        case ValueErrorType.IntegerExclusiveMinimum:
+            return `Expected integer to be greater than ${error.schema.exclusiveMinimum}`;
+        case ValueErrorType.IntegerMaximum:
+            return `Expected integer to be less or equal to ${error.schema.maximum}`;
+        case ValueErrorType.IntegerMinimum:
+            return `Expected integer to be greater or equal to ${error.schema.minimum}`;
+        case ValueErrorType.IntegerMultipleOf:
+            return `Expected integer to be a multiple of ${error.schema.multipleOf}`;
+        case ValueErrorType.Integer:
+            return 'Expected integer';
+        case ValueErrorType.IntersectUnevaluatedProperties:
+            return 'Unexpected property';
+        case ValueErrorType.Intersect:
+            return 'Expected all values to match';
+        case ValueErrorType.Iterator:
+            return 'Expected Iterator';
+        case ValueErrorType.Literal:
+            return `Expected ${typeof error.schema.const === 'string' ? `'${error.schema.const}'` : error.schema.const}`;
+        case ValueErrorType.Never:
+            return 'Never';
+        case ValueErrorType.Not:
+            return 'Value should not match';
+        case ValueErrorType.Null:
+            return 'Expected null';
+        case ValueErrorType.NumberExclusiveMaximum:
+            return `Expected number to be less than ${error.schema.exclusiveMaximum}`;
+        case ValueErrorType.NumberExclusiveMinimum:
+            return `Expected number to be greater than ${error.schema.exclusiveMinimum}`;
+        case ValueErrorType.NumberMaximum:
+            return `Expected number to be less or equal to ${error.schema.maximum}`;
+        case ValueErrorType.NumberMinimum:
+            return `Expected number to be greater or equal to ${error.schema.minimum}`;
+        case ValueErrorType.NumberMultipleOf:
+            return `Expected number to be a multiple of ${error.schema.multipleOf}`;
+        case ValueErrorType.Number:
+            return 'Expected number';
+        case ValueErrorType.Object:
+            return 'Expected object';
+        case ValueErrorType.ObjectAdditionalProperties:
+            return 'Unexpected property';
+        case ValueErrorType.ObjectMaxProperties:
+            return `Expected object to have no more than ${error.schema.maxProperties} properties`;
+        case ValueErrorType.ObjectMinProperties:
+            return `Expected object to have at least ${error.schema.minProperties} properties`;
+        case ValueErrorType.ObjectRequiredProperty:
+            return 'Required property';
+        case ValueErrorType.Promise:
+            return 'Expected Promise';
+        case ValueErrorType.RegExp:
+            return 'Expected string to match regular expression';
+        case ValueErrorType.StringFormatUnknown:
+            return `Unknown format '${error.schema.format}'`;
+        case ValueErrorType.StringFormat:
+            return `Expected string to match '${error.schema.format}' format`;
+        case ValueErrorType.StringMaxLength:
+            return `Expected string length less or equal to ${error.schema.maxLength}`;
+        case ValueErrorType.StringMinLength:
+            return `Expected string length greater or equal to ${error.schema.minLength}`;
+        case ValueErrorType.StringPattern:
+            return `Expected string to match '${error.schema.pattern}'`;
+        case ValueErrorType.String:
+            return 'Expected string';
+        case ValueErrorType.Symbol:
+            return 'Expected symbol';
+        case ValueErrorType.TupleLength:
+            return `Expected tuple to have ${error.schema.maxItems || 0} elements`;
+        case ValueErrorType.Tuple:
+            return 'Expected tuple';
+        case ValueErrorType.Uint8ArrayMaxByteLength:
+            return `Expected byte length less or equal to ${error.schema.maxByteLength}`;
+        case ValueErrorType.Uint8ArrayMinByteLength:
+            return `Expected byte length greater or equal to ${error.schema.minByteLength}`;
+        case ValueErrorType.Uint8Array:
+            return 'Expected Uint8Array';
+        case ValueErrorType.Undefined:
+            return 'Expected undefined';
+        case ValueErrorType.Union:
+            return 'Expected union value';
+        case ValueErrorType.Void:
+            return 'Expected void';
+        case ValueErrorType.Kind:
+            return `Expected kind '${error.schema[Kind]}'`;
+        default:
+            return 'Unknown error type';
+    }
+}
+/** Manages error message providers */
+let errorFunction = DefaultErrorFunction;
+/** Gets the error function used to generate error messages */
+function GetErrorFunction() {
+    return errorFunction;
+}
+
+class TypeDereferenceError extends TypeBoxError {
+    schema;
+    constructor(schema) {
+        super(`Unable to dereference schema with $id '${schema.$id}'`);
+        this.schema = schema;
+    }
+}
+/** Dereferences a schema from the references array or throws if not found */
+function Deref$1(schema, references) {
+    const index = references.findIndex((target) => target.$id === schema.$ref);
+    if (index === -1)
+        throw new TypeDereferenceError(schema);
+    return references[index];
+}
+
+// ------------------------------------------------------------------
+// Errors
+// ------------------------------------------------------------------
+class ValueHashError extends TypeBoxError {
+    value;
+    constructor(value) {
+        super(`Unable to hash value`);
+        this.value = value;
+    }
+}
+// ------------------------------------------------------------------
+// ByteMarker
+// ------------------------------------------------------------------
+var ByteMarker;
+(function (ByteMarker) {
+    ByteMarker[ByteMarker["Undefined"] = 0] = "Undefined";
+    ByteMarker[ByteMarker["Null"] = 1] = "Null";
+    ByteMarker[ByteMarker["Boolean"] = 2] = "Boolean";
+    ByteMarker[ByteMarker["Number"] = 3] = "Number";
+    ByteMarker[ByteMarker["String"] = 4] = "String";
+    ByteMarker[ByteMarker["Object"] = 5] = "Object";
+    ByteMarker[ByteMarker["Array"] = 6] = "Array";
+    ByteMarker[ByteMarker["Date"] = 7] = "Date";
+    ByteMarker[ByteMarker["Uint8Array"] = 8] = "Uint8Array";
+    ByteMarker[ByteMarker["Symbol"] = 9] = "Symbol";
+    ByteMarker[ByteMarker["BigInt"] = 10] = "BigInt";
+})(ByteMarker || (ByteMarker = {}));
+// ------------------------------------------------------------------
+// State
+// ------------------------------------------------------------------
+let Accumulator = BigInt('14695981039346656037');
+const [Prime, Size$1] = [BigInt('1099511628211'), BigInt('2') ** BigInt('64')];
+const Bytes = Array.from({ length: 256 }).map((_, i) => BigInt(i));
+const F64 = new Float64Array(1);
+const F64In = new DataView(F64.buffer);
+const F64Out = new Uint8Array(F64.buffer);
+// ------------------------------------------------------------------
+// NumberToBytes
+// ------------------------------------------------------------------
+function* NumberToBytes(value) {
+    const byteCount = value === 0 ? 1 : Math.ceil(Math.floor(Math.log2(value) + 1) / 8);
+    for (let i = 0; i < byteCount; i++) {
+        yield (value >> (8 * (byteCount - 1 - i))) & 0xff;
+    }
+}
+// ------------------------------------------------------------------
+// Hashing Functions
+// ------------------------------------------------------------------
+function ArrayType(value) {
+    FNV1A64(ByteMarker.Array);
+    for (const item of value) {
+        Visit$6(item);
+    }
+}
+function BooleanType(value) {
+    FNV1A64(ByteMarker.Boolean);
+    FNV1A64(value ? 1 : 0);
+}
+function BigIntType(value) {
+    FNV1A64(ByteMarker.BigInt);
+    F64In.setBigInt64(0, value);
+    for (const byte of F64Out) {
+        FNV1A64(byte);
+    }
+}
+function DateType(value) {
+    FNV1A64(ByteMarker.Date);
+    Visit$6(value.getTime());
+}
+function NullType(value) {
+    FNV1A64(ByteMarker.Null);
+}
+function NumberType(value) {
+    FNV1A64(ByteMarker.Number);
+    F64In.setFloat64(0, value);
+    for (const byte of F64Out) {
+        FNV1A64(byte);
+    }
+}
+function ObjectType(value) {
+    FNV1A64(ByteMarker.Object);
+    for (const key of globalThis.Object.keys(value).sort()) {
+        Visit$6(key);
+        Visit$6(value[key]);
+    }
+}
+function StringType(value) {
+    FNV1A64(ByteMarker.String);
+    for (let i = 0; i < value.length; i++) {
+        for (const byte of NumberToBytes(value.charCodeAt(i))) {
+            FNV1A64(byte);
+        }
+    }
+}
+function SymbolType(value) {
+    FNV1A64(ByteMarker.Symbol);
+    Visit$6(value.description);
+}
+function Uint8ArrayType(value) {
+    FNV1A64(ByteMarker.Uint8Array);
+    for (let i = 0; i < value.length; i++) {
+        FNV1A64(value[i]);
+    }
+}
+function UndefinedType(value) {
+    return FNV1A64(ByteMarker.Undefined);
+}
+function Visit$6(value) {
+    if (IsArray$2(value))
+        return ArrayType(value);
+    if (IsBoolean$2(value))
+        return BooleanType(value);
+    if (IsBigInt$2(value))
+        return BigIntType(value);
+    if (IsDate$2(value))
+        return DateType(value);
+    if (IsNull$2(value))
+        return NullType();
+    if (IsNumber$2(value))
+        return NumberType(value);
+    if (IsStandardObject(value))
+        return ObjectType(value);
+    if (IsString$2(value))
+        return StringType(value);
+    if (IsSymbol$2(value))
+        return SymbolType(value);
+    if (IsUint8Array$2(value))
+        return Uint8ArrayType(value);
+    if (IsUndefined$2(value))
+        return UndefinedType();
+    throw new ValueHashError(value);
+}
+function FNV1A64(byte) {
+    Accumulator = Accumulator ^ Bytes[byte];
+    Accumulator = (Accumulator * Prime) % Size$1;
+}
+// ------------------------------------------------------------------
+// Hash
+// ------------------------------------------------------------------
+/** Creates a FNV1A-64 non cryptographic hash of the given value */
+function Hash(value) {
+    Accumulator = BigInt('14695981039346656037');
+    Visit$6(value);
+    return Accumulator;
+}
+
+// ------------------------------------------------------------------
+// ValueErrorType
+// ------------------------------------------------------------------
+var ValueErrorType;
+(function (ValueErrorType) {
+    ValueErrorType[ValueErrorType["ArrayContains"] = 0] = "ArrayContains";
+    ValueErrorType[ValueErrorType["ArrayMaxContains"] = 1] = "ArrayMaxContains";
+    ValueErrorType[ValueErrorType["ArrayMaxItems"] = 2] = "ArrayMaxItems";
+    ValueErrorType[ValueErrorType["ArrayMinContains"] = 3] = "ArrayMinContains";
+    ValueErrorType[ValueErrorType["ArrayMinItems"] = 4] = "ArrayMinItems";
+    ValueErrorType[ValueErrorType["ArrayUniqueItems"] = 5] = "ArrayUniqueItems";
+    ValueErrorType[ValueErrorType["Array"] = 6] = "Array";
+    ValueErrorType[ValueErrorType["AsyncIterator"] = 7] = "AsyncIterator";
+    ValueErrorType[ValueErrorType["BigIntExclusiveMaximum"] = 8] = "BigIntExclusiveMaximum";
+    ValueErrorType[ValueErrorType["BigIntExclusiveMinimum"] = 9] = "BigIntExclusiveMinimum";
+    ValueErrorType[ValueErrorType["BigIntMaximum"] = 10] = "BigIntMaximum";
+    ValueErrorType[ValueErrorType["BigIntMinimum"] = 11] = "BigIntMinimum";
+    ValueErrorType[ValueErrorType["BigIntMultipleOf"] = 12] = "BigIntMultipleOf";
+    ValueErrorType[ValueErrorType["BigInt"] = 13] = "BigInt";
+    ValueErrorType[ValueErrorType["Boolean"] = 14] = "Boolean";
+    ValueErrorType[ValueErrorType["DateExclusiveMaximumTimestamp"] = 15] = "DateExclusiveMaximumTimestamp";
+    ValueErrorType[ValueErrorType["DateExclusiveMinimumTimestamp"] = 16] = "DateExclusiveMinimumTimestamp";
+    ValueErrorType[ValueErrorType["DateMaximumTimestamp"] = 17] = "DateMaximumTimestamp";
+    ValueErrorType[ValueErrorType["DateMinimumTimestamp"] = 18] = "DateMinimumTimestamp";
+    ValueErrorType[ValueErrorType["DateMultipleOfTimestamp"] = 19] = "DateMultipleOfTimestamp";
+    ValueErrorType[ValueErrorType["Date"] = 20] = "Date";
+    ValueErrorType[ValueErrorType["Function"] = 21] = "Function";
+    ValueErrorType[ValueErrorType["IntegerExclusiveMaximum"] = 22] = "IntegerExclusiveMaximum";
+    ValueErrorType[ValueErrorType["IntegerExclusiveMinimum"] = 23] = "IntegerExclusiveMinimum";
+    ValueErrorType[ValueErrorType["IntegerMaximum"] = 24] = "IntegerMaximum";
+    ValueErrorType[ValueErrorType["IntegerMinimum"] = 25] = "IntegerMinimum";
+    ValueErrorType[ValueErrorType["IntegerMultipleOf"] = 26] = "IntegerMultipleOf";
+    ValueErrorType[ValueErrorType["Integer"] = 27] = "Integer";
+    ValueErrorType[ValueErrorType["IntersectUnevaluatedProperties"] = 28] = "IntersectUnevaluatedProperties";
+    ValueErrorType[ValueErrorType["Intersect"] = 29] = "Intersect";
+    ValueErrorType[ValueErrorType["Iterator"] = 30] = "Iterator";
+    ValueErrorType[ValueErrorType["Kind"] = 31] = "Kind";
+    ValueErrorType[ValueErrorType["Literal"] = 32] = "Literal";
+    ValueErrorType[ValueErrorType["Never"] = 33] = "Never";
+    ValueErrorType[ValueErrorType["Not"] = 34] = "Not";
+    ValueErrorType[ValueErrorType["Null"] = 35] = "Null";
+    ValueErrorType[ValueErrorType["NumberExclusiveMaximum"] = 36] = "NumberExclusiveMaximum";
+    ValueErrorType[ValueErrorType["NumberExclusiveMinimum"] = 37] = "NumberExclusiveMinimum";
+    ValueErrorType[ValueErrorType["NumberMaximum"] = 38] = "NumberMaximum";
+    ValueErrorType[ValueErrorType["NumberMinimum"] = 39] = "NumberMinimum";
+    ValueErrorType[ValueErrorType["NumberMultipleOf"] = 40] = "NumberMultipleOf";
+    ValueErrorType[ValueErrorType["Number"] = 41] = "Number";
+    ValueErrorType[ValueErrorType["ObjectAdditionalProperties"] = 42] = "ObjectAdditionalProperties";
+    ValueErrorType[ValueErrorType["ObjectMaxProperties"] = 43] = "ObjectMaxProperties";
+    ValueErrorType[ValueErrorType["ObjectMinProperties"] = 44] = "ObjectMinProperties";
+    ValueErrorType[ValueErrorType["ObjectRequiredProperty"] = 45] = "ObjectRequiredProperty";
+    ValueErrorType[ValueErrorType["Object"] = 46] = "Object";
+    ValueErrorType[ValueErrorType["Promise"] = 47] = "Promise";
+    ValueErrorType[ValueErrorType["RegExp"] = 48] = "RegExp";
+    ValueErrorType[ValueErrorType["StringFormatUnknown"] = 49] = "StringFormatUnknown";
+    ValueErrorType[ValueErrorType["StringFormat"] = 50] = "StringFormat";
+    ValueErrorType[ValueErrorType["StringMaxLength"] = 51] = "StringMaxLength";
+    ValueErrorType[ValueErrorType["StringMinLength"] = 52] = "StringMinLength";
+    ValueErrorType[ValueErrorType["StringPattern"] = 53] = "StringPattern";
+    ValueErrorType[ValueErrorType["String"] = 54] = "String";
+    ValueErrorType[ValueErrorType["Symbol"] = 55] = "Symbol";
+    ValueErrorType[ValueErrorType["TupleLength"] = 56] = "TupleLength";
+    ValueErrorType[ValueErrorType["Tuple"] = 57] = "Tuple";
+    ValueErrorType[ValueErrorType["Uint8ArrayMaxByteLength"] = 58] = "Uint8ArrayMaxByteLength";
+    ValueErrorType[ValueErrorType["Uint8ArrayMinByteLength"] = 59] = "Uint8ArrayMinByteLength";
+    ValueErrorType[ValueErrorType["Uint8Array"] = 60] = "Uint8Array";
+    ValueErrorType[ValueErrorType["Undefined"] = 61] = "Undefined";
+    ValueErrorType[ValueErrorType["Union"] = 62] = "Union";
+    ValueErrorType[ValueErrorType["Void"] = 63] = "Void";
+})(ValueErrorType || (ValueErrorType = {}));
+// ------------------------------------------------------------------
+// ValueErrors
+// ------------------------------------------------------------------
+class ValueErrorsUnknownTypeError extends TypeBoxError {
+    schema;
+    constructor(schema) {
+        super('Unknown type');
+        this.schema = schema;
+    }
+}
+// ------------------------------------------------------------------
+// EscapeKey
+// ------------------------------------------------------------------
+function EscapeKey(key) {
+    return key.replace(/~/g, '~0').replace(/\//g, '~1'); // RFC6901 Path
+}
+// ------------------------------------------------------------------
+// Guards
+// ------------------------------------------------------------------
+function IsDefined$1(value) {
+    return value !== undefined;
+}
+// ------------------------------------------------------------------
+// ValueErrorIterator
+// ------------------------------------------------------------------
+class ValueErrorIterator {
+    iterator;
+    constructor(iterator) {
+        this.iterator = iterator;
+    }
+    [Symbol.iterator]() {
+        return this.iterator;
+    }
+    /** Returns the first value error or undefined if no errors */
+    First() {
+        const next = this.iterator.next();
+        return next.done ? undefined : next.value;
+    }
+}
+// --------------------------------------------------------------------------
+// Create
+// --------------------------------------------------------------------------
+function Create(errorType, schema, path, value) {
+    return { type: errorType, schema, path, value, message: GetErrorFunction()({ errorType, path, schema, value }) };
+}
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+function* FromAny$2(schema, references, path, value) { }
+function* FromArray$7(schema, references, path, value) {
+    if (!IsArray$2(value)) {
+        return yield Create(ValueErrorType.Array, schema, path, value);
+    }
+    if (IsDefined$1(schema.minItems) && !(value.length >= schema.minItems)) {
+        yield Create(ValueErrorType.ArrayMinItems, schema, path, value);
+    }
+    if (IsDefined$1(schema.maxItems) && !(value.length <= schema.maxItems)) {
+        yield Create(ValueErrorType.ArrayMaxItems, schema, path, value);
+    }
+    for (let i = 0; i < value.length; i++) {
+        yield* Visit$5(schema.items, references, `${path}/${i}`, value[i]);
+    }
+    // prettier-ignore
+    if (schema.uniqueItems === true && !((function () { const set = new Set(); for (const element of value) {
+        const hashed = Hash(element);
+        if (set.has(hashed)) {
+            return false;
+        }
+        else {
+            set.add(hashed);
+        }
+    } return true; })())) {
+        yield Create(ValueErrorType.ArrayUniqueItems, schema, path, value);
+    }
+    // contains
+    if (!(IsDefined$1(schema.contains) || IsDefined$1(schema.minContains) || IsDefined$1(schema.maxContains))) {
+        return;
+    }
+    const containsSchema = IsDefined$1(schema.contains) ? schema.contains : Never();
+    const containsCount = value.reduce((acc, value, index) => (Visit$5(containsSchema, references, `${path}${index}`, value).next().done === true ? acc + 1 : acc), 0);
+    if (containsCount === 0) {
+        yield Create(ValueErrorType.ArrayContains, schema, path, value);
+    }
+    if (IsNumber$2(schema.minContains) && containsCount < schema.minContains) {
+        yield Create(ValueErrorType.ArrayMinContains, schema, path, value);
+    }
+    if (IsNumber$2(schema.maxContains) && containsCount > schema.maxContains) {
+        yield Create(ValueErrorType.ArrayMaxContains, schema, path, value);
+    }
+}
+function* FromAsyncIterator$4(schema, references, path, value) {
+    if (!IsAsyncIterator$2(value))
+        yield Create(ValueErrorType.AsyncIterator, schema, path, value);
+}
+function* FromBigInt$2(schema, references, path, value) {
+    if (!IsBigInt$2(value))
+        return yield Create(ValueErrorType.BigInt, schema, path, value);
+    if (IsDefined$1(schema.exclusiveMaximum) && !(value < schema.exclusiveMaximum)) {
+        yield Create(ValueErrorType.BigIntExclusiveMaximum, schema, path, value);
+    }
+    if (IsDefined$1(schema.exclusiveMinimum) && !(value > schema.exclusiveMinimum)) {
+        yield Create(ValueErrorType.BigIntExclusiveMinimum, schema, path, value);
+    }
+    if (IsDefined$1(schema.maximum) && !(value <= schema.maximum)) {
+        yield Create(ValueErrorType.BigIntMaximum, schema, path, value);
+    }
+    if (IsDefined$1(schema.minimum) && !(value >= schema.minimum)) {
+        yield Create(ValueErrorType.BigIntMinimum, schema, path, value);
+    }
+    if (IsDefined$1(schema.multipleOf) && !(value % schema.multipleOf === BigInt(0))) {
+        yield Create(ValueErrorType.BigIntMultipleOf, schema, path, value);
+    }
+}
+function* FromBoolean$2(schema, references, path, value) {
+    if (!IsBoolean$2(value))
+        yield Create(ValueErrorType.Boolean, schema, path, value);
+}
+function* FromConstructor$4(schema, references, path, value) {
+    yield* Visit$5(schema.returns, references, path, value.prototype);
+}
+function* FromDate$2(schema, references, path, value) {
+    if (!IsDate$2(value))
+        return yield Create(ValueErrorType.Date, schema, path, value);
+    if (IsDefined$1(schema.exclusiveMaximumTimestamp) && !(value.getTime() < schema.exclusiveMaximumTimestamp)) {
+        yield Create(ValueErrorType.DateExclusiveMaximumTimestamp, schema, path, value);
+    }
+    if (IsDefined$1(schema.exclusiveMinimumTimestamp) && !(value.getTime() > schema.exclusiveMinimumTimestamp)) {
+        yield Create(ValueErrorType.DateExclusiveMinimumTimestamp, schema, path, value);
+    }
+    if (IsDefined$1(schema.maximumTimestamp) && !(value.getTime() <= schema.maximumTimestamp)) {
+        yield Create(ValueErrorType.DateMaximumTimestamp, schema, path, value);
+    }
+    if (IsDefined$1(schema.minimumTimestamp) && !(value.getTime() >= schema.minimumTimestamp)) {
+        yield Create(ValueErrorType.DateMinimumTimestamp, schema, path, value);
+    }
+    if (IsDefined$1(schema.multipleOfTimestamp) && !(value.getTime() % schema.multipleOfTimestamp === 0)) {
+        yield Create(ValueErrorType.DateMultipleOfTimestamp, schema, path, value);
+    }
+}
+function* FromFunction$4(schema, references, path, value) {
+    if (!IsFunction$2(value))
+        yield Create(ValueErrorType.Function, schema, path, value);
+}
+function* FromInteger$2(schema, references, path, value) {
+    if (!IsInteger$1(value))
+        return yield Create(ValueErrorType.Integer, schema, path, value);
+    if (IsDefined$1(schema.exclusiveMaximum) && !(value < schema.exclusiveMaximum)) {
+        yield Create(ValueErrorType.IntegerExclusiveMaximum, schema, path, value);
+    }
+    if (IsDefined$1(schema.exclusiveMinimum) && !(value > schema.exclusiveMinimum)) {
+        yield Create(ValueErrorType.IntegerExclusiveMinimum, schema, path, value);
+    }
+    if (IsDefined$1(schema.maximum) && !(value <= schema.maximum)) {
+        yield Create(ValueErrorType.IntegerMaximum, schema, path, value);
+    }
+    if (IsDefined$1(schema.minimum) && !(value >= schema.minimum)) {
+        yield Create(ValueErrorType.IntegerMinimum, schema, path, value);
+    }
+    if (IsDefined$1(schema.multipleOf) && !(value % schema.multipleOf === 0)) {
+        yield Create(ValueErrorType.IntegerMultipleOf, schema, path, value);
+    }
+}
+function* FromIntersect$9(schema, references, path, value) {
+    for (const inner of schema.allOf) {
+        const next = Visit$5(inner, references, path, value).next();
+        if (!next.done) {
+            yield Create(ValueErrorType.Intersect, schema, path, value);
+            yield next.value;
+        }
+    }
+    if (schema.unevaluatedProperties === false) {
+        const keyCheck = new RegExp(KeyOfPattern(schema));
+        for (const valueKey of Object.getOwnPropertyNames(value)) {
+            if (!keyCheck.test(valueKey)) {
+                yield Create(ValueErrorType.IntersectUnevaluatedProperties, schema, `${path}/${valueKey}`, value);
+            }
+        }
+    }
+    if (typeof schema.unevaluatedProperties === 'object') {
+        const keyCheck = new RegExp(KeyOfPattern(schema));
+        for (const valueKey of Object.getOwnPropertyNames(value)) {
+            if (!keyCheck.test(valueKey)) {
+                const next = Visit$5(schema.unevaluatedProperties, references, `${path}/${valueKey}`, value[valueKey]).next();
+                if (!next.done)
+                    yield next.value; // yield interior
+            }
+        }
+    }
+}
+function* FromIterator$4(schema, references, path, value) {
+    if (!IsIterator$2(value))
+        yield Create(ValueErrorType.Iterator, schema, path, value);
+}
+function* FromLiteral$2(schema, references, path, value) {
+    if (!(value === schema.const))
+        yield Create(ValueErrorType.Literal, schema, path, value);
+}
+function* FromNever$2(schema, references, path, value) {
+    yield Create(ValueErrorType.Never, schema, path, value);
+}
+function* FromNot$5(schema, references, path, value) {
+    if (Visit$5(schema.not, references, path, value).next().done === true)
+        yield Create(ValueErrorType.Not, schema, path, value);
+}
+function* FromNull$2(schema, references, path, value) {
+    if (!IsNull$2(value))
+        yield Create(ValueErrorType.Null, schema, path, value);
+}
+function* FromNumber$2(schema, references, path, value) {
+    if (!TypeSystemPolicy.IsNumberLike(value))
+        return yield Create(ValueErrorType.Number, schema, path, value);
+    if (IsDefined$1(schema.exclusiveMaximum) && !(value < schema.exclusiveMaximum)) {
+        yield Create(ValueErrorType.NumberExclusiveMaximum, schema, path, value);
+    }
+    if (IsDefined$1(schema.exclusiveMinimum) && !(value > schema.exclusiveMinimum)) {
+        yield Create(ValueErrorType.NumberExclusiveMinimum, schema, path, value);
+    }
+    if (IsDefined$1(schema.maximum) && !(value <= schema.maximum)) {
+        yield Create(ValueErrorType.NumberMaximum, schema, path, value);
+    }
+    if (IsDefined$1(schema.minimum) && !(value >= schema.minimum)) {
+        yield Create(ValueErrorType.NumberMinimum, schema, path, value);
+    }
+    if (IsDefined$1(schema.multipleOf) && !(value % schema.multipleOf === 0)) {
+        yield Create(ValueErrorType.NumberMultipleOf, schema, path, value);
+    }
+}
+function* FromObject$6(schema, references, path, value) {
+    if (!TypeSystemPolicy.IsObjectLike(value))
+        return yield Create(ValueErrorType.Object, schema, path, value);
+    if (IsDefined$1(schema.minProperties) && !(Object.getOwnPropertyNames(value).length >= schema.minProperties)) {
+        yield Create(ValueErrorType.ObjectMinProperties, schema, path, value);
+    }
+    if (IsDefined$1(schema.maxProperties) && !(Object.getOwnPropertyNames(value).length <= schema.maxProperties)) {
+        yield Create(ValueErrorType.ObjectMaxProperties, schema, path, value);
+    }
+    const requiredKeys = Array.isArray(schema.required) ? schema.required : [];
+    const knownKeys = Object.getOwnPropertyNames(schema.properties);
+    const unknownKeys = Object.getOwnPropertyNames(value);
+    for (const requiredKey of requiredKeys) {
+        if (unknownKeys.includes(requiredKey))
+            continue;
+        yield Create(ValueErrorType.ObjectRequiredProperty, schema.properties[requiredKey], `${path}/${EscapeKey(requiredKey)}`, undefined);
+    }
+    if (schema.additionalProperties === false) {
+        for (const valueKey of unknownKeys) {
+            if (!knownKeys.includes(valueKey)) {
+                yield Create(ValueErrorType.ObjectAdditionalProperties, schema, `${path}/${EscapeKey(valueKey)}`, value[valueKey]);
+            }
+        }
+    }
+    if (typeof schema.additionalProperties === 'object') {
+        for (const valueKey of unknownKeys) {
+            if (knownKeys.includes(valueKey))
+                continue;
+            yield* Visit$5(schema.additionalProperties, references, `${path}/${EscapeKey(valueKey)}`, value[valueKey]);
+        }
+    }
+    for (const knownKey of knownKeys) {
+        const property = schema.properties[knownKey];
+        if (schema.required && schema.required.includes(knownKey)) {
+            yield* Visit$5(property, references, `${path}/${EscapeKey(knownKey)}`, value[knownKey]);
+            if (ExtendsUndefinedCheck(schema) && !(knownKey in value)) {
+                yield Create(ValueErrorType.ObjectRequiredProperty, property, `${path}/${EscapeKey(knownKey)}`, undefined);
+            }
+        }
+        else {
+            if (TypeSystemPolicy.IsExactOptionalProperty(value, knownKey)) {
+                yield* Visit$5(property, references, `${path}/${EscapeKey(knownKey)}`, value[knownKey]);
+            }
+        }
+    }
+}
+function* FromPromise$5(schema, references, path, value) {
+    if (!IsPromise$1(value))
+        yield Create(ValueErrorType.Promise, schema, path, value);
+}
+function* FromRecord$5(schema, references, path, value) {
+    if (!TypeSystemPolicy.IsRecordLike(value))
+        return yield Create(ValueErrorType.Object, schema, path, value);
+    if (IsDefined$1(schema.minProperties) && !(Object.getOwnPropertyNames(value).length >= schema.minProperties)) {
+        yield Create(ValueErrorType.ObjectMinProperties, schema, path, value);
+    }
+    if (IsDefined$1(schema.maxProperties) && !(Object.getOwnPropertyNames(value).length <= schema.maxProperties)) {
+        yield Create(ValueErrorType.ObjectMaxProperties, schema, path, value);
+    }
+    const [patternKey, patternSchema] = Object.entries(schema.patternProperties)[0];
+    const regex = new RegExp(patternKey);
+    for (const [propertyKey, propertyValue] of Object.entries(value)) {
+        if (regex.test(propertyKey))
+            yield* Visit$5(patternSchema, references, `${path}/${EscapeKey(propertyKey)}`, propertyValue);
+    }
+    if (typeof schema.additionalProperties === 'object') {
+        for (const [propertyKey, propertyValue] of Object.entries(value)) {
+            if (!regex.test(propertyKey))
+                yield* Visit$5(schema.additionalProperties, references, `${path}/${EscapeKey(propertyKey)}`, propertyValue);
+        }
+    }
+    if (schema.additionalProperties === false) {
+        for (const [propertyKey, propertyValue] of Object.entries(value)) {
+            if (regex.test(propertyKey))
+                continue;
+            return yield Create(ValueErrorType.ObjectAdditionalProperties, schema, `${path}/${EscapeKey(propertyKey)}`, propertyValue);
+        }
+    }
+}
+function* FromRef$5(schema, references, path, value) {
+    yield* Visit$5(Deref$1(schema, references), references, path, value);
+}
+function* FromRegExp$2(schema, references, path, value) {
+    if (!IsString$2(value))
+        return yield Create(ValueErrorType.String, schema, path, value);
+    if (IsDefined$1(schema.minLength) && !(value.length >= schema.minLength)) {
+        yield Create(ValueErrorType.StringMinLength, schema, path, value);
+    }
+    if (IsDefined$1(schema.maxLength) && !(value.length <= schema.maxLength)) {
+        yield Create(ValueErrorType.StringMaxLength, schema, path, value);
+    }
+    const regex = new RegExp(schema.source, schema.flags);
+    if (!regex.test(value)) {
+        return yield Create(ValueErrorType.RegExp, schema, path, value);
+    }
+}
+function* FromString$2(schema, references, path, value) {
+    if (!IsString$2(value))
+        return yield Create(ValueErrorType.String, schema, path, value);
+    if (IsDefined$1(schema.minLength) && !(value.length >= schema.minLength)) {
+        yield Create(ValueErrorType.StringMinLength, schema, path, value);
+    }
+    if (IsDefined$1(schema.maxLength) && !(value.length <= schema.maxLength)) {
+        yield Create(ValueErrorType.StringMaxLength, schema, path, value);
+    }
+    if (IsString$2(schema.pattern)) {
+        const regex = new RegExp(schema.pattern);
+        if (!regex.test(value)) {
+            yield Create(ValueErrorType.StringPattern, schema, path, value);
+        }
+    }
+    if (IsString$2(schema.format)) {
+        if (!Has$1(schema.format)) {
+            yield Create(ValueErrorType.StringFormatUnknown, schema, path, value);
+        }
+        else {
+            const format = Get$1(schema.format);
+            if (!format(value)) {
+                yield Create(ValueErrorType.StringFormat, schema, path, value);
+            }
+        }
+    }
+}
+function* FromSymbol$2(schema, references, path, value) {
+    if (!IsSymbol$2(value))
+        yield Create(ValueErrorType.Symbol, schema, path, value);
+}
+function* FromTemplateLiteral$3(schema, references, path, value) {
+    if (!IsString$2(value))
+        return yield Create(ValueErrorType.String, schema, path, value);
+    const regex = new RegExp(schema.pattern);
+    if (!regex.test(value)) {
+        yield Create(ValueErrorType.StringPattern, schema, path, value);
+    }
+}
+function* FromThis$4(schema, references, path, value) {
+    yield* Visit$5(Deref$1(schema, references), references, path, value);
+}
+function* FromTuple$6(schema, references, path, value) {
+    if (!IsArray$2(value))
+        return yield Create(ValueErrorType.Tuple, schema, path, value);
+    if (schema.items === undefined && !(value.length === 0)) {
+        return yield Create(ValueErrorType.TupleLength, schema, path, value);
+    }
+    if (!(value.length === schema.maxItems)) {
+        return yield Create(ValueErrorType.TupleLength, schema, path, value);
+    }
+    if (!schema.items) {
+        return;
+    }
+    for (let i = 0; i < schema.items.length; i++) {
+        yield* Visit$5(schema.items[i], references, `${path}/${i}`, value[i]);
+    }
+}
+function* FromUndefined$2(schema, references, path, value) {
+    if (!IsUndefined$2(value))
+        yield Create(ValueErrorType.Undefined, schema, path, value);
+}
+function* FromUnion$9(schema, references, path, value) {
+    let count = 0;
+    for (const subschema of schema.anyOf) {
+        const errors = [...Visit$5(subschema, references, path, value)];
+        if (errors.length === 0)
+            return; // matched
+        count += errors.length;
+    }
+    if (count > 0) {
+        yield Create(ValueErrorType.Union, schema, path, value);
+    }
+}
+function* FromUint8Array$2(schema, references, path, value) {
+    if (!IsUint8Array$2(value))
+        return yield Create(ValueErrorType.Uint8Array, schema, path, value);
+    if (IsDefined$1(schema.maxByteLength) && !(value.length <= schema.maxByteLength)) {
+        yield Create(ValueErrorType.Uint8ArrayMaxByteLength, schema, path, value);
+    }
+    if (IsDefined$1(schema.minByteLength) && !(value.length >= schema.minByteLength)) {
+        yield Create(ValueErrorType.Uint8ArrayMinByteLength, schema, path, value);
+    }
+}
+function* FromUnknown$2(schema, references, path, value) { }
+function* FromVoid$2(schema, references, path, value) {
+    if (!TypeSystemPolicy.IsVoidLike(value))
+        yield Create(ValueErrorType.Void, schema, path, value);
+}
+function* FromKind$1(schema, references, path, value) {
+    const check = Get(schema[Kind]);
+    if (!check(schema, value))
+        yield Create(ValueErrorType.Kind, schema, path, value);
+}
+function* Visit$5(schema, references, path, value) {
+    const references_ = IsDefined$1(schema.$id) ? [...references, schema] : references;
+    const schema_ = schema;
+    switch (schema_[Kind]) {
+        case 'Any':
+            return yield* FromAny$2();
+        case 'Array':
+            return yield* FromArray$7(schema_, references_, path, value);
+        case 'AsyncIterator':
+            return yield* FromAsyncIterator$4(schema_, references_, path, value);
+        case 'BigInt':
+            return yield* FromBigInt$2(schema_, references_, path, value);
+        case 'Boolean':
+            return yield* FromBoolean$2(schema_, references_, path, value);
+        case 'Constructor':
+            return yield* FromConstructor$4(schema_, references_, path, value);
+        case 'Date':
+            return yield* FromDate$2(schema_, references_, path, value);
+        case 'Function':
+            return yield* FromFunction$4(schema_, references_, path, value);
+        case 'Integer':
+            return yield* FromInteger$2(schema_, references_, path, value);
+        case 'Intersect':
+            return yield* FromIntersect$9(schema_, references_, path, value);
+        case 'Iterator':
+            return yield* FromIterator$4(schema_, references_, path, value);
+        case 'Literal':
+            return yield* FromLiteral$2(schema_, references_, path, value);
+        case 'Never':
+            return yield* FromNever$2(schema_, references_, path, value);
+        case 'Not':
+            return yield* FromNot$5(schema_, references_, path, value);
+        case 'Null':
+            return yield* FromNull$2(schema_, references_, path, value);
+        case 'Number':
+            return yield* FromNumber$2(schema_, references_, path, value);
+        case 'Object':
+            return yield* FromObject$6(schema_, references_, path, value);
+        case 'Promise':
+            return yield* FromPromise$5(schema_, references_, path, value);
+        case 'Record':
+            return yield* FromRecord$5(schema_, references_, path, value);
+        case 'Ref':
+            return yield* FromRef$5(schema_, references_, path, value);
+        case 'RegExp':
+            return yield* FromRegExp$2(schema_, references_, path, value);
+        case 'String':
+            return yield* FromString$2(schema_, references_, path, value);
+        case 'Symbol':
+            return yield* FromSymbol$2(schema_, references_, path, value);
+        case 'TemplateLiteral':
+            return yield* FromTemplateLiteral$3(schema_, references_, path, value);
+        case 'This':
+            return yield* FromThis$4(schema_, references_, path, value);
+        case 'Tuple':
+            return yield* FromTuple$6(schema_, references_, path, value);
+        case 'Undefined':
+            return yield* FromUndefined$2(schema_, references_, path, value);
+        case 'Union':
+            return yield* FromUnion$9(schema_, references_, path, value);
+        case 'Uint8Array':
+            return yield* FromUint8Array$2(schema_, references_, path, value);
+        case 'Unknown':
+            return yield* FromUnknown$2();
+        case 'Void':
+            return yield* FromVoid$2(schema_, references_, path, value);
+        default:
+            if (!Has(schema_[Kind]))
+                throw new ValueErrorsUnknownTypeError(schema);
+            return yield* FromKind$1(schema_, references_, path, value);
+    }
+}
+/** Returns an iterator for each error in this value. */
+function Errors(...args) {
+    const iterator = args.length === 3 ? Visit$5(args[0], args[1], '', args[2]) : Visit$5(args[0], [], '', args[1]);
+    return new ValueErrorIterator(iterator);
+}
+
+/** `[Json]` Creates an Any type */
+function Any(options = {}) {
+    return { ...options, [Kind]: 'Any' };
+}
+
+/** `[Json]` Creates an Unknown type */
+function Unknown(options = {}) {
+    return {
+        ...options,
+        [Kind]: 'Unknown',
+    };
+}
+
+class ExtendsResolverError extends TypeBoxError {
+}
+var ExtendsResult;
+(function (ExtendsResult) {
+    ExtendsResult[ExtendsResult["Union"] = 0] = "Union";
+    ExtendsResult[ExtendsResult["True"] = 1] = "True";
+    ExtendsResult[ExtendsResult["False"] = 2] = "False";
+})(ExtendsResult || (ExtendsResult = {}));
+// ------------------------------------------------------------------
+// IntoBooleanResult
+// ------------------------------------------------------------------
+// prettier-ignore
+function IntoBooleanResult(result) {
+    return result === ExtendsResult.False ? result : ExtendsResult.True;
+}
+// ------------------------------------------------------------------
+// Throw
+// ------------------------------------------------------------------
+// prettier-ignore
+function Throw(message) {
+    throw new ExtendsResolverError(message);
+}
+// ------------------------------------------------------------------
+// StructuralRight
+// ------------------------------------------------------------------
+// prettier-ignore
+function IsStructuralRight(right) {
+    return (IsNever(right) ||
+        IsIntersect(right) ||
+        IsUnion(right) ||
+        IsUnknown(right) ||
+        IsAny(right));
+}
+// prettier-ignore
+function StructuralRight(left, right) {
+    return (IsNever(right) ? FromNeverRight() :
+        IsIntersect(right) ? FromIntersectRight(left, right) :
+            IsUnion(right) ? FromUnionRight(left, right) :
+                IsUnknown(right) ? FromUnknownRight() :
+                    IsAny(right) ? FromAnyRight() :
+                        Throw('StructuralRight'));
+}
+// ------------------------------------------------------------------
+// Any
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromAnyRight(left, right) {
+    return ExtendsResult.True;
+}
+// prettier-ignore
+function FromAny$1(left, right) {
+    return (IsIntersect(right) ? FromIntersectRight(left, right) :
+        (IsUnion(right) && right.anyOf.some((schema) => IsAny(schema) || IsUnknown(schema))) ? ExtendsResult.True :
+            IsUnion(right) ? ExtendsResult.Union :
+                IsUnknown(right) ? ExtendsResult.True :
+                    IsAny(right) ? ExtendsResult.True :
+                        ExtendsResult.Union);
+}
+// ------------------------------------------------------------------
+// Array
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromArrayRight(left, right) {
+    return (IsUnknown(left) ? ExtendsResult.False :
+        IsAny(left) ? ExtendsResult.Union :
+            IsNever(left) ? ExtendsResult.True :
+                ExtendsResult.False);
+}
+// prettier-ignore
+function FromArray$6(left, right) {
+    return (IsObject(right) && IsObjectArrayLike(right) ? ExtendsResult.True :
+        IsStructuralRight(right) ? StructuralRight(left, right) :
+            !IsArray(right) ? ExtendsResult.False :
+                IntoBooleanResult(Visit$4(left.items, right.items)));
+}
+// ------------------------------------------------------------------
+// AsyncIterator
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromAsyncIterator$3(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        !IsAsyncIterator(right) ? ExtendsResult.False :
+            IntoBooleanResult(Visit$4(left.items, right.items)));
+}
+// ------------------------------------------------------------------
+// BigInt
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromBigInt$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsBigInt(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Boolean
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromBooleanRight(left, right) {
+    return (IsLiteralBoolean(left) ? ExtendsResult.True :
+        IsBoolean(left) ? ExtendsResult.True :
+            ExtendsResult.False);
+}
+// prettier-ignore
+function FromBoolean$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsBoolean(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Constructor
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromConstructor$3(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            !IsConstructor(right) ? ExtendsResult.False :
+                left.parameters.length > right.parameters.length ? ExtendsResult.False :
+                    (!left.parameters.every((schema, index) => IntoBooleanResult(Visit$4(right.parameters[index], schema)) === ExtendsResult.True)) ? ExtendsResult.False :
+                        IntoBooleanResult(Visit$4(left.returns, right.returns)));
+}
+// ------------------------------------------------------------------
+// Date
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromDate$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsDate(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Function
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromFunction$3(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            !IsFunction(right) ? ExtendsResult.False :
+                left.parameters.length > right.parameters.length ? ExtendsResult.False :
+                    (!left.parameters.every((schema, index) => IntoBooleanResult(Visit$4(right.parameters[index], schema)) === ExtendsResult.True)) ? ExtendsResult.False :
+                        IntoBooleanResult(Visit$4(left.returns, right.returns)));
+}
+// ------------------------------------------------------------------
+// Integer
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromIntegerRight(left, right) {
+    return (IsLiteral(left) && IsNumber$1(left.const) ? ExtendsResult.True :
+        IsNumber(left) || IsInteger(left) ? ExtendsResult.True :
+            ExtendsResult.False);
+}
+// prettier-ignore
+function FromInteger$1(left, right) {
+    return (IsInteger(right) || IsNumber(right) ? ExtendsResult.True :
+        IsStructuralRight(right) ? StructuralRight(left, right) :
+            IsObject(right) ? FromObjectRight(left, right) :
+                IsRecord(right) ? FromRecordRight(left, right) :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Intersect
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromIntersectRight(left, right) {
+    return right.allOf.every((schema) => Visit$4(left, schema) === ExtendsResult.True)
+        ? ExtendsResult.True
+        : ExtendsResult.False;
+}
+// prettier-ignore
+function FromIntersect$8(left, right) {
+    return left.allOf.some((schema) => Visit$4(schema, right) === ExtendsResult.True)
+        ? ExtendsResult.True
+        : ExtendsResult.False;
+}
+// ------------------------------------------------------------------
+// Iterator
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromIterator$3(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        !IsIterator(right) ? ExtendsResult.False :
+            IntoBooleanResult(Visit$4(left.items, right.items)));
+}
+// ------------------------------------------------------------------
+// Literal
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromLiteral$1(left, right) {
+    return (IsLiteral(right) && right.const === left.const ? ExtendsResult.True :
+        IsStructuralRight(right) ? StructuralRight(left, right) :
+            IsObject(right) ? FromObjectRight(left, right) :
+                IsRecord(right) ? FromRecordRight(left, right) :
+                    IsString(right) ? FromStringRight(left) :
+                        IsNumber(right) ? FromNumberRight(left) :
+                            IsInteger(right) ? FromIntegerRight(left) :
+                                IsBoolean(right) ? FromBooleanRight(left) :
+                                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Never
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromNeverRight(left, right) {
+    return ExtendsResult.False;
+}
+// prettier-ignore
+function FromNever$1(left, right) {
+    return ExtendsResult.True;
+}
+// ------------------------------------------------------------------
+// Not
+// ------------------------------------------------------------------
+// prettier-ignore
+function UnwrapTNot(schema) {
+    let [current, depth] = [schema, 0];
+    while (true) {
+        if (!IsNot(current))
+            break;
+        current = current.not;
+        depth += 1;
+    }
+    return depth % 2 === 0 ? current : Unknown();
+}
+// prettier-ignore
+function FromNot$4(left, right) {
+    // TypeScript has no concept of negated types, and attempts to correctly check the negated
+    // type at runtime would put TypeBox at odds with TypeScripts ability to statically infer
+    // the type. Instead we unwrap to either unknown or T and continue evaluating.
+    // prettier-ignore
+    return (IsNot(left) ? Visit$4(UnwrapTNot(left), right) :
+        IsNot(right) ? Visit$4(left, UnwrapTNot(right)) :
+            Throw('Invalid fallthrough for Not'));
+}
+// ------------------------------------------------------------------
+// Null
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromNull$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsNull(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Number
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromNumberRight(left, right) {
+    return (IsLiteralNumber(left) ? ExtendsResult.True :
+        IsNumber(left) || IsInteger(left) ? ExtendsResult.True :
+            ExtendsResult.False);
+}
+// prettier-ignore
+function FromNumber$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsInteger(right) || IsNumber(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Object
+// ------------------------------------------------------------------
+// prettier-ignore
+function IsObjectPropertyCount(schema, count) {
+    return Object.getOwnPropertyNames(schema.properties).length === count;
+}
+// prettier-ignore
+function IsObjectStringLike(schema) {
+    return IsObjectArrayLike(schema);
+}
+// prettier-ignore
+function IsObjectSymbolLike(schema) {
+    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'description' in schema.properties && IsUnion(schema.properties.description) && schema.properties.description.anyOf.length === 2 && ((IsString(schema.properties.description.anyOf[0]) &&
+        IsUndefined(schema.properties.description.anyOf[1])) || (IsString(schema.properties.description.anyOf[1]) &&
+        IsUndefined(schema.properties.description.anyOf[0]))));
+}
+// prettier-ignore
+function IsObjectNumberLike(schema) {
+    return IsObjectPropertyCount(schema, 0);
+}
+// prettier-ignore
+function IsObjectBooleanLike(schema) {
+    return IsObjectPropertyCount(schema, 0);
+}
+// prettier-ignore
+function IsObjectBigIntLike(schema) {
+    return IsObjectPropertyCount(schema, 0);
+}
+// prettier-ignore
+function IsObjectDateLike(schema) {
+    return IsObjectPropertyCount(schema, 0);
+}
+// prettier-ignore
+function IsObjectUint8ArrayLike(schema) {
+    return IsObjectArrayLike(schema);
+}
+// prettier-ignore
+function IsObjectFunctionLike(schema) {
+    const length = Number$1();
+    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'length' in schema.properties && IntoBooleanResult(Visit$4(schema.properties['length'], length)) === ExtendsResult.True);
+}
+// prettier-ignore
+function IsObjectConstructorLike(schema) {
+    return IsObjectPropertyCount(schema, 0);
+}
+// prettier-ignore
+function IsObjectArrayLike(schema) {
+    const length = Number$1();
+    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'length' in schema.properties && IntoBooleanResult(Visit$4(schema.properties['length'], length)) === ExtendsResult.True);
+}
+// prettier-ignore
+function IsObjectPromiseLike(schema) {
+    const then = Function([Any()], Any());
+    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'then' in schema.properties && IntoBooleanResult(Visit$4(schema.properties['then'], then)) === ExtendsResult.True);
+}
+// ------------------------------------------------------------------
+// Property
+// ------------------------------------------------------------------
+// prettier-ignore
+function Property(left, right) {
+    return (Visit$4(left, right) === ExtendsResult.False ? ExtendsResult.False :
+        IsOptional(left) && !IsOptional(right) ? ExtendsResult.False :
+            ExtendsResult.True);
+}
+// prettier-ignore
+function FromObjectRight(left, right) {
+    return (IsUnknown(left) ? ExtendsResult.False :
+        IsAny(left) ? ExtendsResult.Union : (IsNever(left) ||
+            (IsLiteralString(left) && IsObjectStringLike(right)) ||
+            (IsLiteralNumber(left) && IsObjectNumberLike(right)) ||
+            (IsLiteralBoolean(left) && IsObjectBooleanLike(right)) ||
+            (IsSymbol(left) && IsObjectSymbolLike(right)) ||
+            (IsBigInt(left) && IsObjectBigIntLike(right)) ||
+            (IsString(left) && IsObjectStringLike(right)) ||
+            (IsSymbol(left) && IsObjectSymbolLike(right)) ||
+            (IsNumber(left) && IsObjectNumberLike(right)) ||
+            (IsInteger(left) && IsObjectNumberLike(right)) ||
+            (IsBoolean(left) && IsObjectBooleanLike(right)) ||
+            (IsUint8Array(left) && IsObjectUint8ArrayLike(right)) ||
+            (IsDate(left) && IsObjectDateLike(right)) ||
+            (IsConstructor(left) && IsObjectConstructorLike(right)) ||
+            (IsFunction(left) && IsObjectFunctionLike(right))) ? ExtendsResult.True :
+            (IsRecord(left) && IsString(RecordKey(left))) ? (() => {
+                // When expressing a Record with literal key values, the Record is converted into a Object with
+                // the Hint assigned as `Record`. This is used to invert the extends logic.
+                return right[Hint] === 'Record' ? ExtendsResult.True : ExtendsResult.False;
+            })() :
+                (IsRecord(left) && IsNumber(RecordKey(left))) ? (() => {
+                    return IsObjectPropertyCount(right, 0) ? ExtendsResult.True : ExtendsResult.False;
+                })() :
+                    ExtendsResult.False);
+}
+// prettier-ignore
+function FromObject$5(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsRecord(right) ? FromRecordRight(left, right) :
+            !IsObject(right) ? ExtendsResult.False :
+                (() => {
+                    for (const key of Object.getOwnPropertyNames(right.properties)) {
+                        if (!(key in left.properties) && !IsOptional(right.properties[key])) {
+                            return ExtendsResult.False;
+                        }
+                        if (IsOptional(right.properties[key])) {
+                            return ExtendsResult.True;
+                        }
+                        if (Property(left.properties[key], right.properties[key]) === ExtendsResult.False) {
+                            return ExtendsResult.False;
+                        }
+                    }
+                    return ExtendsResult.True;
+                })());
+}
+// ------------------------------------------------------------------
+// Promise
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromPromise$4(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) && IsObjectPromiseLike(right) ? ExtendsResult.True :
+            !IsPromise(right) ? ExtendsResult.False :
+                IntoBooleanResult(Visit$4(left.item, right.item)));
+}
+// ------------------------------------------------------------------
+// Record
+// ------------------------------------------------------------------
+// prettier-ignore
+function RecordKey(schema) {
+    return (PatternNumberExact in schema.patternProperties ? Number$1() :
+        PatternStringExact in schema.patternProperties ? String$1() :
+            Throw('Unknown record key pattern'));
+}
+// prettier-ignore
+function RecordValue(schema) {
+    return (PatternNumberExact in schema.patternProperties ? schema.patternProperties[PatternNumberExact] :
+        PatternStringExact in schema.patternProperties ? schema.patternProperties[PatternStringExact] :
+            Throw('Unable to get record value schema'));
+}
+// prettier-ignore
+function FromRecordRight(left, right) {
+    const [Key, Value] = [RecordKey(right), RecordValue(right)];
+    return ((IsLiteralString(left) && IsNumber(Key) && IntoBooleanResult(Visit$4(left, Value)) === ExtendsResult.True) ? ExtendsResult.True :
+        IsUint8Array(left) && IsNumber(Key) ? Visit$4(left, Value) :
+            IsString(left) && IsNumber(Key) ? Visit$4(left, Value) :
+                IsArray(left) && IsNumber(Key) ? Visit$4(left, Value) :
+                    IsObject(left) ? (() => {
+                        for (const key of Object.getOwnPropertyNames(left.properties)) {
+                            if (Property(Value, left.properties[key]) === ExtendsResult.False) {
+                                return ExtendsResult.False;
+                            }
+                        }
+                        return ExtendsResult.True;
+                    })() :
+                        ExtendsResult.False);
+}
+// prettier-ignore
+function FromRecord$4(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            !IsRecord(right) ? ExtendsResult.False :
+                Visit$4(RecordValue(left), RecordValue(right)));
+}
+// ------------------------------------------------------------------
+// RegExp
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromRegExp$1(left, right) {
+    // Note: RegExp types evaluate as strings, not RegExp objects.
+    // Here we remap either into string and continue evaluating.
+    const L = IsRegExp(left) ? String$1() : left;
+    const R = IsRegExp(right) ? String$1() : right;
+    return Visit$4(L, R);
+}
+// ------------------------------------------------------------------
+// String
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromStringRight(left, right) {
+    return (IsLiteral(left) && IsString$1(left.const) ? ExtendsResult.True :
+        IsString(left) ? ExtendsResult.True :
+            ExtendsResult.False);
+}
+// prettier-ignore
+function FromString$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsString(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Symbol
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromSymbol$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsSymbol(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// TemplateLiteral
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromTemplateLiteral$2(left, right) {
+    // TemplateLiteral types are resolved to either unions for finite expressions or string
+    // for infinite expressions. Here we call to TemplateLiteralResolver to resolve for
+    // either type and continue evaluating.
+    return (IsTemplateLiteral(left) ? Visit$4(TemplateLiteralToUnion(left), right) :
+        IsTemplateLiteral(right) ? Visit$4(left, TemplateLiteralToUnion(right)) :
+            Throw('Invalid fallthrough for TemplateLiteral'));
+}
+// ------------------------------------------------------------------
+// Tuple
+// ------------------------------------------------------------------
+// prettier-ignore
+function IsArrayOfTuple(left, right) {
+    return (IsArray(right) &&
+        left.items !== undefined &&
+        left.items.every((schema) => Visit$4(schema, right.items) === ExtendsResult.True));
+}
+// prettier-ignore
+function FromTupleRight(left, right) {
+    return (IsNever(left) ? ExtendsResult.True :
+        IsUnknown(left) ? ExtendsResult.False :
+            IsAny(left) ? ExtendsResult.Union :
+                ExtendsResult.False);
+}
+// prettier-ignore
+function FromTuple$5(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) && IsObjectArrayLike(right) ? ExtendsResult.True :
+            IsArray(right) && IsArrayOfTuple(left, right) ? ExtendsResult.True :
+                !IsTuple(right) ? ExtendsResult.False :
+                    (IsUndefined$1(left.items) && !IsUndefined$1(right.items)) || (!IsUndefined$1(left.items) && IsUndefined$1(right.items)) ? ExtendsResult.False :
+                        (IsUndefined$1(left.items) && !IsUndefined$1(right.items)) ? ExtendsResult.True :
+                            left.items.every((schema, index) => Visit$4(schema, right.items[index]) === ExtendsResult.True) ? ExtendsResult.True :
+                                ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Uint8Array
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromUint8Array$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsUint8Array(right) ? ExtendsResult.True :
+                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Undefined
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromUndefined$1(left, right) {
+    return (IsStructuralRight(right) ? StructuralRight(left, right) :
+        IsObject(right) ? FromObjectRight(left, right) :
+            IsRecord(right) ? FromRecordRight(left, right) :
+                IsVoid(right) ? FromVoidRight(left) :
+                    IsUndefined(right) ? ExtendsResult.True :
+                        ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Union
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromUnionRight(left, right) {
+    return right.anyOf.some((schema) => Visit$4(left, schema) === ExtendsResult.True)
+        ? ExtendsResult.True
+        : ExtendsResult.False;
+}
+// prettier-ignore
+function FromUnion$8(left, right) {
+    return left.anyOf.every((schema) => Visit$4(schema, right) === ExtendsResult.True)
+        ? ExtendsResult.True
+        : ExtendsResult.False;
+}
+// ------------------------------------------------------------------
+// Unknown
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromUnknownRight(left, right) {
+    return ExtendsResult.True;
+}
+// prettier-ignore
+function FromUnknown$1(left, right) {
+    return (IsNever(right) ? FromNeverRight() :
+        IsIntersect(right) ? FromIntersectRight(left, right) :
+            IsUnion(right) ? FromUnionRight(left, right) :
+                IsAny(right) ? FromAnyRight() :
+                    IsString(right) ? FromStringRight(left) :
+                        IsNumber(right) ? FromNumberRight(left) :
+                            IsInteger(right) ? FromIntegerRight(left) :
+                                IsBoolean(right) ? FromBooleanRight(left) :
+                                    IsArray(right) ? FromArrayRight(left) :
+                                        IsTuple(right) ? FromTupleRight(left) :
+                                            IsObject(right) ? FromObjectRight(left, right) :
+                                                IsUnknown(right) ? ExtendsResult.True :
+                                                    ExtendsResult.False);
+}
+// ------------------------------------------------------------------
+// Void
+// ------------------------------------------------------------------
+// prettier-ignore
+function FromVoidRight(left, right) {
+    return (IsUndefined(left) ? ExtendsResult.True :
+        IsUndefined(left) ? ExtendsResult.True :
+            ExtendsResult.False);
+}
+// prettier-ignore
+function FromVoid$1(left, right) {
+    return (IsIntersect(right) ? FromIntersectRight(left, right) :
+        IsUnion(right) ? FromUnionRight(left, right) :
+            IsUnknown(right) ? FromUnknownRight() :
+                IsAny(right) ? FromAnyRight() :
+                    IsObject(right) ? FromObjectRight(left, right) :
+                        IsVoid(right) ? ExtendsResult.True :
+                            ExtendsResult.False);
+}
+// prettier-ignore
+function Visit$4(left, right) {
+    return (
+    // resolvable
+    (IsTemplateLiteral(left) || IsTemplateLiteral(right)) ? FromTemplateLiteral$2(left, right) :
+        (IsRegExp(left) || IsRegExp(right)) ? FromRegExp$1(left, right) :
+            (IsNot(left) || IsNot(right)) ? FromNot$4(left, right) :
+                // standard
+                IsAny(left) ? FromAny$1(left, right) :
+                    IsArray(left) ? FromArray$6(left, right) :
+                        IsBigInt(left) ? FromBigInt$1(left, right) :
+                            IsBoolean(left) ? FromBoolean$1(left, right) :
+                                IsAsyncIterator(left) ? FromAsyncIterator$3(left, right) :
+                                    IsConstructor(left) ? FromConstructor$3(left, right) :
+                                        IsDate(left) ? FromDate$1(left, right) :
+                                            IsFunction(left) ? FromFunction$3(left, right) :
+                                                IsInteger(left) ? FromInteger$1(left, right) :
+                                                    IsIntersect(left) ? FromIntersect$8(left, right) :
+                                                        IsIterator(left) ? FromIterator$3(left, right) :
+                                                            IsLiteral(left) ? FromLiteral$1(left, right) :
+                                                                IsNever(left) ? FromNever$1() :
+                                                                    IsNull(left) ? FromNull$1(left, right) :
+                                                                        IsNumber(left) ? FromNumber$1(left, right) :
+                                                                            IsObject(left) ? FromObject$5(left, right) :
+                                                                                IsRecord(left) ? FromRecord$4(left, right) :
+                                                                                    IsString(left) ? FromString$1(left, right) :
+                                                                                        IsSymbol(left) ? FromSymbol$1(left, right) :
+                                                                                            IsTuple(left) ? FromTuple$5(left, right) :
+                                                                                                IsPromise(left) ? FromPromise$4(left, right) :
+                                                                                                    IsUint8Array(left) ? FromUint8Array$1(left, right) :
+                                                                                                        IsUndefined(left) ? FromUndefined$1(left, right) :
+                                                                                                            IsUnion(left) ? FromUnion$8(left, right) :
+                                                                                                                IsUnknown(left) ? FromUnknown$1(left, right) :
+                                                                                                                    IsVoid(left) ? FromVoid$1(left, right) :
+                                                                                                                        Throw(`Unknown left type operand '${left[Kind]}'`));
+}
+function ExtendsCheck(left, right) {
+    return Visit$4(left, right);
+}
+
+// prettier-ignore
+function FromProperties$c(P, Right, True, False, options) {
+    return globalThis.Object.getOwnPropertyNames(P).reduce((Acc, K2) => {
+        return { ...Acc, [K2]: Extends(P[K2], Right, True, False, options) };
+    }, {});
+}
+// prettier-ignore
+function FromMappedResult$6(Left, Right, True, False, options) {
+    return FromProperties$c(Left.properties, Right, True, False, options);
+}
+// prettier-ignore
+function ExtendsFromMappedResult(Left, Right, True, False, options) {
+    const P = FromMappedResult$6(Left, Right, True, False, options);
+    return MappedResult(P);
+}
+
+// prettier-ignore
+function ExtendsResolve(left, right, trueType, falseType) {
+    const R = ExtendsCheck(left, right);
+    return (R === ExtendsResult.Union ? Union$1([trueType, falseType]) :
+        R === ExtendsResult.True ? trueType :
+            falseType);
+}
+/** `[Json]` Creates a Conditional type */
+function Extends(L, R, T, F, options = {}) {
+    // prettier-ignore
+    return (IsMappedResult(L) ? ExtendsFromMappedResult(L, R, T, F, options) :
+        IsMappedKey(L) ? CloneType(ExtendsFromMappedKey(L, R, T, F, options)) :
+            CloneType(ExtendsResolve(L, R, T, F), options));
+}
+
+// prettier-ignore
+function FromPropertyKey$2(K, U, L, R, options) {
+    return {
+        [K]: Extends(Literal(K), U, L, R, options)
+    };
+}
+// prettier-ignore
+function FromPropertyKeys$2(K, U, L, R, options) {
+    return K.reduce((Acc, LK) => {
+        return { ...Acc, ...FromPropertyKey$2(LK, U, L, R, options) };
+    }, {});
+}
+// prettier-ignore
+function FromMappedKey$2(K, U, L, R, options) {
+    return FromPropertyKeys$2(K.keys, U, L, R, options);
+}
+// prettier-ignore
+function ExtendsFromMappedKey(T, U, L, R, options) {
+    const P = FromMappedKey$2(T, U, L, R, options);
+    return MappedResult(P);
+}
+
+// ------------------------------------------------------------------
+// Errors
+// ------------------------------------------------------------------
+class ValueCheckUnknownTypeError extends TypeBoxError {
+    schema;
+    constructor(schema) {
+        super(`Unknown type`);
+        this.schema = schema;
+    }
+}
+// ------------------------------------------------------------------
+// TypeGuards
+// ------------------------------------------------------------------
+function IsAnyOrUnknown(schema) {
+    return schema[Kind] === 'Any' || schema[Kind] === 'Unknown';
+}
+// ------------------------------------------------------------------
+// Guards
+// ------------------------------------------------------------------
+function IsDefined(value) {
+    return value !== undefined;
+}
+// ------------------------------------------------------------------
+// Types
+// ------------------------------------------------------------------
+function FromAny(schema, references, value) {
+    return true;
+}
+function FromArray$5(schema, references, value) {
+    if (!IsArray$2(value))
+        return false;
+    if (IsDefined(schema.minItems) && !(value.length >= schema.minItems)) {
+        return false;
+    }
+    if (IsDefined(schema.maxItems) && !(value.length <= schema.maxItems)) {
+        return false;
+    }
+    if (!value.every((value) => Visit$3(schema.items, references, value))) {
+        return false;
+    }
+    // prettier-ignore
+    if (schema.uniqueItems === true && !((function () { const set = new Set(); for (const element of value) {
+        const hashed = Hash(element);
+        if (set.has(hashed)) {
+            return false;
+        }
+        else {
+            set.add(hashed);
+        }
+    } return true; })())) {
+        return false;
+    }
+    // contains
+    if (!(IsDefined(schema.contains) || IsNumber$2(schema.minContains) || IsNumber$2(schema.maxContains))) {
+        return true; // exit
+    }
+    const containsSchema = IsDefined(schema.contains) ? schema.contains : Never();
+    const containsCount = value.reduce((acc, value) => (Visit$3(containsSchema, references, value) ? acc + 1 : acc), 0);
+    if (containsCount === 0) {
+        return false;
+    }
+    if (IsNumber$2(schema.minContains) && containsCount < schema.minContains) {
+        return false;
+    }
+    if (IsNumber$2(schema.maxContains) && containsCount > schema.maxContains) {
+        return false;
+    }
+    return true;
+}
+function FromAsyncIterator$2(schema, references, value) {
+    return IsAsyncIterator$2(value);
+}
+function FromBigInt(schema, references, value) {
+    if (!IsBigInt$2(value))
+        return false;
+    if (IsDefined(schema.exclusiveMaximum) && !(value < schema.exclusiveMaximum)) {
+        return false;
+    }
+    if (IsDefined(schema.exclusiveMinimum) && !(value > schema.exclusiveMinimum)) {
+        return false;
+    }
+    if (IsDefined(schema.maximum) && !(value <= schema.maximum)) {
+        return false;
+    }
+    if (IsDefined(schema.minimum) && !(value >= schema.minimum)) {
+        return false;
+    }
+    if (IsDefined(schema.multipleOf) && !(value % schema.multipleOf === BigInt(0))) {
+        return false;
+    }
+    return true;
+}
+function FromBoolean(schema, references, value) {
+    return IsBoolean$2(value);
+}
+function FromConstructor$2(schema, references, value) {
+    return Visit$3(schema.returns, references, value.prototype);
+}
+function FromDate(schema, references, value) {
+    if (!IsDate$2(value))
+        return false;
+    if (IsDefined(schema.exclusiveMaximumTimestamp) && !(value.getTime() < schema.exclusiveMaximumTimestamp)) {
+        return false;
+    }
+    if (IsDefined(schema.exclusiveMinimumTimestamp) && !(value.getTime() > schema.exclusiveMinimumTimestamp)) {
+        return false;
+    }
+    if (IsDefined(schema.maximumTimestamp) && !(value.getTime() <= schema.maximumTimestamp)) {
+        return false;
+    }
+    if (IsDefined(schema.minimumTimestamp) && !(value.getTime() >= schema.minimumTimestamp)) {
+        return false;
+    }
+    if (IsDefined(schema.multipleOfTimestamp) && !(value.getTime() % schema.multipleOfTimestamp === 0)) {
+        return false;
+    }
+    return true;
+}
+function FromFunction$2(schema, references, value) {
+    return IsFunction$2(value);
+}
+function FromInteger(schema, references, value) {
+    if (!IsInteger$1(value)) {
+        return false;
+    }
+    if (IsDefined(schema.exclusiveMaximum) && !(value < schema.exclusiveMaximum)) {
+        return false;
+    }
+    if (IsDefined(schema.exclusiveMinimum) && !(value > schema.exclusiveMinimum)) {
+        return false;
+    }
+    if (IsDefined(schema.maximum) && !(value <= schema.maximum)) {
+        return false;
+    }
+    if (IsDefined(schema.minimum) && !(value >= schema.minimum)) {
+        return false;
+    }
+    if (IsDefined(schema.multipleOf) && !(value % schema.multipleOf === 0)) {
+        return false;
+    }
+    return true;
+}
+function FromIntersect$7(schema, references, value) {
+    const check1 = schema.allOf.every((schema) => Visit$3(schema, references, value));
+    if (schema.unevaluatedProperties === false) {
+        const keyPattern = new RegExp(KeyOfPattern(schema));
+        const check2 = Object.getOwnPropertyNames(value).every((key) => keyPattern.test(key));
+        return check1 && check2;
+    }
+    else if (IsSchema(schema.unevaluatedProperties)) {
+        const keyCheck = new RegExp(KeyOfPattern(schema));
+        const check2 = Object.getOwnPropertyNames(value).every((key) => keyCheck.test(key) || Visit$3(schema.unevaluatedProperties, references, value[key]));
+        return check1 && check2;
+    }
+    else {
+        return check1;
+    }
+}
+function FromIterator$2(schema, references, value) {
+    return IsIterator$2(value);
+}
+function FromLiteral(schema, references, value) {
+    return value === schema.const;
+}
+function FromNever(schema, references, value) {
+    return false;
+}
+function FromNot$3(schema, references, value) {
+    return !Visit$3(schema.not, references, value);
+}
+function FromNull(schema, references, value) {
+    return IsNull$2(value);
+}
+function FromNumber(schema, references, value) {
+    if (!TypeSystemPolicy.IsNumberLike(value))
+        return false;
+    if (IsDefined(schema.exclusiveMaximum) && !(value < schema.exclusiveMaximum)) {
+        return false;
+    }
+    if (IsDefined(schema.exclusiveMinimum) && !(value > schema.exclusiveMinimum)) {
+        return false;
+    }
+    if (IsDefined(schema.minimum) && !(value >= schema.minimum)) {
+        return false;
+    }
+    if (IsDefined(schema.maximum) && !(value <= schema.maximum)) {
+        return false;
+    }
+    if (IsDefined(schema.multipleOf) && !(value % schema.multipleOf === 0)) {
+        return false;
+    }
+    return true;
+}
+function FromObject$4(schema, references, value) {
+    if (!TypeSystemPolicy.IsObjectLike(value))
+        return false;
+    if (IsDefined(schema.minProperties) && !(Object.getOwnPropertyNames(value).length >= schema.minProperties)) {
+        return false;
+    }
+    if (IsDefined(schema.maxProperties) && !(Object.getOwnPropertyNames(value).length <= schema.maxProperties)) {
+        return false;
+    }
+    const knownKeys = Object.getOwnPropertyNames(schema.properties);
+    for (const knownKey of knownKeys) {
+        const property = schema.properties[knownKey];
+        if (schema.required && schema.required.includes(knownKey)) {
+            if (!Visit$3(property, references, value[knownKey])) {
+                return false;
+            }
+            if ((ExtendsUndefinedCheck(property) || IsAnyOrUnknown(property)) && !(knownKey in value)) {
+                return false;
+            }
+        }
+        else {
+            if (TypeSystemPolicy.IsExactOptionalProperty(value, knownKey) && !Visit$3(property, references, value[knownKey])) {
+                return false;
+            }
+        }
+    }
+    if (schema.additionalProperties === false) {
+        const valueKeys = Object.getOwnPropertyNames(value);
+        // optimization: value is valid if schemaKey length matches the valueKey length
+        if (schema.required && schema.required.length === knownKeys.length && valueKeys.length === knownKeys.length) {
+            return true;
+        }
+        else {
+            return valueKeys.every((valueKey) => knownKeys.includes(valueKey));
+        }
+    }
+    else if (typeof schema.additionalProperties === 'object') {
+        const valueKeys = Object.getOwnPropertyNames(value);
+        return valueKeys.every((key) => knownKeys.includes(key) || Visit$3(schema.additionalProperties, references, value[key]));
+    }
+    else {
+        return true;
+    }
+}
+function FromPromise$3(schema, references, value) {
+    return IsPromise$1(value);
+}
+function FromRecord$3(schema, references, value) {
+    if (!TypeSystemPolicy.IsRecordLike(value)) {
+        return false;
+    }
+    if (IsDefined(schema.minProperties) && !(Object.getOwnPropertyNames(value).length >= schema.minProperties)) {
+        return false;
+    }
+    if (IsDefined(schema.maxProperties) && !(Object.getOwnPropertyNames(value).length <= schema.maxProperties)) {
+        return false;
+    }
+    const [patternKey, patternSchema] = Object.entries(schema.patternProperties)[0];
+    const regex = new RegExp(patternKey);
+    // prettier-ignore
+    const check1 = Object.entries(value).every(([key, value]) => {
+        return (regex.test(key)) ? Visit$3(patternSchema, references, value) : true;
+    });
+    // prettier-ignore
+    const check2 = typeof schema.additionalProperties === 'object' ? Object.entries(value).every(([key, value]) => {
+        return (!regex.test(key)) ? Visit$3(schema.additionalProperties, references, value) : true;
+    }) : true;
+    const check3 = schema.additionalProperties === false
+        ? Object.getOwnPropertyNames(value).every((key) => {
+            return regex.test(key);
+        })
+        : true;
+    return check1 && check2 && check3;
+}
+function FromRef$4(schema, references, value) {
+    return Visit$3(Deref$1(schema, references), references, value);
+}
+function FromRegExp(schema, references, value) {
+    const regex = new RegExp(schema.source, schema.flags);
+    if (IsDefined(schema.minLength)) {
+        if (!(value.length >= schema.minLength))
+            return false;
+    }
+    if (IsDefined(schema.maxLength)) {
+        if (!(value.length <= schema.maxLength))
+            return false;
+    }
+    return regex.test(value);
+}
+function FromString(schema, references, value) {
+    if (!IsString$2(value)) {
+        return false;
+    }
+    if (IsDefined(schema.minLength)) {
+        if (!(value.length >= schema.minLength))
+            return false;
+    }
+    if (IsDefined(schema.maxLength)) {
+        if (!(value.length <= schema.maxLength))
+            return false;
+    }
+    if (IsDefined(schema.pattern)) {
+        const regex = new RegExp(schema.pattern);
+        if (!regex.test(value))
+            return false;
+    }
+    if (IsDefined(schema.format)) {
+        if (!Has$1(schema.format))
+            return false;
+        const func = Get$1(schema.format);
+        return func(value);
+    }
+    return true;
+}
+function FromSymbol(schema, references, value) {
+    return IsSymbol$2(value);
+}
+function FromTemplateLiteral$1(schema, references, value) {
+    return IsString$2(value) && new RegExp(schema.pattern).test(value);
+}
+function FromThis$3(schema, references, value) {
+    return Visit$3(Deref$1(schema, references), references, value);
+}
+function FromTuple$4(schema, references, value) {
+    if (!IsArray$2(value)) {
+        return false;
+    }
+    if (schema.items === undefined && !(value.length === 0)) {
+        return false;
+    }
+    if (!(value.length === schema.maxItems)) {
+        return false;
+    }
+    if (!schema.items) {
+        return true;
+    }
+    for (let i = 0; i < schema.items.length; i++) {
+        if (!Visit$3(schema.items[i], references, value[i]))
+            return false;
+    }
+    return true;
+}
+function FromUndefined(schema, references, value) {
+    return IsUndefined$2(value);
+}
+function FromUnion$7(schema, references, value) {
+    return schema.anyOf.some((inner) => Visit$3(inner, references, value));
+}
+function FromUint8Array(schema, references, value) {
+    if (!IsUint8Array$2(value)) {
+        return false;
+    }
+    if (IsDefined(schema.maxByteLength) && !(value.length <= schema.maxByteLength)) {
+        return false;
+    }
+    if (IsDefined(schema.minByteLength) && !(value.length >= schema.minByteLength)) {
+        return false;
+    }
+    return true;
+}
+function FromUnknown(schema, references, value) {
+    return true;
+}
+function FromVoid(schema, references, value) {
+    return TypeSystemPolicy.IsVoidLike(value);
+}
+function FromKind(schema, references, value) {
+    if (!Has(schema[Kind]))
+        return false;
+    const func = Get(schema[Kind]);
+    return func(schema, value);
+}
+function Visit$3(schema, references, value) {
+    const references_ = IsDefined(schema.$id) ? [...references, schema] : references;
+    const schema_ = schema;
+    switch (schema_[Kind]) {
+        case 'Any':
+            return FromAny();
+        case 'Array':
+            return FromArray$5(schema_, references_, value);
+        case 'AsyncIterator':
+            return FromAsyncIterator$2(schema_, references_, value);
+        case 'BigInt':
+            return FromBigInt(schema_, references_, value);
+        case 'Boolean':
+            return FromBoolean(schema_, references_, value);
+        case 'Constructor':
+            return FromConstructor$2(schema_, references_, value);
+        case 'Date':
+            return FromDate(schema_, references_, value);
+        case 'Function':
+            return FromFunction$2(schema_, references_, value);
+        case 'Integer':
+            return FromInteger(schema_, references_, value);
+        case 'Intersect':
+            return FromIntersect$7(schema_, references_, value);
+        case 'Iterator':
+            return FromIterator$2(schema_, references_, value);
+        case 'Literal':
+            return FromLiteral(schema_, references_, value);
+        case 'Never':
+            return FromNever();
+        case 'Not':
+            return FromNot$3(schema_, references_, value);
+        case 'Null':
+            return FromNull(schema_, references_, value);
+        case 'Number':
+            return FromNumber(schema_, references_, value);
+        case 'Object':
+            return FromObject$4(schema_, references_, value);
+        case 'Promise':
+            return FromPromise$3(schema_, references_, value);
+        case 'Record':
+            return FromRecord$3(schema_, references_, value);
+        case 'Ref':
+            return FromRef$4(schema_, references_, value);
+        case 'RegExp':
+            return FromRegExp(schema_, references_, value);
+        case 'String':
+            return FromString(schema_, references_, value);
+        case 'Symbol':
+            return FromSymbol(schema_, references_, value);
+        case 'TemplateLiteral':
+            return FromTemplateLiteral$1(schema_, references_, value);
+        case 'This':
+            return FromThis$3(schema_, references_, value);
+        case 'Tuple':
+            return FromTuple$4(schema_, references_, value);
+        case 'Undefined':
+            return FromUndefined(schema_, references_, value);
+        case 'Union':
+            return FromUnion$7(schema_, references_, value);
+        case 'Uint8Array':
+            return FromUint8Array(schema_, references_, value);
+        case 'Unknown':
+            return FromUnknown();
+        case 'Void':
+            return FromVoid(schema_, references_, value);
+        default:
+            if (!Has(schema_[Kind]))
+                throw new ValueCheckUnknownTypeError(schema_);
+            return FromKind(schema_, references_, value);
+    }
+}
+/** Returns true if the value matches the given type. */
+function Check(...args) {
+    return args.length === 3 ? Visit$3(args[0], args[1], args[2]) : Visit$3(args[0], [], args[1]);
+}
+
+// ------------------------------------------------------------------
+// Errors
+// ------------------------------------------------------------------
+// thrown externally
+// prettier-ignore
+class TransformDecodeCheckError extends TypeBoxError {
+    schema;
+    value;
+    error;
+    constructor(schema, value, error) {
+        super(`Unable to decode value as it does not match the expected schema`);
+        this.schema = schema;
+        this.value = value;
+        this.error = error;
+    }
+}
+// prettier-ignore
+class TransformDecodeError extends TypeBoxError {
+    schema;
+    path;
+    value;
+    error;
+    constructor(schema, path, value, error) {
+        super(error instanceof Error ? error.message : 'Unknown error');
+        this.schema = schema;
+        this.path = path;
+        this.value = value;
+        this.error = error;
+    }
+}
+// ------------------------------------------------------------------
+// Decode
+// ------------------------------------------------------------------
+// prettier-ignore
+function Default$1(schema, path, value) {
+    try {
+        return IsTransform(schema) ? schema[TransformKind].Decode(value) : value;
+    }
+    catch (error) {
+        throw new TransformDecodeError(schema, path, value, error);
+    }
+}
+// prettier-ignore
+function FromArray$4(schema, references, path, value) {
+    return (IsArray$2(value))
+        ? Default$1(schema, path, value.map((value, index) => Visit$2(schema.items, references, `${path}/${index}`, value)))
+        : Default$1(schema, path, value);
+}
+// prettier-ignore
+function FromIntersect$6(schema, references, path, value) {
+    if (!IsStandardObject(value) || IsValueType(value))
+        return Default$1(schema, path, value);
+    const knownKeys = KeyOfPropertyKeys(schema);
+    const knownProperties = knownKeys.reduce((value, key) => {
+        return (key in value)
+            ? { ...value, [key]: Visit$2(Index(schema, [key]), references, `${path}/${key}`, value[key]) }
+            : value;
+    }, value);
+    if (!IsTransform(schema.unevaluatedProperties)) {
+        return Default$1(schema, path, knownProperties);
+    }
+    const unknownKeys = Object.getOwnPropertyNames(knownProperties);
+    const unevaluatedProperties = schema.unevaluatedProperties;
+    const unknownProperties = unknownKeys.reduce((value, key) => {
+        return !knownKeys.includes(key)
+            ? { ...value, [key]: Default$1(unevaluatedProperties, `${path}/${key}`, value[key]) }
+            : value;
+    }, knownProperties);
+    return Default$1(schema, path, unknownProperties);
+}
+function FromNot$2(schema, references, path, value) {
+    return Default$1(schema, path, Visit$2(schema.not, references, path, value));
+}
+// prettier-ignore
+function FromObject$3(schema, references, path, value) {
+    if (!IsStandardObject(value))
+        return Default$1(schema, path, value);
+    const knownKeys = KeyOfPropertyKeys(schema);
+    const knownProperties = knownKeys.reduce((value, key) => {
+        return (key in value)
+            ? { ...value, [key]: Visit$2(schema.properties[key], references, `${path}/${key}`, value[key]) }
+            : value;
+    }, value);
+    if (!IsSchema(schema.additionalProperties)) {
+        return Default$1(schema, path, knownProperties);
+    }
+    const unknownKeys = Object.getOwnPropertyNames(knownProperties);
+    const additionalProperties = schema.additionalProperties;
+    const unknownProperties = unknownKeys.reduce((value, key) => {
+        return !knownKeys.includes(key)
+            ? { ...value, [key]: Default$1(additionalProperties, `${path}/${key}`, value[key]) }
+            : value;
+    }, knownProperties);
+    return Default$1(schema, path, unknownProperties);
+}
+// prettier-ignore
+function FromRecord$2(schema, references, path, value) {
+    if (!IsStandardObject(value))
+        return Default$1(schema, path, value);
+    const pattern = Object.getOwnPropertyNames(schema.patternProperties)[0];
+    const knownKeys = new RegExp(pattern);
+    const knownProperties = Object.getOwnPropertyNames(value).reduce((value, key) => {
+        return knownKeys.test(key)
+            ? { ...value, [key]: Visit$2(schema.patternProperties[pattern], references, `${path}/${key}`, value[key]) }
+            : value;
+    }, value);
+    if (!IsSchema(schema.additionalProperties)) {
+        return Default$1(schema, path, knownProperties);
+    }
+    const unknownKeys = Object.getOwnPropertyNames(knownProperties);
+    const additionalProperties = schema.additionalProperties;
+    const unknownProperties = unknownKeys.reduce((value, key) => {
+        return !knownKeys.test(key)
+            ? { ...value, [key]: Default$1(additionalProperties, `${path}/${key}`, value[key]) }
+            : value;
+    }, knownProperties);
+    return Default$1(schema, path, unknownProperties);
+}
+// prettier-ignore
+function FromRef$3(schema, references, path, value) {
+    const target = Deref$1(schema, references);
+    return Default$1(schema, path, Visit$2(target, references, path, value));
+}
+// prettier-ignore
+function FromThis$2(schema, references, path, value) {
+    const target = Deref$1(schema, references);
+    return Default$1(schema, path, Visit$2(target, references, path, value));
+}
+// prettier-ignore
+function FromTuple$3(schema, references, path, value) {
+    return (IsArray$2(value) && IsArray$2(schema.items))
+        ? Default$1(schema, path, schema.items.map((schema, index) => Visit$2(schema, references, `${path}/${index}`, value[index])))
+        : Default$1(schema, path, value);
+}
+// prettier-ignore
+function FromUnion$6(schema, references, path, value) {
+    for (const subschema of schema.anyOf) {
+        if (!Check(subschema, references, value))
+            continue;
+        // note: ensure interior is decoded first
+        const decoded = Visit$2(subschema, references, path, value);
+        return Default$1(schema, path, decoded);
+    }
+    return Default$1(schema, path, value);
+}
+// prettier-ignore
+function Visit$2(schema, references, path, value) {
+    const references_ = typeof schema.$id === 'string' ? [...references, schema] : references;
+    const schema_ = schema;
+    switch (schema[Kind]) {
+        case 'Array':
+            return FromArray$4(schema_, references_, path, value);
+        case 'Intersect':
+            return FromIntersect$6(schema_, references_, path, value);
+        case 'Not':
+            return FromNot$2(schema_, references_, path, value);
+        case 'Object':
+            return FromObject$3(schema_, references_, path, value);
+        case 'Record':
+            return FromRecord$2(schema_, references_, path, value);
+        case 'Ref':
+            return FromRef$3(schema_, references_, path, value);
+        case 'Symbol':
+            return Default$1(schema_, path, value);
+        case 'This':
+            return FromThis$2(schema_, references_, path, value);
+        case 'Tuple':
+            return FromTuple$3(schema_, references_, path, value);
+        case 'Union':
+            return FromUnion$6(schema_, references_, path, value);
+        default:
+            return Default$1(schema_, path, value);
+    }
+}
+/**
+ * `[Internal]` Decodes the value and returns the result. This function requires that
+ * the caller `Check` the value before use. Passing unchecked values may result in
+ * undefined behavior. Refer to the `Value.Decode()` for implementation details.
+ */
+function TransformDecode(schema, references, value) {
+    return Visit$2(schema, references, '', value);
+}
+
+// ------------------------------------------------------------------
+// Errors
+// ------------------------------------------------------------------
+// prettier-ignore
+class TransformEncodeCheckError extends TypeBoxError {
+    schema;
+    value;
+    error;
+    constructor(schema, value, error) {
+        super(`The encoded value does not match the expected schema`);
+        this.schema = schema;
+        this.value = value;
+        this.error = error;
+    }
+}
+// prettier-ignore
+class TransformEncodeError extends TypeBoxError {
+    schema;
+    path;
+    value;
+    error;
+    constructor(schema, path, value, error) {
+        super(`${error instanceof Error ? error.message : 'Unknown error'}`);
+        this.schema = schema;
+        this.path = path;
+        this.value = value;
+        this.error = error;
+    }
+}
+// ------------------------------------------------------------------
+// Encode
+// ------------------------------------------------------------------
+// prettier-ignore
+function Default(schema, path, value) {
+    try {
+        return IsTransform(schema) ? schema[TransformKind].Encode(value) : value;
+    }
+    catch (error) {
+        throw new TransformEncodeError(schema, path, value, error);
+    }
+}
+// prettier-ignore
+function FromArray$3(schema, references, path, value) {
+    const defaulted = Default(schema, path, value);
+    return IsArray$2(defaulted)
+        ? defaulted.map((value, index) => Visit$1(schema.items, references, `${path}/${index}`, value))
+        : defaulted;
+}
+// prettier-ignore
+function FromIntersect$5(schema, references, path, value) {
+    const defaulted = Default(schema, path, value);
+    if (!IsStandardObject(value) || IsValueType(value))
+        return defaulted;
+    const knownKeys = KeyOfPropertyKeys(schema);
+    const knownProperties = knownKeys.reduce((value, key) => {
+        return key in defaulted
+            ? { ...value, [key]: Visit$1(Index(schema, [key]), references, `${path}/${key}`, value[key]) }
+            : value;
+    }, defaulted);
+    if (!IsTransform(schema.unevaluatedProperties)) {
+        return Default(schema, path, knownProperties);
+    }
+    const unknownKeys = Object.getOwnPropertyNames(knownProperties);
+    const unevaluatedProperties = schema.unevaluatedProperties;
+    return unknownKeys.reduce((value, key) => {
+        return !knownKeys.includes(key)
+            ? { ...value, [key]: Default(unevaluatedProperties, `${path}/${key}`, value[key]) }
+            : value;
+    }, knownProperties);
+}
+// prettier-ignore
+function FromNot$1(schema, references, path, value) {
+    return Default(schema.not, path, Default(schema, path, value));
+}
+// prettier-ignore
+function FromObject$2(schema, references, path, value) {
+    const defaulted = Default(schema, path, value);
+    if (!IsStandardObject(value))
+        return defaulted;
+    const knownKeys = KeyOfPropertyKeys(schema);
+    const knownProperties = knownKeys.reduce((value, key) => {
+        return key in value
+            ? { ...value, [key]: Visit$1(schema.properties[key], references, `${path}/${key}`, value[key]) }
+            : value;
+    }, defaulted);
+    if (!IsSchema(schema.additionalProperties)) {
+        return knownProperties;
+    }
+    const unknownKeys = Object.getOwnPropertyNames(knownProperties);
+    const additionalProperties = schema.additionalProperties;
+    return unknownKeys.reduce((value, key) => {
+        return !knownKeys.includes(key)
+            ? { ...value, [key]: Default(additionalProperties, `${path}/${key}`, value[key]) }
+            : value;
+    }, knownProperties);
+}
+// prettier-ignore
+function FromRecord$1(schema, references, path, value) {
+    const defaulted = Default(schema, path, value);
+    if (!IsStandardObject(value))
+        return defaulted;
+    const pattern = Object.getOwnPropertyNames(schema.patternProperties)[0];
+    const knownKeys = new RegExp(pattern);
+    const knownProperties = Object.getOwnPropertyNames(value).reduce((value, key) => {
+        return knownKeys.test(key)
+            ? { ...value, [key]: Visit$1(schema.patternProperties[pattern], references, `${path}/${key}`, value[key]) }
+            : value;
+    }, defaulted);
+    if (!IsSchema(schema.additionalProperties)) {
+        return Default(schema, path, knownProperties);
+    }
+    const unknownKeys = Object.getOwnPropertyNames(knownProperties);
+    const additionalProperties = schema.additionalProperties;
+    return unknownKeys.reduce((value, key) => {
+        return !knownKeys.test(key)
+            ? { ...value, [key]: Default(additionalProperties, `${path}/${key}`, value[key]) }
+            : value;
+    }, knownProperties);
+}
+// prettier-ignore
+function FromRef$2(schema, references, path, value) {
+    const target = Deref$1(schema, references);
+    const resolved = Visit$1(target, references, path, value);
+    return Default(schema, path, resolved);
+}
+// prettier-ignore
+function FromThis$1(schema, references, path, value) {
+    const target = Deref$1(schema, references);
+    const resolved = Visit$1(target, references, path, value);
+    return Default(schema, path, resolved);
+}
+// prettier-ignore
+function FromTuple$2(schema, references, path, value) {
+    const value1 = Default(schema, path, value);
+    return IsArray$2(schema.items) ? schema.items.map((schema, index) => Visit$1(schema, references, `${path}/${index}`, value1[index])) : [];
+}
+// prettier-ignore
+function FromUnion$5(schema, references, path, value) {
+    // test value against union variants
+    for (const subschema of schema.anyOf) {
+        if (!Check(subschema, references, value))
+            continue;
+        const value1 = Visit$1(subschema, references, path, value);
+        return Default(schema, path, value1);
+    }
+    // test transformed value against union variants
+    for (const subschema of schema.anyOf) {
+        const value1 = Visit$1(subschema, references, path, value);
+        if (!Check(schema, references, value1))
+            continue;
+        return Default(schema, path, value1);
+    }
+    return Default(schema, path, value);
+}
+// prettier-ignore
+function Visit$1(schema, references, path, value) {
+    const references_ = typeof schema.$id === 'string' ? [...references, schema] : references;
+    const schema_ = schema;
+    switch (schema[Kind]) {
+        case 'Array':
+            return FromArray$3(schema_, references_, path, value);
+        case 'Intersect':
+            return FromIntersect$5(schema_, references_, path, value);
+        case 'Not':
+            return FromNot$1(schema_, references_, path, value);
+        case 'Object':
+            return FromObject$2(schema_, references_, path, value);
+        case 'Record':
+            return FromRecord$1(schema_, references_, path, value);
+        case 'Ref':
+            return FromRef$2(schema_, references_, path, value);
+        case 'This':
+            return FromThis$1(schema_, references_, path, value);
+        case 'Tuple':
+            return FromTuple$2(schema_, references_, path, value);
+        case 'Union':
+            return FromUnion$5(schema_, references_, path, value);
+        default:
+            return Default(schema_, path, value);
+    }
+}
+/**
+ * `[Internal]` Encodes the value and returns the result. This function expects the
+ * caller to pass a statically checked value. This function does not check the encoded
+ * result, meaning the result should be passed to `Check` before use. Refer to the
+ * `Value.Encode()` function for implementation details.
+ */
+function TransformEncode(schema, references, value) {
+    return Visit$1(schema, references, '', value);
+}
+
+// prettier-ignore
+function FromArray$2(schema, references) {
+    return IsTransform(schema) || Visit(schema.items, references);
+}
+// prettier-ignore
+function FromAsyncIterator$1(schema, references) {
+    return IsTransform(schema) || Visit(schema.items, references);
+}
+// prettier-ignore
+function FromConstructor$1(schema, references) {
+    return IsTransform(schema) || Visit(schema.returns, references) || schema.parameters.some((schema) => Visit(schema, references));
+}
+// prettier-ignore
+function FromFunction$1(schema, references) {
+    return IsTransform(schema) || Visit(schema.returns, references) || schema.parameters.some((schema) => Visit(schema, references));
+}
+// prettier-ignore
+function FromIntersect$4(schema, references) {
+    return IsTransform(schema) || IsTransform(schema.unevaluatedProperties) || schema.allOf.some((schema) => Visit(schema, references));
+}
+// prettier-ignore
+function FromIterator$1(schema, references) {
+    return IsTransform(schema) || Visit(schema.items, references);
+}
+// prettier-ignore
+function FromNot(schema, references) {
+    return IsTransform(schema) || Visit(schema.not, references);
+}
+// prettier-ignore
+function FromObject$1(schema, references) {
+    return (IsTransform(schema) ||
+        Object.values(schema.properties).some((schema) => Visit(schema, references)) ||
+        (IsSchema(schema.additionalProperties) && Visit(schema.additionalProperties, references)));
+}
+// prettier-ignore
+function FromPromise$2(schema, references) {
+    return IsTransform(schema) || Visit(schema.item, references);
+}
+// prettier-ignore
+function FromRecord(schema, references) {
+    const pattern = Object.getOwnPropertyNames(schema.patternProperties)[0];
+    const property = schema.patternProperties[pattern];
+    return IsTransform(schema) || Visit(property, references) || (IsSchema(schema.additionalProperties) && IsTransform(schema.additionalProperties));
+}
+// prettier-ignore
+function FromRef$1(schema, references) {
+    if (IsTransform(schema))
+        return true;
+    return Visit(Deref$1(schema, references), references);
+}
+// prettier-ignore
+function FromThis(schema, references) {
+    if (IsTransform(schema))
+        return true;
+    return Visit(Deref$1(schema, references), references);
+}
+// prettier-ignore
+function FromTuple$1(schema, references) {
+    return IsTransform(schema) || (!IsUndefined$2(schema.items) && schema.items.some((schema) => Visit(schema, references)));
+}
+// prettier-ignore
+function FromUnion$4(schema, references) {
+    return IsTransform(schema) || schema.anyOf.some((schema) => Visit(schema, references));
+}
+// prettier-ignore
+function Visit(schema, references) {
+    const references_ = IsString$2(schema.$id) ? [...references, schema] : references;
+    const schema_ = schema;
+    if (schema.$id && visited.has(schema.$id))
+        return false;
+    if (schema.$id)
+        visited.add(schema.$id);
+    switch (schema[Kind]) {
+        case 'Array':
+            return FromArray$2(schema_, references_);
+        case 'AsyncIterator':
+            return FromAsyncIterator$1(schema_, references_);
+        case 'Constructor':
+            return FromConstructor$1(schema_, references_);
+        case 'Function':
+            return FromFunction$1(schema_, references_);
+        case 'Intersect':
+            return FromIntersect$4(schema_, references_);
+        case 'Iterator':
+            return FromIterator$1(schema_, references_);
+        case 'Not':
+            return FromNot(schema_, references_);
+        case 'Object':
+            return FromObject$1(schema_, references_);
+        case 'Promise':
+            return FromPromise$2(schema_, references_);
+        case 'Record':
+            return FromRecord(schema_, references_);
+        case 'Ref':
+            return FromRef$1(schema_, references_);
+        case 'This':
+            return FromThis(schema_, references_);
+        case 'Tuple':
+            return FromTuple$1(schema_, references_);
+        case 'Union':
+            return FromUnion$4(schema_, references_);
+        default:
+            return IsTransform(schema);
+    }
+}
+const visited = new Set();
+/** Returns true if this schema contains a transform codec */
+function HasTransform(schema, references) {
+    visited.clear();
+    return Visit(schema, references);
+}
+
+// ------------------------------------------------------------------
+// TypeCheck
+// ------------------------------------------------------------------
+class TypeCheck {
+    schema;
+    references;
+    checkFunc;
+    code;
+    hasTransform;
+    constructor(schema, references, checkFunc, code) {
+        this.schema = schema;
+        this.references = references;
+        this.checkFunc = checkFunc;
+        this.code = code;
+        this.hasTransform = HasTransform(schema, references);
+    }
+    /** Returns the generated assertion code used to validate this type. */
+    Code() {
+        return this.code;
+    }
+    /** Returns an iterator for each error in this value. */
+    Errors(value) {
+        return Errors(this.schema, this.references, value);
+    }
+    /** Returns true if the value matches the compiled type. */
+    Check(value) {
+        return this.checkFunc(value);
+    }
+    /** Decodes a value or throws if error */
+    Decode(value) {
+        if (!this.checkFunc(value))
+            throw new TransformDecodeCheckError(this.schema, value, this.Errors(value).First());
+        return this.hasTransform ? TransformDecode(this.schema, this.references, value) : value;
+    }
+    /** Encodes a value or throws if error */
+    Encode(value) {
+        const encoded = this.hasTransform ? TransformEncode(this.schema, this.references, value) : value;
+        if (!this.checkFunc(encoded))
+            throw new TransformEncodeCheckError(this.schema, value, this.Errors(value).First());
+        return encoded;
+    }
+}
+// ------------------------------------------------------------------
+// Character
+// ------------------------------------------------------------------
+var Character;
+(function (Character) {
+    function DollarSign(code) {
+        return code === 36;
+    }
+    Character.DollarSign = DollarSign;
+    function IsUnderscore(code) {
+        return code === 95;
+    }
+    Character.IsUnderscore = IsUnderscore;
+    function IsAlpha(code) {
+        return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+    }
+    Character.IsAlpha = IsAlpha;
+    function IsNumeric(code) {
+        return code >= 48 && code <= 57;
+    }
+    Character.IsNumeric = IsNumeric;
+})(Character || (Character = {}));
+// ------------------------------------------------------------------
+// MemberExpression
+// ------------------------------------------------------------------
+var MemberExpression;
+(function (MemberExpression) {
+    function IsFirstCharacterNumeric(value) {
+        if (value.length === 0)
+            return false;
+        return Character.IsNumeric(value.charCodeAt(0));
+    }
+    function IsAccessor(value) {
+        if (IsFirstCharacterNumeric(value))
+            return false;
+        for (let i = 0; i < value.length; i++) {
+            const code = value.charCodeAt(i);
+            const check = Character.IsAlpha(code) || Character.IsNumeric(code) || Character.DollarSign(code) || Character.IsUnderscore(code);
+            if (!check)
+                return false;
+        }
+        return true;
+    }
+    function EscapeHyphen(key) {
+        return key.replace(/'/g, "\\'");
+    }
+    function Encode(object, key) {
+        return IsAccessor(key) ? `${object}.${key}` : `${object}['${EscapeHyphen(key)}']`;
+    }
+    MemberExpression.Encode = Encode;
+})(MemberExpression || (MemberExpression = {}));
+// ------------------------------------------------------------------
+// Identifier
+// ------------------------------------------------------------------
+var Identifier;
+(function (Identifier) {
+    function Encode($id) {
+        const buffer = [];
+        for (let i = 0; i < $id.length; i++) {
+            const code = $id.charCodeAt(i);
+            if (Character.IsNumeric(code) || Character.IsAlpha(code)) {
+                buffer.push($id.charAt(i));
+            }
+            else {
+                buffer.push(`_${code}_`);
+            }
+        }
+        return buffer.join('').replace(/__/g, '_');
+    }
+    Identifier.Encode = Encode;
+})(Identifier || (Identifier = {}));
+// ------------------------------------------------------------------
+// LiteralString
+// ------------------------------------------------------------------
+var LiteralString;
+(function (LiteralString) {
+    function Escape(content) {
+        return content.replace(/'/g, "\\'");
+    }
+    LiteralString.Escape = Escape;
+})(LiteralString || (LiteralString = {}));
+// ------------------------------------------------------------------
+// Errors
+// ------------------------------------------------------------------
+class TypeCompilerUnknownTypeError extends TypeBoxError {
+    schema;
+    constructor(schema) {
+        super('Unknown type');
+        this.schema = schema;
+    }
+}
+class TypeCompilerTypeGuardError extends TypeBoxError {
+    schema;
+    constructor(schema) {
+        super('Preflight validation check failed to guard for the given schema');
+        this.schema = schema;
+    }
+}
+// ------------------------------------------------------------------
+// Policy
+// ------------------------------------------------------------------
+var Policy;
+(function (Policy) {
+    function IsExactOptionalProperty(value, key, expression) {
+        return TypeSystemPolicy.ExactOptionalPropertyTypes ? `('${key}' in ${value} ? ${expression} : true)` : `(${MemberExpression.Encode(value, key)} !== undefined ? ${expression} : true)`;
+    }
+    Policy.IsExactOptionalProperty = IsExactOptionalProperty;
+    function IsObjectLike(value) {
+        return !TypeSystemPolicy.AllowArrayObject ? `(typeof ${value} === 'object' && ${value} !== null && !Array.isArray(${value}))` : `(typeof ${value} === 'object' && ${value} !== null)`;
+    }
+    Policy.IsObjectLike = IsObjectLike;
+    function IsRecordLike(value) {
+        return !TypeSystemPolicy.AllowArrayObject
+            ? `(typeof ${value} === 'object' && ${value} !== null && !Array.isArray(${value}) && !(${value} instanceof Date) && !(${value} instanceof Uint8Array))`
+            : `(typeof ${value} === 'object' && ${value} !== null && !(${value} instanceof Date) && !(${value} instanceof Uint8Array))`;
+    }
+    Policy.IsRecordLike = IsRecordLike;
+    function IsNumberLike(value) {
+        return !TypeSystemPolicy.AllowNaN ? `(typeof ${value} === 'number' && Number.isFinite(${value}))` : `typeof ${value} === 'number'`;
+    }
+    Policy.IsNumberLike = IsNumberLike;
+    function IsVoidLike(value) {
+        return TypeSystemPolicy.AllowNullVoid ? `(${value} === undefined || ${value} === null)` : `${value} === undefined`;
+    }
+    Policy.IsVoidLike = IsVoidLike;
+})(Policy || (Policy = {}));
+/** Compiles Types for Runtime Type Checking */
+var TypeCompiler;
+(function (TypeCompiler) {
+    // ----------------------------------------------------------------
+    // Guards
+    // ----------------------------------------------------------------
+    function IsAnyOrUnknown(schema) {
+        return schema[Kind] === 'Any' || schema[Kind] === 'Unknown';
+    }
+    // ----------------------------------------------------------------
+    // Types
+    // ----------------------------------------------------------------
+    function* FromAny(schema, references, value) {
+        yield 'true';
+    }
+    function* FromArray(schema, references, value) {
+        yield `Array.isArray(${value})`;
+        const [parameter, accumulator] = [CreateParameter('value', 'any'), CreateParameter('acc', 'number')];
+        if (IsNumber$2(schema.maxItems))
+            yield `${value}.length <= ${schema.maxItems}`;
+        if (IsNumber$2(schema.minItems))
+            yield `${value}.length >= ${schema.minItems}`;
+        const elementExpression = CreateExpression(schema.items, references, 'value');
+        yield `${value}.every((${parameter}) => ${elementExpression})`;
+        if (IsSchema(schema.contains) || IsNumber$2(schema.minContains) || IsNumber$2(schema.maxContains)) {
+            const containsSchema = IsSchema(schema.contains) ? schema.contains : Never();
+            const checkExpression = CreateExpression(containsSchema, references, 'value');
+            const checkMinContains = IsNumber$2(schema.minContains) ? [`(count >= ${schema.minContains})`] : [];
+            const checkMaxContains = IsNumber$2(schema.maxContains) ? [`(count <= ${schema.maxContains})`] : [];
+            const checkCount = `const count = value.reduce((${accumulator}, ${parameter}) => ${checkExpression} ? acc + 1 : acc, 0)`;
+            const check = [`(count > 0)`, ...checkMinContains, ...checkMaxContains].join(' && ');
+            yield `((${parameter}) => { ${checkCount}; return ${check}})(${value})`;
+        }
+        if (schema.uniqueItems === true) {
+            const check = `const hashed = hash(element); if(set.has(hashed)) { return false } else { set.add(hashed) } } return true`;
+            const block = `const set = new Set(); for(const element of value) { ${check} }`;
+            yield `((${parameter}) => { ${block} )(${value})`;
+        }
+    }
+    function* FromAsyncIterator(schema, references, value) {
+        yield `(typeof value === 'object' && Symbol.asyncIterator in ${value})`;
+    }
+    function* FromBigInt(schema, references, value) {
+        yield `(typeof ${value} === 'bigint')`;
+        if (IsBigInt$2(schema.exclusiveMaximum))
+            yield `${value} < BigInt(${schema.exclusiveMaximum})`;
+        if (IsBigInt$2(schema.exclusiveMinimum))
+            yield `${value} > BigInt(${schema.exclusiveMinimum})`;
+        if (IsBigInt$2(schema.maximum))
+            yield `${value} <= BigInt(${schema.maximum})`;
+        if (IsBigInt$2(schema.minimum))
+            yield `${value} >= BigInt(${schema.minimum})`;
+        if (IsBigInt$2(schema.multipleOf))
+            yield `(${value} % BigInt(${schema.multipleOf})) === 0`;
+    }
+    function* FromBoolean(schema, references, value) {
+        yield `(typeof ${value} === 'boolean')`;
+    }
+    function* FromConstructor(schema, references, value) {
+        yield* Visit(schema.returns, references, `${value}.prototype`);
+    }
+    function* FromDate(schema, references, value) {
+        yield `(${value} instanceof Date) && Number.isFinite(${value}.getTime())`;
+        if (IsNumber$2(schema.exclusiveMaximumTimestamp))
+            yield `${value}.getTime() < ${schema.exclusiveMaximumTimestamp}`;
+        if (IsNumber$2(schema.exclusiveMinimumTimestamp))
+            yield `${value}.getTime() > ${schema.exclusiveMinimumTimestamp}`;
+        if (IsNumber$2(schema.maximumTimestamp))
+            yield `${value}.getTime() <= ${schema.maximumTimestamp}`;
+        if (IsNumber$2(schema.minimumTimestamp))
+            yield `${value}.getTime() >= ${schema.minimumTimestamp}`;
+        if (IsNumber$2(schema.multipleOfTimestamp))
+            yield `(${value}.getTime() % ${schema.multipleOfTimestamp}) === 0`;
+    }
+    function* FromFunction(schema, references, value) {
+        yield `(typeof ${value} === 'function')`;
+    }
+    function* FromInteger(schema, references, value) {
+        yield `(typeof ${value} === 'number' && Number.isInteger(${value}))`;
+        if (IsNumber$2(schema.exclusiveMaximum))
+            yield `${value} < ${schema.exclusiveMaximum}`;
+        if (IsNumber$2(schema.exclusiveMinimum))
+            yield `${value} > ${schema.exclusiveMinimum}`;
+        if (IsNumber$2(schema.maximum))
+            yield `${value} <= ${schema.maximum}`;
+        if (IsNumber$2(schema.minimum))
+            yield `${value} >= ${schema.minimum}`;
+        if (IsNumber$2(schema.multipleOf))
+            yield `(${value} % ${schema.multipleOf}) === 0`;
+    }
+    function* FromIntersect(schema, references, value) {
+        const check1 = schema.allOf.map((schema) => CreateExpression(schema, references, value)).join(' && ');
+        if (schema.unevaluatedProperties === false) {
+            const keyCheck = CreateVariable(`${new RegExp(KeyOfPattern(schema))};`);
+            const check2 = `Object.getOwnPropertyNames(${value}).every(key => ${keyCheck}.test(key))`;
+            yield `(${check1} && ${check2})`;
+        }
+        else if (IsSchema(schema.unevaluatedProperties)) {
+            const keyCheck = CreateVariable(`${new RegExp(KeyOfPattern(schema))};`);
+            const check2 = `Object.getOwnPropertyNames(${value}).every(key => ${keyCheck}.test(key) || ${CreateExpression(schema.unevaluatedProperties, references, `${value}[key]`)})`;
+            yield `(${check1} && ${check2})`;
+        }
+        else {
+            yield `(${check1})`;
+        }
+    }
+    function* FromIterator(schema, references, value) {
+        yield `(typeof value === 'object' && Symbol.iterator in ${value})`;
+    }
+    function* FromLiteral(schema, references, value) {
+        if (typeof schema.const === 'number' || typeof schema.const === 'boolean') {
+            yield `(${value} === ${schema.const})`;
+        }
+        else {
+            yield `(${value} === '${LiteralString.Escape(schema.const)}')`;
+        }
+    }
+    function* FromNever(schema, references, value) {
+        yield `false`;
+    }
+    function* FromNot(schema, references, value) {
+        const expression = CreateExpression(schema.not, references, value);
+        yield `(!${expression})`;
+    }
+    function* FromNull(schema, references, value) {
+        yield `(${value} === null)`;
+    }
+    function* FromNumber(schema, references, value) {
+        yield Policy.IsNumberLike(value);
+        if (IsNumber$2(schema.exclusiveMaximum))
+            yield `${value} < ${schema.exclusiveMaximum}`;
+        if (IsNumber$2(schema.exclusiveMinimum))
+            yield `${value} > ${schema.exclusiveMinimum}`;
+        if (IsNumber$2(schema.maximum))
+            yield `${value} <= ${schema.maximum}`;
+        if (IsNumber$2(schema.minimum))
+            yield `${value} >= ${schema.minimum}`;
+        if (IsNumber$2(schema.multipleOf))
+            yield `(${value} % ${schema.multipleOf}) === 0`;
+    }
+    function* FromObject(schema, references, value) {
+        yield Policy.IsObjectLike(value);
+        if (IsNumber$2(schema.minProperties))
+            yield `Object.getOwnPropertyNames(${value}).length >= ${schema.minProperties}`;
+        if (IsNumber$2(schema.maxProperties))
+            yield `Object.getOwnPropertyNames(${value}).length <= ${schema.maxProperties}`;
+        const knownKeys = Object.getOwnPropertyNames(schema.properties);
+        for (const knownKey of knownKeys) {
+            const memberExpression = MemberExpression.Encode(value, knownKey);
+            const property = schema.properties[knownKey];
+            if (schema.required && schema.required.includes(knownKey)) {
+                yield* Visit(property, references, memberExpression);
+                if (ExtendsUndefinedCheck(property) || IsAnyOrUnknown(property))
+                    yield `('${knownKey}' in ${value})`;
+            }
+            else {
+                const expression = CreateExpression(property, references, memberExpression);
+                yield Policy.IsExactOptionalProperty(value, knownKey, expression);
+            }
+        }
+        if (schema.additionalProperties === false) {
+            if (schema.required && schema.required.length === knownKeys.length) {
+                yield `Object.getOwnPropertyNames(${value}).length === ${knownKeys.length}`;
+            }
+            else {
+                const keys = `[${knownKeys.map((key) => `'${key}'`).join(', ')}]`;
+                yield `Object.getOwnPropertyNames(${value}).every(key => ${keys}.includes(key))`;
+            }
+        }
+        if (typeof schema.additionalProperties === 'object') {
+            const expression = CreateExpression(schema.additionalProperties, references, `${value}[key]`);
+            const keys = `[${knownKeys.map((key) => `'${key}'`).join(', ')}]`;
+            yield `(Object.getOwnPropertyNames(${value}).every(key => ${keys}.includes(key) || ${expression}))`;
+        }
+    }
+    function* FromPromise(schema, references, value) {
+        yield `(typeof value === 'object' && typeof ${value}.then === 'function')`;
+    }
+    function* FromRecord(schema, references, value) {
+        yield Policy.IsRecordLike(value);
+        if (IsNumber$2(schema.minProperties))
+            yield `Object.getOwnPropertyNames(${value}).length >= ${schema.minProperties}`;
+        if (IsNumber$2(schema.maxProperties))
+            yield `Object.getOwnPropertyNames(${value}).length <= ${schema.maxProperties}`;
+        const [patternKey, patternSchema] = Object.entries(schema.patternProperties)[0];
+        const variable = CreateVariable(`${new RegExp(patternKey)}`);
+        const check1 = CreateExpression(patternSchema, references, 'value');
+        const check2 = IsSchema(schema.additionalProperties) ? CreateExpression(schema.additionalProperties, references, value) : schema.additionalProperties === false ? 'false' : 'true';
+        const expression = `(${variable}.test(key) ? ${check1} : ${check2})`;
+        yield `(Object.entries(${value}).every(([key, value]) => ${expression}))`;
+    }
+    function* FromRef(schema, references, value) {
+        const target = Deref$1(schema, references);
+        // Reference: If we have seen this reference before we can just yield and return the function call.
+        // If this isn't the case we defer to visit to generate and set the function for subsequent passes.
+        if (state.functions.has(schema.$ref))
+            return yield `${CreateFunctionName(schema.$ref)}(${value})`;
+        yield* Visit(target, references, value);
+    }
+    function* FromRegExp(schema, references, value) {
+        const variable = CreateVariable(`${new RegExp(schema.source, schema.flags)};`);
+        yield `(typeof ${value} === 'string')`;
+        if (IsNumber$2(schema.maxLength))
+            yield `${value}.length <= ${schema.maxLength}`;
+        if (IsNumber$2(schema.minLength))
+            yield `${value}.length >= ${schema.minLength}`;
+        yield `${variable}.test(${value})`;
+    }
+    function* FromString(schema, references, value) {
+        yield `(typeof ${value} === 'string')`;
+        if (IsNumber$2(schema.maxLength))
+            yield `${value}.length <= ${schema.maxLength}`;
+        if (IsNumber$2(schema.minLength))
+            yield `${value}.length >= ${schema.minLength}`;
+        if (schema.pattern !== undefined) {
+            const variable = CreateVariable(`${new RegExp(schema.pattern)};`);
+            yield `${variable}.test(${value})`;
+        }
+        if (schema.format !== undefined) {
+            yield `format('${schema.format}', ${value})`;
+        }
+    }
+    function* FromSymbol(schema, references, value) {
+        yield `(typeof ${value} === 'symbol')`;
+    }
+    function* FromTemplateLiteral(schema, references, value) {
+        yield `(typeof ${value} === 'string')`;
+        const variable = CreateVariable(`${new RegExp(schema.pattern)};`);
+        yield `${variable}.test(${value})`;
+    }
+    function* FromThis(schema, references, value) {
+        // Note: This types are assured to be hoisted prior to this call. Just yield the function.
+        yield `${CreateFunctionName(schema.$ref)}(${value})`;
+    }
+    function* FromTuple(schema, references, value) {
+        yield `Array.isArray(${value})`;
+        if (schema.items === undefined)
+            return yield `${value}.length === 0`;
+        yield `(${value}.length === ${schema.maxItems})`;
+        for (let i = 0; i < schema.items.length; i++) {
+            const expression = CreateExpression(schema.items[i], references, `${value}[${i}]`);
+            yield `${expression}`;
+        }
+    }
+    function* FromUndefined(schema, references, value) {
+        yield `${value} === undefined`;
+    }
+    function* FromUnion(schema, references, value) {
+        const expressions = schema.anyOf.map((schema) => CreateExpression(schema, references, value));
+        yield `(${expressions.join(' || ')})`;
+    }
+    function* FromUint8Array(schema, references, value) {
+        yield `${value} instanceof Uint8Array`;
+        if (IsNumber$2(schema.maxByteLength))
+            yield `(${value}.length <= ${schema.maxByteLength})`;
+        if (IsNumber$2(schema.minByteLength))
+            yield `(${value}.length >= ${schema.minByteLength})`;
+    }
+    function* FromUnknown(schema, references, value) {
+        yield 'true';
+    }
+    function* FromVoid(schema, references, value) {
+        yield Policy.IsVoidLike(value);
+    }
+    function* FromKind(schema, references, value) {
+        const instance = state.instances.size;
+        state.instances.set(instance, schema);
+        yield `kind('${schema[Kind]}', ${instance}, ${value})`;
+    }
+    function* Visit(schema, references, value, useHoisting = true) {
+        const references_ = IsString$2(schema.$id) ? [...references, schema] : references;
+        const schema_ = schema;
+        // --------------------------------------------------------------
+        // Hoisting
+        // --------------------------------------------------------------
+        if (useHoisting && IsString$2(schema.$id)) {
+            const functionName = CreateFunctionName(schema.$id);
+            if (state.functions.has(functionName)) {
+                return yield `${functionName}(${value})`;
+            }
+            else {
+                const functionCode = CreateFunction(functionName, schema, references, 'value', false);
+                state.functions.set(functionName, functionCode);
+                return yield `${functionName}(${value})`;
+            }
+        }
+        switch (schema_[Kind]) {
+            case 'Any':
+                return yield* FromAny();
+            case 'Array':
+                return yield* FromArray(schema_, references_, value);
+            case 'AsyncIterator':
+                return yield* FromAsyncIterator(schema_, references_, value);
+            case 'BigInt':
+                return yield* FromBigInt(schema_, references_, value);
+            case 'Boolean':
+                return yield* FromBoolean(schema_, references_, value);
+            case 'Constructor':
+                return yield* FromConstructor(schema_, references_, value);
+            case 'Date':
+                return yield* FromDate(schema_, references_, value);
+            case 'Function':
+                return yield* FromFunction(schema_, references_, value);
+            case 'Integer':
+                return yield* FromInteger(schema_, references_, value);
+            case 'Intersect':
+                return yield* FromIntersect(schema_, references_, value);
+            case 'Iterator':
+                return yield* FromIterator(schema_, references_, value);
+            case 'Literal':
+                return yield* FromLiteral(schema_, references_, value);
+            case 'Never':
+                return yield* FromNever();
+            case 'Not':
+                return yield* FromNot(schema_, references_, value);
+            case 'Null':
+                return yield* FromNull(schema_, references_, value);
+            case 'Number':
+                return yield* FromNumber(schema_, references_, value);
+            case 'Object':
+                return yield* FromObject(schema_, references_, value);
+            case 'Promise':
+                return yield* FromPromise(schema_, references_, value);
+            case 'Record':
+                return yield* FromRecord(schema_, references_, value);
+            case 'Ref':
+                return yield* FromRef(schema_, references_, value);
+            case 'RegExp':
+                return yield* FromRegExp(schema_, references_, value);
+            case 'String':
+                return yield* FromString(schema_, references_, value);
+            case 'Symbol':
+                return yield* FromSymbol(schema_, references_, value);
+            case 'TemplateLiteral':
+                return yield* FromTemplateLiteral(schema_, references_, value);
+            case 'This':
+                return yield* FromThis(schema_, references_, value);
+            case 'Tuple':
+                return yield* FromTuple(schema_, references_, value);
+            case 'Undefined':
+                return yield* FromUndefined(schema_, references_, value);
+            case 'Union':
+                return yield* FromUnion(schema_, references_, value);
+            case 'Uint8Array':
+                return yield* FromUint8Array(schema_, references_, value);
+            case 'Unknown':
+                return yield* FromUnknown();
+            case 'Void':
+                return yield* FromVoid(schema_, references_, value);
+            default:
+                if (!Has(schema_[Kind]))
+                    throw new TypeCompilerUnknownTypeError(schema);
+                return yield* FromKind(schema_, references_, value);
+        }
+    }
+    // ----------------------------------------------------------------
+    // Compiler State
+    // ----------------------------------------------------------------
+    // prettier-ignore
+    const state = {
+        language: 'javascript', // target language
+        functions: new Map(), // local functions
+        variables: new Map(), // local variables
+        instances: new Map() // exterior kind instances
+    };
+    // ----------------------------------------------------------------
+    // Compiler Factory
+    // ----------------------------------------------------------------
+    function CreateExpression(schema, references, value, useHoisting = true) {
+        return `(${[...Visit(schema, references, value, useHoisting)].join(' && ')})`;
+    }
+    function CreateFunctionName($id) {
+        return `check_${Identifier.Encode($id)}`;
+    }
+    function CreateVariable(expression) {
+        const variableName = `local_${state.variables.size}`;
+        state.variables.set(variableName, `const ${variableName} = ${expression}`);
+        return variableName;
+    }
+    function CreateFunction(name, schema, references, value, useHoisting = true) {
+        const [newline, pad] = ['\n', (length) => ''.padStart(length, ' ')];
+        const parameter = CreateParameter('value', 'any');
+        const returns = CreateReturns('boolean');
+        const expression = [...Visit(schema, references, value, useHoisting)].map((expression) => `${pad(4)}${expression}`).join(` &&${newline}`);
+        return `function ${name}(${parameter})${returns} {${newline}${pad(2)}return (${newline}${expression}${newline}${pad(2)})\n}`;
+    }
+    function CreateParameter(name, type) {
+        const annotation = state.language === 'typescript' ? `: ${type}` : '';
+        return `${name}${annotation}`;
+    }
+    function CreateReturns(type) {
+        return state.language === 'typescript' ? `: ${type}` : '';
+    }
+    // ----------------------------------------------------------------
+    // Compile
+    // ----------------------------------------------------------------
+    function Build(schema, references, options) {
+        const functionCode = CreateFunction('check', schema, references, 'value'); // will populate functions and variables
+        const parameter = CreateParameter('value', 'any');
+        const returns = CreateReturns('boolean');
+        const functions = [...state.functions.values()];
+        const variables = [...state.variables.values()];
+        // prettier-ignore
+        const checkFunction = IsString$2(schema.$id) // ensure top level schemas with $id's are hoisted
+            ? `return function check(${parameter})${returns} {\n  return ${CreateFunctionName(schema.$id)}(value)\n}`
+            : `return ${functionCode}`;
+        return [...variables, ...functions, checkFunction].join('\n');
+    }
+    /** Generates the code used to assert this type and returns it as a string */
+    function Code(...args) {
+        const defaults = { language: 'javascript' };
+        // prettier-ignore
+        const [schema, references, options] = (args.length === 2 && IsArray$2(args[1]) ? [args[0], args[1], defaults] :
+            args.length === 2 && !IsArray$2(args[1]) ? [args[0], [], args[1]] :
+                args.length === 3 ? [args[0], args[1], args[2]] :
+                    args.length === 1 ? [args[0], [], defaults] :
+                        [null, [], defaults]);
+        // compiler-reset
+        state.language = options.language;
+        state.variables.clear();
+        state.functions.clear();
+        state.instances.clear();
+        if (!IsSchema(schema))
+            throw new TypeCompilerTypeGuardError(schema);
+        for (const schema of references)
+            if (!IsSchema(schema))
+                throw new TypeCompilerTypeGuardError(schema);
+        return Build(schema, references);
+    }
+    TypeCompiler.Code = Code;
+    /** Compiles a TypeBox type for optimal runtime type checking. Types must be valid TypeBox types of TSchema */
+    function Compile(schema, references = []) {
+        const generatedCode = Code(schema, references, { language: 'javascript' });
+        const compiledFunction = globalThis.Function('kind', 'format', 'hash', generatedCode);
+        const instances = new Map(state.instances);
+        function typeRegistryFunction(kind, instance, value) {
+            if (!Has(kind) || !instances.has(instance))
+                return false;
+            const checkFunc = Get(kind);
+            const schema = instances.get(instance);
+            return checkFunc(schema, value);
+        }
+        function formatRegistryFunction(format, value) {
+            if (!Has$1(format))
+                return false;
+            const checkFunc = Get$1(format);
+            return checkFunc(value);
+        }
+        function hashFunction(value) {
+            return Hash(value);
+        }
+        const checkFunction = compiledFunction(typeRegistryFunction, formatRegistryFunction, hashFunction);
+        return new TypeCheck(schema, references, checkFunction, generatedCode);
+    }
+    TypeCompiler.Compile = Compile;
+})(TypeCompiler || (TypeCompiler = {}));
+
+// prettier-ignore
+function FromRest$4(T) {
+    return T.map(L => AwaitedResolve(L));
+}
+// prettier-ignore
+function FromIntersect$3(T) {
+    return Intersect$1(FromRest$4(T));
+}
+// prettier-ignore
+function FromUnion$3(T) {
+    return Union$1(FromRest$4(T));
+}
+// prettier-ignore
+function FromPromise$1(T) {
+    return AwaitedResolve(T);
+}
+// ----------------------------------------------------------------
+// AwaitedResolve
+// ----------------------------------------------------------------
+// prettier-ignore
+function AwaitedResolve(T) {
+    return (IsIntersect(T) ? FromIntersect$3(T.allOf) :
+        IsUnion(T) ? FromUnion$3(T.anyOf) :
+            IsPromise(T) ? FromPromise$1(T.item) :
+                T);
+}
+/** `[JavaScript]` Constructs a type by recursively unwrapping Promise types */
+function Awaited(T, options = {}) {
+    return CloneType(AwaitedResolve(T), options);
 }
 
 // prettier-ignore
@@ -27532,20 +30883,12 @@ function Uint8Array$1(options = {}) {
     return { ...options, [Kind]: 'Uint8Array', type: 'Uint8Array' };
 }
 
-/** `[Json]` Creates an Unknown type */
-function Unknown(options = {}) {
-    return {
-        ...options,
-        [Kind]: 'Unknown',
-    };
-}
-
 // prettier-ignore
-function FromArray$2(T) {
+function FromArray$1(T) {
     return T.map(L => FromValue(L, false));
 }
 // prettier-ignore
-function FromProperties$c(value) {
+function FromProperties$b(value) {
     return globalThis.Object.getOwnPropertyNames(value).reduce((acc, key) => {
         return { ...acc, [key]: Readonly(FromValue(value[key], false)) };
     }, {});
@@ -27557,15 +30900,15 @@ function ConditionalReadonly(T, root) {
 function FromValue(value, root) {
     return (IsAsyncIterator$1(value) ? ConditionalReadonly(Any(), root) :
         IsIterator$1(value) ? ConditionalReadonly(Any(), root) :
-            IsArray$1(value) ? Readonly(Tuple(FromArray$2(value))) :
+            IsArray$1(value) ? Readonly(Tuple(FromArray$1(value))) :
                 IsUint8Array$1(value) ? Uint8Array$1() :
                     IsDate$1(value) ? Date$1() :
-                        IsObject$1(value) ? ConditionalReadonly(Object$1(FromProperties$c(value)), root) :
+                        IsObject$1(value) ? ConditionalReadonly(Object$1(FromProperties$b(value)), root) :
                             IsFunction$1(value) ? ConditionalReadonly(Function([], Unknown()), root) :
                                 IsUndefined$1(value) ? Undefined() :
                                     IsNull$1(value) ? Null() :
                                         IsSymbol$1(value) ? Symbol$1() :
-                                            IsBigInt$1(value) ? BigInt() :
+                                            IsBigInt$1(value) ? BigInt$1() :
                                                 IsNumber$1(value) ? Literal(value) :
                                                     IsBoolean$1(value) ? Literal(value) :
                                                         IsString$1(value) ? Literal(value) :
@@ -27585,62 +30928,62 @@ function FromRest$3(schema, references) {
     return schema.map((schema) => Deref(schema, references));
 }
 // prettier-ignore
-function FromProperties$b(properties, references) {
+function FromProperties$a(properties, references) {
     return globalThis.Object.getOwnPropertyNames(properties).reduce((acc, key) => {
         return { ...acc, [key]: Deref(properties[key], references) };
     }, {});
 }
 // prettier-ignore
-function FromConstructor$1(schema, references) {
+function FromConstructor(schema, references) {
     schema.parameters = FromRest$3(schema.parameters, references);
     schema.returns = Deref(schema.returns, references);
     return schema;
 }
 // prettier-ignore
-function FromFunction$1(schema, references) {
+function FromFunction(schema, references) {
     schema.parameters = FromRest$3(schema.parameters, references);
     schema.returns = Deref(schema.returns, references);
     return schema;
 }
 // prettier-ignore
-function FromIntersect$3(schema, references) {
+function FromIntersect$2(schema, references) {
     schema.allOf = FromRest$3(schema.allOf, references);
     return schema;
 }
 // prettier-ignore
-function FromUnion$3(schema, references) {
+function FromUnion$2(schema, references) {
     schema.anyOf = FromRest$3(schema.anyOf, references);
     return schema;
 }
 // prettier-ignore
-function FromTuple$1(schema, references) {
+function FromTuple(schema, references) {
     if (IsUndefined$1(schema.items))
         return schema;
     schema.items = FromRest$3(schema.items, references);
     return schema;
 }
 // prettier-ignore
-function FromArray$1(schema, references) {
+function FromArray(schema, references) {
     schema.items = Deref(schema.items, references);
     return schema;
 }
 // prettier-ignore
-function FromObject$1(schema, references) {
-    schema.properties = FromProperties$b(schema.properties, references);
+function FromObject(schema, references) {
+    schema.properties = FromProperties$a(schema.properties, references);
     return schema;
 }
 // prettier-ignore
-function FromPromise$1(schema, references) {
+function FromPromise(schema, references) {
     schema.item = Deref(schema.item, references);
     return schema;
 }
 // prettier-ignore
-function FromAsyncIterator$1(schema, references) {
+function FromAsyncIterator(schema, references) {
     schema.items = Deref(schema.items, references);
     return schema;
 }
 // prettier-ignore
-function FromIterator$1(schema, references) {
+function FromIterator(schema, references) {
     schema.items = Deref(schema.items, references);
     return schema;
 }
@@ -27654,16 +30997,16 @@ function FromRef(schema, references) {
 }
 // prettier-ignore
 function DerefResolve(schema, references) {
-    return (IsConstructor(schema) ? FromConstructor$1(schema, references) :
-        IsFunction(schema) ? FromFunction$1(schema, references) :
-            IsIntersect(schema) ? FromIntersect$3(schema, references) :
-                IsUnion(schema) ? FromUnion$3(schema, references) :
-                    IsTuple(schema) ? FromTuple$1(schema, references) :
-                        IsArray(schema) ? FromArray$1(schema, references) :
-                            IsObject(schema) ? FromObject$1(schema, references) :
-                                IsPromise(schema) ? FromPromise$1(schema, references) :
-                                    IsAsyncIterator(schema) ? FromAsyncIterator$1(schema, references) :
-                                        IsIterator(schema) ? FromIterator$1(schema, references) :
+    return (IsConstructor(schema) ? FromConstructor(schema, references) :
+        IsFunction(schema) ? FromFunction(schema, references) :
+            IsIntersect(schema) ? FromIntersect$2(schema, references) :
+                IsUnion(schema) ? FromUnion$2(schema, references) :
+                    IsTuple(schema) ? FromTuple(schema, references) :
+                        IsArray(schema) ? FromArray(schema, references) :
+                            IsObject(schema) ? FromObject(schema, references) :
+                                IsPromise(schema) ? FromPromise(schema, references) :
+                                    IsAsyncIterator(schema) ? FromAsyncIterator(schema, references) :
+                                        IsIterator(schema) ? FromIterator(schema, references) :
                                             IsRef(schema) ? FromRef(schema, references) :
                                                 schema);
 }
@@ -27684,686 +31027,7 @@ function Enum(item, options = {}) {
         .map((key) => item[key]);
     const values2 = [...new Set(values1)];
     const anyOf = values2.map((value) => Literal(value));
-    return Union(anyOf, { ...options, [Hint]: 'Enum' });
-}
-
-class ExtendsResolverError extends TypeBoxError {
-}
-var ExtendsResult;
-(function (ExtendsResult) {
-    ExtendsResult[ExtendsResult["Union"] = 0] = "Union";
-    ExtendsResult[ExtendsResult["True"] = 1] = "True";
-    ExtendsResult[ExtendsResult["False"] = 2] = "False";
-})(ExtendsResult || (ExtendsResult = {}));
-// ------------------------------------------------------------------
-// IntoBooleanResult
-// ------------------------------------------------------------------
-// prettier-ignore
-function IntoBooleanResult(result) {
-    return result === ExtendsResult.False ? result : ExtendsResult.True;
-}
-// ------------------------------------------------------------------
-// Throw
-// ------------------------------------------------------------------
-// prettier-ignore
-function Throw(message) {
-    throw new ExtendsResolverError(message);
-}
-// ------------------------------------------------------------------
-// StructuralRight
-// ------------------------------------------------------------------
-// prettier-ignore
-function IsStructuralRight(right) {
-    return (IsNever(right) ||
-        IsIntersect(right) ||
-        IsUnion(right) ||
-        IsUnknown(right) ||
-        IsAny(right));
-}
-// prettier-ignore
-function StructuralRight(left, right) {
-    return (IsNever(right) ? FromNeverRight() :
-        IsIntersect(right) ? FromIntersectRight(left, right) :
-            IsUnion(right) ? FromUnionRight(left, right) :
-                IsUnknown(right) ? FromUnknownRight() :
-                    IsAny(right) ? FromAnyRight() :
-                        Throw('StructuralRight'));
-}
-// ------------------------------------------------------------------
-// Any
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromAnyRight(left, right) {
-    return ExtendsResult.True;
-}
-// prettier-ignore
-function FromAny(left, right) {
-    return (IsIntersect(right) ? FromIntersectRight(left, right) :
-        (IsUnion(right) && right.anyOf.some((schema) => IsAny(schema) || IsUnknown(schema))) ? ExtendsResult.True :
-            IsUnion(right) ? ExtendsResult.Union :
-                IsUnknown(right) ? ExtendsResult.True :
-                    IsAny(right) ? ExtendsResult.True :
-                        ExtendsResult.Union);
-}
-// ------------------------------------------------------------------
-// Array
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromArrayRight(left, right) {
-    return (IsUnknown(left) ? ExtendsResult.False :
-        IsAny(left) ? ExtendsResult.Union :
-            IsNever(left) ? ExtendsResult.True :
-                ExtendsResult.False);
-}
-// prettier-ignore
-function FromArray(left, right) {
-    return (IsObject(right) && IsObjectArrayLike(right) ? ExtendsResult.True :
-        IsStructuralRight(right) ? StructuralRight(left, right) :
-            !IsArray(right) ? ExtendsResult.False :
-                IntoBooleanResult(Visit(left.items, right.items)));
-}
-// ------------------------------------------------------------------
-// AsyncIterator
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromAsyncIterator(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        !IsAsyncIterator(right) ? ExtendsResult.False :
-            IntoBooleanResult(Visit(left.items, right.items)));
-}
-// ------------------------------------------------------------------
-// BigInt
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromBigInt(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsBigInt(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Boolean
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromBooleanRight(left, right) {
-    return (IsLiteralBoolean(left) ? ExtendsResult.True :
-        IsBoolean(left) ? ExtendsResult.True :
-            ExtendsResult.False);
-}
-// prettier-ignore
-function FromBoolean(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsBoolean(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Constructor
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromConstructor(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            !IsConstructor(right) ? ExtendsResult.False :
-                left.parameters.length > right.parameters.length ? ExtendsResult.False :
-                    (!left.parameters.every((schema, index) => IntoBooleanResult(Visit(right.parameters[index], schema)) === ExtendsResult.True)) ? ExtendsResult.False :
-                        IntoBooleanResult(Visit(left.returns, right.returns)));
-}
-// ------------------------------------------------------------------
-// Date
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromDate(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsDate(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Function
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromFunction(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            !IsFunction(right) ? ExtendsResult.False :
-                left.parameters.length > right.parameters.length ? ExtendsResult.False :
-                    (!left.parameters.every((schema, index) => IntoBooleanResult(Visit(right.parameters[index], schema)) === ExtendsResult.True)) ? ExtendsResult.False :
-                        IntoBooleanResult(Visit(left.returns, right.returns)));
-}
-// ------------------------------------------------------------------
-// Integer
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromIntegerRight(left, right) {
-    return (IsLiteral(left) && IsNumber$1(left.const) ? ExtendsResult.True :
-        IsNumber(left) || IsInteger(left) ? ExtendsResult.True :
-            ExtendsResult.False);
-}
-// prettier-ignore
-function FromInteger(left, right) {
-    return (IsInteger(right) || IsNumber(right) ? ExtendsResult.True :
-        IsStructuralRight(right) ? StructuralRight(left, right) :
-            IsObject(right) ? FromObjectRight(left, right) :
-                IsRecord(right) ? FromRecordRight(left, right) :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Intersect
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromIntersectRight(left, right) {
-    return right.allOf.every((schema) => Visit(left, schema) === ExtendsResult.True)
-        ? ExtendsResult.True
-        : ExtendsResult.False;
-}
-// prettier-ignore
-function FromIntersect$2(left, right) {
-    return left.allOf.some((schema) => Visit(schema, right) === ExtendsResult.True)
-        ? ExtendsResult.True
-        : ExtendsResult.False;
-}
-// ------------------------------------------------------------------
-// Iterator
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromIterator(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        !IsIterator(right) ? ExtendsResult.False :
-            IntoBooleanResult(Visit(left.items, right.items)));
-}
-// ------------------------------------------------------------------
-// Literal
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromLiteral(left, right) {
-    return (IsLiteral(right) && right.const === left.const ? ExtendsResult.True :
-        IsStructuralRight(right) ? StructuralRight(left, right) :
-            IsObject(right) ? FromObjectRight(left, right) :
-                IsRecord(right) ? FromRecordRight(left, right) :
-                    IsString(right) ? FromStringRight(left) :
-                        IsNumber(right) ? FromNumberRight(left) :
-                            IsInteger(right) ? FromIntegerRight(left) :
-                                IsBoolean(right) ? FromBooleanRight(left) :
-                                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Never
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromNeverRight(left, right) {
-    return ExtendsResult.False;
-}
-// prettier-ignore
-function FromNever(left, right) {
-    return ExtendsResult.True;
-}
-// ------------------------------------------------------------------
-// Not
-// ------------------------------------------------------------------
-// prettier-ignore
-function UnwrapTNot(schema) {
-    let [current, depth] = [schema, 0];
-    while (true) {
-        if (!IsNot(current))
-            break;
-        current = current.not;
-        depth += 1;
-    }
-    return depth % 2 === 0 ? current : Unknown();
-}
-// prettier-ignore
-function FromNot(left, right) {
-    // TypeScript has no concept of negated types, and attempts to correctly check the negated
-    // type at runtime would put TypeBox at odds with TypeScripts ability to statically infer
-    // the type. Instead we unwrap to either unknown or T and continue evaluating.
-    // prettier-ignore
-    return (IsNot(left) ? Visit(UnwrapTNot(left), right) :
-        IsNot(right) ? Visit(left, UnwrapTNot(right)) :
-            Throw('Invalid fallthrough for Not'));
-}
-// ------------------------------------------------------------------
-// Null
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromNull(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsNull(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Number
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromNumberRight(left, right) {
-    return (IsLiteralNumber(left) ? ExtendsResult.True :
-        IsNumber(left) || IsInteger(left) ? ExtendsResult.True :
-            ExtendsResult.False);
-}
-// prettier-ignore
-function FromNumber(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsInteger(right) || IsNumber(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Object
-// ------------------------------------------------------------------
-// prettier-ignore
-function IsObjectPropertyCount(schema, count) {
-    return Object.getOwnPropertyNames(schema.properties).length === count;
-}
-// prettier-ignore
-function IsObjectStringLike(schema) {
-    return IsObjectArrayLike(schema);
-}
-// prettier-ignore
-function IsObjectSymbolLike(schema) {
-    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'description' in schema.properties && IsUnion(schema.properties.description) && schema.properties.description.anyOf.length === 2 && ((IsString(schema.properties.description.anyOf[0]) &&
-        IsUndefined(schema.properties.description.anyOf[1])) || (IsString(schema.properties.description.anyOf[1]) &&
-        IsUndefined(schema.properties.description.anyOf[0]))));
-}
-// prettier-ignore
-function IsObjectNumberLike(schema) {
-    return IsObjectPropertyCount(schema, 0);
-}
-// prettier-ignore
-function IsObjectBooleanLike(schema) {
-    return IsObjectPropertyCount(schema, 0);
-}
-// prettier-ignore
-function IsObjectBigIntLike(schema) {
-    return IsObjectPropertyCount(schema, 0);
-}
-// prettier-ignore
-function IsObjectDateLike(schema) {
-    return IsObjectPropertyCount(schema, 0);
-}
-// prettier-ignore
-function IsObjectUint8ArrayLike(schema) {
-    return IsObjectArrayLike(schema);
-}
-// prettier-ignore
-function IsObjectFunctionLike(schema) {
-    const length = Number$1();
-    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'length' in schema.properties && IntoBooleanResult(Visit(schema.properties['length'], length)) === ExtendsResult.True);
-}
-// prettier-ignore
-function IsObjectConstructorLike(schema) {
-    return IsObjectPropertyCount(schema, 0);
-}
-// prettier-ignore
-function IsObjectArrayLike(schema) {
-    const length = Number$1();
-    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'length' in schema.properties && IntoBooleanResult(Visit(schema.properties['length'], length)) === ExtendsResult.True);
-}
-// prettier-ignore
-function IsObjectPromiseLike(schema) {
-    const then = Function([Any()], Any());
-    return IsObjectPropertyCount(schema, 0) || (IsObjectPropertyCount(schema, 1) && 'then' in schema.properties && IntoBooleanResult(Visit(schema.properties['then'], then)) === ExtendsResult.True);
-}
-// ------------------------------------------------------------------
-// Property
-// ------------------------------------------------------------------
-// prettier-ignore
-function Property(left, right) {
-    return (Visit(left, right) === ExtendsResult.False ? ExtendsResult.False :
-        IsOptional(left) && !IsOptional(right) ? ExtendsResult.False :
-            ExtendsResult.True);
-}
-// prettier-ignore
-function FromObjectRight(left, right) {
-    return (IsUnknown(left) ? ExtendsResult.False :
-        IsAny(left) ? ExtendsResult.Union : (IsNever(left) ||
-            (IsLiteralString(left) && IsObjectStringLike(right)) ||
-            (IsLiteralNumber(left) && IsObjectNumberLike(right)) ||
-            (IsLiteralBoolean(left) && IsObjectBooleanLike(right)) ||
-            (IsSymbol(left) && IsObjectSymbolLike(right)) ||
-            (IsBigInt(left) && IsObjectBigIntLike(right)) ||
-            (IsString(left) && IsObjectStringLike(right)) ||
-            (IsSymbol(left) && IsObjectSymbolLike(right)) ||
-            (IsNumber(left) && IsObjectNumberLike(right)) ||
-            (IsInteger(left) && IsObjectNumberLike(right)) ||
-            (IsBoolean(left) && IsObjectBooleanLike(right)) ||
-            (IsUint8Array(left) && IsObjectUint8ArrayLike(right)) ||
-            (IsDate(left) && IsObjectDateLike(right)) ||
-            (IsConstructor(left) && IsObjectConstructorLike(right)) ||
-            (IsFunction(left) && IsObjectFunctionLike(right))) ? ExtendsResult.True :
-            (IsRecord(left) && IsString(RecordKey(left))) ? (() => {
-                // When expressing a Record with literal key values, the Record is converted into a Object with
-                // the Hint assigned as `Record`. This is used to invert the extends logic.
-                return right[Hint] === 'Record' ? ExtendsResult.True : ExtendsResult.False;
-            })() :
-                (IsRecord(left) && IsNumber(RecordKey(left))) ? (() => {
-                    return IsObjectPropertyCount(right, 0) ? ExtendsResult.True : ExtendsResult.False;
-                })() :
-                    ExtendsResult.False);
-}
-// prettier-ignore
-function FromObject(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsRecord(right) ? FromRecordRight(left, right) :
-            !IsObject(right) ? ExtendsResult.False :
-                (() => {
-                    for (const key of Object.getOwnPropertyNames(right.properties)) {
-                        if (!(key in left.properties) && !IsOptional(right.properties[key])) {
-                            return ExtendsResult.False;
-                        }
-                        if (IsOptional(right.properties[key])) {
-                            return ExtendsResult.True;
-                        }
-                        if (Property(left.properties[key], right.properties[key]) === ExtendsResult.False) {
-                            return ExtendsResult.False;
-                        }
-                    }
-                    return ExtendsResult.True;
-                })());
-}
-// ------------------------------------------------------------------
-// Promise
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromPromise(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) && IsObjectPromiseLike(right) ? ExtendsResult.True :
-            !IsPromise(right) ? ExtendsResult.False :
-                IntoBooleanResult(Visit(left.item, right.item)));
-}
-// ------------------------------------------------------------------
-// Record
-// ------------------------------------------------------------------
-// prettier-ignore
-function RecordKey(schema) {
-    return (PatternNumberExact in schema.patternProperties ? Number$1() :
-        PatternStringExact in schema.patternProperties ? String$1() :
-            Throw('Unknown record key pattern'));
-}
-// prettier-ignore
-function RecordValue(schema) {
-    return (PatternNumberExact in schema.patternProperties ? schema.patternProperties[PatternNumberExact] :
-        PatternStringExact in schema.patternProperties ? schema.patternProperties[PatternStringExact] :
-            Throw('Unable to get record value schema'));
-}
-// prettier-ignore
-function FromRecordRight(left, right) {
-    const [Key, Value] = [RecordKey(right), RecordValue(right)];
-    return ((IsLiteralString(left) && IsNumber(Key) && IntoBooleanResult(Visit(left, Value)) === ExtendsResult.True) ? ExtendsResult.True :
-        IsUint8Array(left) && IsNumber(Key) ? Visit(left, Value) :
-            IsString(left) && IsNumber(Key) ? Visit(left, Value) :
-                IsArray(left) && IsNumber(Key) ? Visit(left, Value) :
-                    IsObject(left) ? (() => {
-                        for (const key of Object.getOwnPropertyNames(left.properties)) {
-                            if (Property(Value, left.properties[key]) === ExtendsResult.False) {
-                                return ExtendsResult.False;
-                            }
-                        }
-                        return ExtendsResult.True;
-                    })() :
-                        ExtendsResult.False);
-}
-// prettier-ignore
-function FromRecord(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            !IsRecord(right) ? ExtendsResult.False :
-                Visit(RecordValue(left), RecordValue(right)));
-}
-// ------------------------------------------------------------------
-// RegExp
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromRegExp(left, right) {
-    // Note: RegExp types evaluate as strings, not RegExp objects.
-    // Here we remap either into string and continue evaluating.
-    const L = IsRegExp(left) ? String$1() : left;
-    const R = IsRegExp(right) ? String$1() : right;
-    return Visit(L, R);
-}
-// ------------------------------------------------------------------
-// String
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromStringRight(left, right) {
-    return (IsLiteral(left) && IsString$1(left.const) ? ExtendsResult.True :
-        IsString(left) ? ExtendsResult.True :
-            ExtendsResult.False);
-}
-// prettier-ignore
-function FromString(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsString(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Symbol
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromSymbol(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsSymbol(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// TemplateLiteral
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromTemplateLiteral$1(left, right) {
-    // TemplateLiteral types are resolved to either unions for finite expressions or string
-    // for infinite expressions. Here we call to TemplateLiteralResolver to resolve for
-    // either type and continue evaluating.
-    return (IsTemplateLiteral(left) ? Visit(TemplateLiteralToUnion(left), right) :
-        IsTemplateLiteral(right) ? Visit(left, TemplateLiteralToUnion(right)) :
-            Throw('Invalid fallthrough for TemplateLiteral'));
-}
-// ------------------------------------------------------------------
-// Tuple
-// ------------------------------------------------------------------
-// prettier-ignore
-function IsArrayOfTuple(left, right) {
-    return (IsArray(right) &&
-        left.items !== undefined &&
-        left.items.every((schema) => Visit(schema, right.items) === ExtendsResult.True));
-}
-// prettier-ignore
-function FromTupleRight(left, right) {
-    return (IsNever(left) ? ExtendsResult.True :
-        IsUnknown(left) ? ExtendsResult.False :
-            IsAny(left) ? ExtendsResult.Union :
-                ExtendsResult.False);
-}
-// prettier-ignore
-function FromTuple(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) && IsObjectArrayLike(right) ? ExtendsResult.True :
-            IsArray(right) && IsArrayOfTuple(left, right) ? ExtendsResult.True :
-                !IsTuple(right) ? ExtendsResult.False :
-                    (IsUndefined$1(left.items) && !IsUndefined$1(right.items)) || (!IsUndefined$1(left.items) && IsUndefined$1(right.items)) ? ExtendsResult.False :
-                        (IsUndefined$1(left.items) && !IsUndefined$1(right.items)) ? ExtendsResult.True :
-                            left.items.every((schema, index) => Visit(schema, right.items[index]) === ExtendsResult.True) ? ExtendsResult.True :
-                                ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Uint8Array
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromUint8Array(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsUint8Array(right) ? ExtendsResult.True :
-                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Undefined
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromUndefined(left, right) {
-    return (IsStructuralRight(right) ? StructuralRight(left, right) :
-        IsObject(right) ? FromObjectRight(left, right) :
-            IsRecord(right) ? FromRecordRight(left, right) :
-                IsVoid(right) ? FromVoidRight(left) :
-                    IsUndefined(right) ? ExtendsResult.True :
-                        ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Union
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromUnionRight(left, right) {
-    return right.anyOf.some((schema) => Visit(left, schema) === ExtendsResult.True)
-        ? ExtendsResult.True
-        : ExtendsResult.False;
-}
-// prettier-ignore
-function FromUnion$2(left, right) {
-    return left.anyOf.every((schema) => Visit(schema, right) === ExtendsResult.True)
-        ? ExtendsResult.True
-        : ExtendsResult.False;
-}
-// ------------------------------------------------------------------
-// Unknown
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromUnknownRight(left, right) {
-    return ExtendsResult.True;
-}
-// prettier-ignore
-function FromUnknown(left, right) {
-    return (IsNever(right) ? FromNeverRight() :
-        IsIntersect(right) ? FromIntersectRight(left, right) :
-            IsUnion(right) ? FromUnionRight(left, right) :
-                IsAny(right) ? FromAnyRight() :
-                    IsString(right) ? FromStringRight(left) :
-                        IsNumber(right) ? FromNumberRight(left) :
-                            IsInteger(right) ? FromIntegerRight(left) :
-                                IsBoolean(right) ? FromBooleanRight(left) :
-                                    IsArray(right) ? FromArrayRight(left) :
-                                        IsTuple(right) ? FromTupleRight(left) :
-                                            IsObject(right) ? FromObjectRight(left, right) :
-                                                IsUnknown(right) ? ExtendsResult.True :
-                                                    ExtendsResult.False);
-}
-// ------------------------------------------------------------------
-// Void
-// ------------------------------------------------------------------
-// prettier-ignore
-function FromVoidRight(left, right) {
-    return (IsUndefined(left) ? ExtendsResult.True :
-        IsUndefined(left) ? ExtendsResult.True :
-            ExtendsResult.False);
-}
-// prettier-ignore
-function FromVoid(left, right) {
-    return (IsIntersect(right) ? FromIntersectRight(left, right) :
-        IsUnion(right) ? FromUnionRight(left, right) :
-            IsUnknown(right) ? FromUnknownRight() :
-                IsAny(right) ? FromAnyRight() :
-                    IsObject(right) ? FromObjectRight(left, right) :
-                        IsVoid(right) ? ExtendsResult.True :
-                            ExtendsResult.False);
-}
-// prettier-ignore
-function Visit(left, right) {
-    return (
-    // resolvable
-    (IsTemplateLiteral(left) || IsTemplateLiteral(right)) ? FromTemplateLiteral$1(left, right) :
-        (IsRegExp(left) || IsRegExp(right)) ? FromRegExp(left, right) :
-            (IsNot(left) || IsNot(right)) ? FromNot(left, right) :
-                // standard
-                IsAny(left) ? FromAny(left, right) :
-                    IsArray(left) ? FromArray(left, right) :
-                        IsBigInt(left) ? FromBigInt(left, right) :
-                            IsBoolean(left) ? FromBoolean(left, right) :
-                                IsAsyncIterator(left) ? FromAsyncIterator(left, right) :
-                                    IsConstructor(left) ? FromConstructor(left, right) :
-                                        IsDate(left) ? FromDate(left, right) :
-                                            IsFunction(left) ? FromFunction(left, right) :
-                                                IsInteger(left) ? FromInteger(left, right) :
-                                                    IsIntersect(left) ? FromIntersect$2(left, right) :
-                                                        IsIterator(left) ? FromIterator(left, right) :
-                                                            IsLiteral(left) ? FromLiteral(left, right) :
-                                                                IsNever(left) ? FromNever() :
-                                                                    IsNull(left) ? FromNull(left, right) :
-                                                                        IsNumber(left) ? FromNumber(left, right) :
-                                                                            IsObject(left) ? FromObject(left, right) :
-                                                                                IsRecord(left) ? FromRecord(left, right) :
-                                                                                    IsString(left) ? FromString(left, right) :
-                                                                                        IsSymbol(left) ? FromSymbol(left, right) :
-                                                                                            IsTuple(left) ? FromTuple(left, right) :
-                                                                                                IsPromise(left) ? FromPromise(left, right) :
-                                                                                                    IsUint8Array(left) ? FromUint8Array(left, right) :
-                                                                                                        IsUndefined(left) ? FromUndefined(left, right) :
-                                                                                                            IsUnion(left) ? FromUnion$2(left, right) :
-                                                                                                                IsUnknown(left) ? FromUnknown(left, right) :
-                                                                                                                    IsVoid(left) ? FromVoid(left, right) :
-                                                                                                                        Throw(`Unknown left type operand '${left[Kind]}'`));
-}
-function ExtendsCheck(left, right) {
-    return Visit(left, right);
-}
-
-// prettier-ignore
-function FromProperties$a(P, Right, True, False, options) {
-    return globalThis.Object.getOwnPropertyNames(P).reduce((Acc, K2) => {
-        return { ...Acc, [K2]: Extends(P[K2], Right, True, False, options) };
-    }, {});
-}
-// prettier-ignore
-function FromMappedResult$6(Left, Right, True, False, options) {
-    return FromProperties$a(Left.properties, Right, True, False, options);
-}
-// prettier-ignore
-function ExtendsFromMappedResult(Left, Right, True, False, options) {
-    const P = FromMappedResult$6(Left, Right, True, False, options);
-    return MappedResult(P);
-}
-
-// prettier-ignore
-function ExtendsResolve(left, right, trueType, falseType) {
-    const R = ExtendsCheck(left, right);
-    return (R === ExtendsResult.Union ? Union([trueType, falseType]) :
-        R === ExtendsResult.True ? trueType :
-            falseType);
-}
-/** `[Json]` Creates a Conditional type */
-function Extends(L, R, T, F, options = {}) {
-    // prettier-ignore
-    return (IsMappedResult(L) ? ExtendsFromMappedResult(L, R, T, F, options) :
-        IsMappedKey(L) ? CloneType(ExtendsFromMappedKey(L, R, T, F, options)) :
-            CloneType(ExtendsResolve(L, R, T, F), options));
-}
-
-// prettier-ignore
-function FromPropertyKey$2(K, U, L, R, options) {
-    return {
-        [K]: Extends(Literal(K), U, L, R, options)
-    };
-}
-// prettier-ignore
-function FromPropertyKeys$2(K, U, L, R, options) {
-    return K.reduce((Acc, LK) => {
-        return { ...Acc, ...FromPropertyKey$2(LK, U, L, R, options) };
-    }, {});
-}
-// prettier-ignore
-function FromMappedKey$2(K, U, L, R, options) {
-    return FromPropertyKeys$2(K.keys, U, L, R, options);
-}
-// prettier-ignore
-function ExtendsFromMappedKey(T, U, L, R, options) {
-    const P = FromMappedKey$2(T, U, L, R, options);
-    return MappedResult(P);
+    return Union$1(anyOf, { ...options, [Hint]: 'Enum' });
 }
 
 function ExcludeFromTemplateLiteral(L, R) {
@@ -28372,7 +31036,7 @@ function ExcludeFromTemplateLiteral(L, R) {
 
 function ExcludeRest(L, R) {
     const excluded = L.filter((inner) => ExtendsCheck(inner, R) === ExtendsResult.False);
-    return excluded.length === 1 ? excluded[0] : Union(excluded);
+    return excluded.length === 1 ? excluded[0] : Union$1(excluded);
 }
 /** `[Json]` Constructs a type by excluding from unionType all union members that are assignable to excludedMembers */
 function Exclude(L, R, options = {}) {
@@ -28408,7 +31072,7 @@ function ExtractFromTemplateLiteral(L, R) {
 
 function ExtractRest(L, R) {
     const extracted = L.filter((inner) => ExtendsCheck(inner, R) !== ExtendsResult.False);
-    return extracted.length === 1 ? extracted[0] : Union(extracted);
+    return extracted.length === 1 ? extracted[0] : Union$1(extracted);
 }
 /** `[Json]` Constructs a type by extracting from type all union members that are assignable to union */
 function Extract(L, R, options = {}) {
@@ -28501,7 +31165,7 @@ function FromTemplateLiteral(schema, mode, options) {
     const strings = [...TemplateLiteralExpressionGenerate(expression)];
     const literals = strings.map((value) => Literal(value));
     const mapped = FromRest$2(literals, mode);
-    const union = Union(mapped);
+    const union = Union$1(mapped);
     return TemplateLiteral([union], options);
 }
 // prettier-ignore
@@ -28524,7 +31188,7 @@ function Intrinsic(schema, mode, options = {}) {
     IsMappedKey(schema) ? IntrinsicFromMappedKey(schema, mode, options) :
         // Standard-Inference
         IsTemplateLiteral(schema) ? FromTemplateLiteral(schema, mode, schema) :
-            IsUnion(schema) ? Union(FromRest$2(schema.anyOf, mode), options) :
+            IsUnion(schema) ? Union$1(FromRest$2(schema.anyOf, mode), options) :
                 IsLiteral(schema) ? Literal(FromLiteralValue(schema.const, mode), options) :
                     schema);
 }
@@ -28601,8 +31265,8 @@ function FromProperties$6(T, K) {
 // ------------------------------------------------------------------
 // prettier-ignore
 function OmitResolve(T, K) {
-    return (IsIntersect(T) ? Intersect(FromIntersect$1(T.allOf, K)) :
-        IsUnion(T) ? Union(FromUnion$1(T.anyOf, K)) :
+    return (IsIntersect(T) ? Intersect$1(FromIntersect$1(T.allOf, K)) :
+        IsUnion(T) ? Union$1(FromUnion$1(T.anyOf, K)) :
             IsObject(T) ? Object$1(FromProperties$6(T.properties, K)) :
                 Object$1({}));
 }
@@ -28661,8 +31325,8 @@ function FromProperties$5(T) {
 // ------------------------------------------------------------------
 // prettier-ignore
 function PartialResolve(T) {
-    return (IsIntersect(T) ? Intersect(FromRest$1(T.allOf)) :
-        IsUnion(T) ? Union(FromRest$1(T.anyOf)) :
+    return (IsIntersect(T) ? Intersect$1(FromRest$1(T.allOf)) :
+        IsUnion(T) ? Union$1(FromRest$1(T.anyOf)) :
             IsObject(T) ? Object$1(FromProperties$5(T.properties)) :
                 Object$1({}));
 }
@@ -28725,8 +31389,8 @@ function FromProperties$2(T, K) {
 // ------------------------------------------------------------------
 // prettier-ignore
 function PickResolve(T, K) {
-    return (IsIntersect(T) ? Intersect(FromIntersect(T.allOf, K)) :
-        IsUnion(T) ? Union(FromUnion(T.anyOf, K)) :
+    return (IsIntersect(T) ? Intersect$1(FromIntersect(T.allOf, K)) :
+        IsUnion(T) ? Union$1(FromUnion(T.anyOf, K)) :
             IsObject(T) ? Object$1(FromProperties$2(T.properties, K)) :
                 Object$1({}));
 }
@@ -28798,7 +31462,7 @@ function FromTemplateLiteralKey(K, T, options) {
 }
 // prettier-ignore
 function FromUnionKey(K, T, options) {
-    return RecordCreateFromKeys(IndexPropertyKeys(Union(K)), T, options);
+    return RecordCreateFromKeys(IndexPropertyKeys(Union$1(K)), T, options);
 }
 // prettier-ignore
 function FromLiteralKey(K, T, options) {
@@ -28883,8 +31547,8 @@ function FromProperties$1(T) {
 // ------------------------------------------------------------------
 // prettier-ignore
 function RequiredResolve(T) {
-    return (IsIntersect(T) ? Intersect(FromRest(T.allOf)) :
-        IsUnion(T) ? Union(FromRest(T.anyOf)) :
+    return (IsIntersect(T) ? Intersect$1(FromRest(T.allOf)) :
+        IsUnion(T) ? Union$1(FromRest(T.anyOf)) :
             IsObject(T) ? Object$1(FromProperties$1(T.properties)) :
                 Object$1({}));
 }
@@ -28978,14 +31642,6 @@ function Transform(schema) {
     return new TransformDecodeBuilder(schema);
 }
 
-/** `[Json]` Creates a Unsafe type that will infers as the generic argument T */
-function Unsafe(options = {}) {
-    return {
-        ...options,
-        [Kind]: options[Kind] ?? 'Unsafe',
-    };
-}
-
 /** `[JavaScript]` Creates a Void type */
 function Void(options = {}) {
     return {
@@ -29005,7 +31661,7 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 	Array: Array$1,
 	AsyncIterator: AsyncIterator,
 	Awaited: Awaited,
-	BigInt: BigInt,
+	BigInt: BigInt$1,
 	Boolean: Boolean$1,
 	Capitalize: Capitalize,
 	Composite: Composite,
@@ -29022,7 +31678,7 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 	Index: Index,
 	InstanceType: InstanceType,
 	Integer: Integer,
-	Intersect: Intersect,
+	Intersect: Intersect$1,
 	Iterator: Iterator,
 	KeyOf: KeyOf,
 	Literal: Literal,
@@ -29057,7 +31713,7 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 	Uint8Array: Uint8Array$1,
 	Uncapitalize: Uncapitalize,
 	Undefined: Undefined,
-	Union: Union,
+	Union: Union$1,
 	Unknown: Unknown,
 	Unsafe: Unsafe,
 	Uppercase: Uppercase,
