@@ -44349,7 +44349,7 @@ async function run() {
             cursor_theme.description = description;
         }
         const exporter = new FigmaExtractor(coreExports.getInput("access_token", { required: true }), coreExports.getInput("file_key", { required: true }), cursor_theme, coreExports.getInput("output_directory", { required: true }));
-        await exporter.export();
+        coreExports.setOutput("version", await exporter.export());
     }
     catch (error) {
         if (error instanceof Error) {

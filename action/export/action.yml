@@ -23,6 +23,7 @@ inputs:
 outputs:
   version:
     description: 'The current version of the Figma file.'
+    value: ${{ steps.export.outputs.version }}
 
 runs:
   using: "composite"
@@ -45,6 +46,7 @@ runs:
       shell: bash
 
     - name: Export cursor theme assets
+      id: export
       working-directory: ${{ github.action_path }}
       env:
         INPUT_ACCESS_TOKEN: ${{ inputs.access_token }}
