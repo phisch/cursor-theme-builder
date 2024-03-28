@@ -22,17 +22,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
         with:
-          node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build -- --base=/cursor-theme-generator
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - run: pnpm i
+
+      - name: build
+        env:
+          BASE_PATH: '/${{ github.event.repository.name }}'
+        run: pnpm run build
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: 'dist'
+          path: 'build'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
