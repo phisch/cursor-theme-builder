@@ -3,6 +3,7 @@ import type {
 	Animation,
 	AnimationInstruction,
 } from "../models/animation/animation";
+import type { Animations } from "$lib/models/cursor-theme";
 
 export type Frame = {
 	svg: Element;
@@ -20,55 +21,56 @@ export class SvgAnimator {
 
 	constructor(
 		private element: Element,
-		animations?: Animation[],
+		animations?: Animations,
 	) {
-		this.applyAnimations(this.element, animations);
+		this.applyAnimations(animations);
 	}
 
-	animate(): Frame[] {
-		if (this.animatedElements.length === 0) {
-			return [{ svg: this.element, duration: 0 }];
-		}
-		const frames: Frame[] = [];
-		const animationDuration = this.timeline.getEndTime();
-		const frameCount = Math.ceil((animationDuration / 1000) * this.fps);
+	private resetAnimations() {
+		this.runners.every((runner) => { runner.reset(); });
 
-		for (let i = 0; i < frameCount; i++) {
-			const frame_start = Math.floor((i / this.fps) * 1000);
-			const frame_end = Math.min(
-				Math.floor(((i + 1) / this.fps) * 1000),
-				animationDuration,
-			);
-			const duration = frame_end - frame_start;
-			this.timeline.time(frame_start);
-			for (const element of this.animatedElements) {
-				mergeTransforms.call(element);
-			}
-			frames.push({
-				svg: SVG(this.element.svg()),
-				duration,
-			});
+		for (const runner of this.runners) {
+			runner.reset();
 		}
-		return frames;
+		this.runners = [];
+
+		this.timeline.finish();
+		this.timeline = new Timeline();
+
 	}
 
-	private applyAnimations(element: Element, animations?: Animation[]) {
+	applyAnimations(animations?: Animation[]) {
+
+		this.resetAnimations();
 		for (const animation of animations ?? []) {
-			this.applyAnimation(element, animation);
+			this.applyAnimation(this.element, animation);
 		}
 	}
 
 	private applyAnimation(element: Element, animation: Animation) {
-		const affectedElement = element.find(animation.selector);
-		const runners: Runner[] = [];
-		for (const e of affectedElement) {
-			if (!this.animatedElements.includes(e)) {
-				this.animatedElements.push(e);
+		try {
+			const affectedElement = element.find(animation.selector);
+			const runners: Runner[] = [];
+			for (const e of affectedElement) {
+				if (!this.animatedElements.includes(e)) {
+					this.animatedElements.push(e);
+				}
+				e.timeline(this.timeline);
+				runners.push(...this.applyInstructions(e, animation.instructions));
 			}
-			e.timeline(this.timeline);
-			runners.push(...this.applyInstructions(e, animation.instructions));
+			this.runners.push(...runners);
+		} catch (e: unknown) {
+			if (e instanceof Error) {
+				console.warn(`Selector '${animation.selector}' is not valid, can't apply animation on it.`);
+				console.warn(e.message);
+			}
 		}
-		this.runners.push(...runners);
+	}
+
+	loop() {
+		for (const runner of this.runners) {
+			runner.loop();
+		}
 	}
 
 	private applyInstructions(
@@ -109,6 +111,34 @@ export class SvgAnimator {
 		}
 
 		return runners;
+	}
+
+
+	getAnimationFrames(): Frame[] {
+		if (this.animatedElements.length === 0) {
+			return [{ svg: this.element, duration: 0 }];
+		}
+		const frames: Frame[] = [];
+		const animationDuration = this.timeline.getEndTime();
+		const frameCount = Math.ceil((animationDuration / 1000) * this.fps);
+
+		for (let i = 0; i < frameCount; i++) {
+			const frame_start = Math.floor((i / this.fps) * 1000);
+			const frame_end = Math.min(
+				Math.floor(((i + 1) / this.fps) * 1000),
+				animationDuration,
+			);
+			const duration = frame_end - frame_start;
+			this.timeline.time(frame_start);
+			for (const element of this.animatedElements) {
+				mergeTransforms.call(element);
+			}
+			frames.push({
+				svg: SVG(this.element.svg()),
+				duration,
+			});
+		}
+		return frames;
 	}
 }
 

@@ -31923,10 +31923,11 @@ const HotSpot = Type.Object({
     x: Type.Number(),
     y: Type.Number(),
 });
+const Animations = Type.Array(Animation);
 const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
-    animations: Type.Optional(Type.Array(Animation)),
+    animations: Type.Optional(Animations),
     hotSpot: Type.Optional(Type.Union([HotSpot, HotSpotSelector])),
 });
 const Cursor = Type.Object({

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as core from "@actions/core";
 import { TypeCompiler } from "@sinclair/typebox/compiler";
-import { CursorTheme } from "../models/cursor-theme";
+import { CursorTheme } from "$lib/models/cursor-theme";
 
 async function run() {
 	try {

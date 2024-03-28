@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import * as core from "@actions/core";
-import { CursorThemeBuilder } from "../builder/cursor-theme";
+import { CursorThemeBuilder } from "$lib/builder/cursor-theme";
 
 async function run() {
 	try {

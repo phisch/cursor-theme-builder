@@ -188,7 +188,7 @@ IN THE SOFTWARE.
 ---
 
 Name: @sinclair/typebox
-Version: 0.32.19
+Version: 0.32.20
 License: MIT
 Private: false
 Description: Json Schema Type Builder with Static Type Resolution for TypeScript

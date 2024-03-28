@@ -1,6 +1,6 @@
+import { FigmaExtractor } from "$lib/extractor/figma";
+import type { CursorTheme } from "$lib/models/cursor-theme";
 import * as core from "@actions/core";
-import type { CursorTheme } from "../models/cursor-theme";
-import { FigmaExtractor } from "../extractor/figma";
 
 async function run() {
 	try {

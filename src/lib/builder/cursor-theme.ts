@@ -258,7 +258,7 @@ export class CursorThemeBuilder {
 		const frameMap = cursor.sprites.reduce((map, sprite) => {
 			const element = SVG(this.getFile(sprite.file));
 			sizes.add(element.width() as number);
-			const frames = new SvgAnimator(element, sprite.animations).animate();
+			const frames = new SvgAnimator(element, sprite.animations).getAnimationFrames();
 			map.set(sprite, frames);
 			return map;
 		}, new Map<Sprite, Frame[]>());
@@ -281,7 +281,6 @@ export class CursorThemeBuilder {
 					sprite,
 				),
 			);
-			console.log(framesLeftHanded);
 			const chunksLeftHanded = await this.framesToChunks(
 				framesLeftHanded,
 				scaleMap,

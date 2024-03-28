@@ -26,7 +26,7 @@ import require$$3$1 from 'zlib';
 import require$$6 from 'string_decoder';
 import require$$0$9 from 'diagnostics_channel';
 import path from 'node:path';
-import { Timeline, SVG, Runner, Matrix, registerWindow } from '@svgdotjs/svg.js';
+import { Timeline, Runner, SVG, Matrix, registerWindow } from '@svgdotjs/svg.js';
 import sharp from 'sharp';
 import { createSVGWindow } from 'svgdom';
 
@@ -31080,46 +31080,47 @@ class SvgAnimator {
     fps = 25;
     constructor(element, animations) {
         this.element = element;
-        this.applyAnimations(this.element, animations);
+        this.applyAnimations(animations);
     }
-    animate() {
-        if (this.animatedElements.length === 0) {
-            return [{ svg: this.element, duration: 0 }];
+    resetAnimations() {
+        this.runners.every((runner) => { runner.reset(); });
+        for (const runner of this.runners) {
+            runner.reset();
         }
-        const frames = [];
-        const animationDuration = this.timeline.getEndTime();
-        const frameCount = Math.ceil((animationDuration / 1000) * this.fps);
-        for (let i = 0; i < frameCount; i++) {
-            const frame_start = Math.floor((i / this.fps) * 1000);
-            const frame_end = Math.min(Math.floor(((i + 1) / this.fps) * 1000), animationDuration);
-            const duration = frame_end - frame_start;
-            this.timeline.time(frame_start);
-            for (const element of this.animatedElements) {
-                mergeTransforms.call(element);
-            }
-            frames.push({
-                svg: SVG(this.element.svg()),
-                duration,
-            });
-        }
-        return frames;
+        this.runners = [];
+        this.timeline.finish();
+        this.timeline = new Timeline();
     }
-    applyAnimations(element, animations) {
+    applyAnimations(animations) {
+        this.resetAnimations();
         for (const animation of animations ?? []) {
-            this.applyAnimation(element, animation);
+            this.applyAnimation(this.element, animation);
         }
     }
     applyAnimation(element, animation) {
-        const affectedElement = element.find(animation.selector);
-        const runners = [];
-        for (const e of affectedElement) {
-            if (!this.animatedElements.includes(e)) {
-                this.animatedElements.push(e);
+        try {
+            const affectedElement = element.find(animation.selector);
+            const runners = [];
+            for (const e of affectedElement) {
+                if (!this.animatedElements.includes(e)) {
+                    this.animatedElements.push(e);
+                }
+                e.timeline(this.timeline);
+                runners.push(...this.applyInstructions(e, animation.instructions));
             }
-            e.timeline(this.timeline);
-            runners.push(...this.applyInstructions(e, animation.instructions));
+            this.runners.push(...runners);
         }
-        this.runners.push(...runners);
+        catch (e) {
+            if (e instanceof Error) {
+                console.warn(`Selector '${animation.selector}' is not valid, can't apply animation on it.`);
+                console.warn(e.message);
+            }
+        }
+    }
+    loop() {
+        for (const runner of this.runners) {
+            runner.loop();
+        }
     }
     applyInstructions(element, instructions) {
         const runners = [];
@@ -31149,6 +31150,28 @@ class SvgAnimator {
             }
         }
         return runners;
+    }
+    getAnimationFrames() {
+        if (this.animatedElements.length === 0) {
+            return [{ svg: this.element, duration: 0 }];
+        }
+        const frames = [];
+        const animationDuration = this.timeline.getEndTime();
+        const frameCount = Math.ceil((animationDuration / 1000) * this.fps);
+        for (let i = 0; i < frameCount; i++) {
+            const frame_start = Math.floor((i / this.fps) * 1000);
+            const frame_end = Math.min(Math.floor(((i + 1) / this.fps) * 1000), animationDuration);
+            const duration = frame_end - frame_start;
+            this.timeline.time(frame_start);
+            for (const element of this.animatedElements) {
+                mergeTransforms.call(element);
+            }
+            frames.push({
+                svg: SVG(this.element.svg()),
+                duration,
+            });
+        }
+        return frames;
     }
 }
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -32394,10 +32417,11 @@ const HotSpot = Type.Object({
     x: Type.Number(),
     y: Type.Number(),
 });
+const Animations = Type.Array(Animation);
 const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
-    animations: Type.Optional(Type.Array(Animation)),
+    animations: Type.Optional(Animations),
     hotSpot: Type.Optional(Type.Union([HotSpot, HotSpotSelector])),
 });
 const Cursor = Type.Object({
@@ -32579,7 +32603,7 @@ class CursorThemeBuilder {
         const frameMap = cursor.sprites.reduce((map, sprite) => {
             const element = SVG(this.getFile(sprite.file));
             sizes.add(element.width());
-            const frames = new SvgAnimator(element, sprite.animations).animate();
+            const frames = new SvgAnimator(element, sprite.animations).getAnimationFrames();
             map.set(sprite, frames);
             return map;
         }, new Map());
@@ -32594,7 +32618,6 @@ class CursorThemeBuilder {
             const framesLeftHanded = cursor.sprites.flatMap((sprite) => this.withHotSpot(
             // biome-ignore lint/style/noNonNullAssertion: <explanation>
             frameMapLeftHanded.get(sprite) ?? frameMap.get(sprite), sprite));
-            console.log(framesLeftHanded);
             const chunksLeftHanded = await this.framesToChunks(framesLeftHanded, scaleMap);
             this.writeCursorFile(chunksLeftHanded, cursor, variant, true);
         }

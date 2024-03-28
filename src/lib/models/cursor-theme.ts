@@ -30,11 +30,14 @@ export const HotSpot = Type.Object({
 	y: Type.Number(),
 });
 
+export type Animations = Static<typeof Animations>;
+export const Animations = Type.Array(Animation);
+
 export type Sprite = Static<typeof Sprite>;
 export const Sprite = Type.Object({
 	file: Type.String(),
 	flips: Type.Optional(Type.Array(Type.String())),
-	animations: Type.Optional(Type.Array(Animation)),
+	animations: Type.Optional(Animations),
 	hotSpot: Type.Optional(Type.Union([HotSpot, HotSpotSelector])),
 });
 
