@@ -8,17 +8,24 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 8
+
     - name: Setup node
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: 20
+        cache: pnpm
+        cache-dependency-path: .
 
     - name: Install dependencies
-      shell: bash
       working-directory: ${{ github.action_path }}
-      run: npm install
+      run: pnpm i
+      shell: bash
 
-    - name: Run
+    - name: Validate cursor-theme.json
       working-directory: ${{ github.action_path }}
       env:
         INPUT_CURSOR_THEME_JSON: ${{ github.workspace }}/${{ inputs.cursor_theme_json }}

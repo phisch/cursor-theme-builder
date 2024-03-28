@@ -26,7 +26,7 @@ async function run() {
 			core.getInput("output_directory", { required: true }),
 		);
 
-		await exporter.export();
+		core.setOutput("version", await exporter.export());
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

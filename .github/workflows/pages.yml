@@ -14,21 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
         with:
           version: 8
 
-      - uses: actions/setup-node@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: pnpm
 
-      - run: pnpm i
+      - name: Install dependencies
+        run: pnpm i
 
-      - name: build
+      - name: Build site and JSON schemas
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
         run: pnpm run build
@@ -36,7 +39,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'build'
+          path: build
 
   deploy:
     needs: build
