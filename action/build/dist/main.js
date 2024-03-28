@@ -32469,7 +32469,8 @@ class CursorThemeBuilder {
     }
     slugify(...args) {
         return args
-            .filter((arg) => arg)
+            .map((arg) => arg.split(" "))
+            .flat()
             .join("-")
             .toLowerCase();
     }

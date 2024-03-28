@@ -65,7 +65,8 @@ export class CursorThemeBuilder {
 
 	private slugify(...args: string[]) {
 		return args
-			.filter((arg) => arg)
+			.map((arg) => arg.split(" "))
+			.flat()
 			.join("-")
 			.toLowerCase();
 	}
