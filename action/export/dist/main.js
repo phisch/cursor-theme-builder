@@ -8,26 +8,26 @@ import require$$4 from 'https';
 import require$$0$1 from 'url';
 import require$$6 from 'fs';
 import require$$0$3 from 'assert';
-import require$$0$2 from 'tty';
+import require$$1$2 from 'tty';
+import require$$0$2 from 'os';
 import zlib from 'zlib';
 import require$$4$1, { EventEmitter as EventEmitter$1 } from 'events';
 import sharp from 'sharp';
-import require$$0$4 from 'os';
-import require$$0$5 from 'net';
-import require$$1$2 from 'tls';
+import require$$0$4 from 'net';
+import require$$1$3 from 'tls';
 import require$$7 from 'buffer';
 import require$$8 from 'querystring';
 import require$$13 from 'stream/web';
-import require$$0$7 from 'node:stream';
-import require$$1$3 from 'node:util';
-import require$$0$6 from 'node:events';
-import require$$0$8 from 'worker_threads';
+import require$$0$6 from 'node:stream';
+import require$$1$4 from 'node:util';
+import require$$0$5 from 'node:events';
+import require$$0$7 from 'worker_threads';
 import require$$2$2 from 'perf_hooks';
 import require$$5 from 'util/types';
 import require$$4$2 from 'async_hooks';
-import require$$1$4 from 'console';
+import require$$1$5 from 'console';
 import require$$6$1 from 'string_decoder';
-import require$$0$9 from 'diagnostics_channel';
+import require$$0$8 from 'diagnostics_channel';
 
 
 // -- Shims --
@@ -15033,6 +15033,165 @@ function requireBrowser () {
 
 var node = {exports: {}};
 
+var hasFlag;
+var hasRequiredHasFlag;
+
+function requireHasFlag () {
+	if (hasRequiredHasFlag) return hasFlag;
+	hasRequiredHasFlag = 1;
+
+	hasFlag = (flag, argv = process.argv) => {
+		const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
+		const position = argv.indexOf(prefix + flag);
+		const terminatorPosition = argv.indexOf('--');
+		return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+	};
+	return hasFlag;
+}
+
+var supportsColor_1;
+var hasRequiredSupportsColor;
+
+function requireSupportsColor () {
+	if (hasRequiredSupportsColor) return supportsColor_1;
+	hasRequiredSupportsColor = 1;
+	const os = require$$0$2;
+	const tty = require$$1$2;
+	const hasFlag = requireHasFlag();
+
+	const {env} = process;
+
+	let forceColor;
+	if (hasFlag('no-color') ||
+		hasFlag('no-colors') ||
+		hasFlag('color=false') ||
+		hasFlag('color=never')) {
+		forceColor = 0;
+	} else if (hasFlag('color') ||
+		hasFlag('colors') ||
+		hasFlag('color=true') ||
+		hasFlag('color=always')) {
+		forceColor = 1;
+	}
+
+	if ('FORCE_COLOR' in env) {
+		if (env.FORCE_COLOR === 'true') {
+			forceColor = 1;
+		} else if (env.FORCE_COLOR === 'false') {
+			forceColor = 0;
+		} else {
+			forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
+		}
+	}
+
+	function translateLevel(level) {
+		if (level === 0) {
+			return false;
+		}
+
+		return {
+			level,
+			hasBasic: true,
+			has256: level >= 2,
+			has16m: level >= 3
+		};
+	}
+
+	function supportsColor(haveStream, streamIsTTY) {
+		if (forceColor === 0) {
+			return 0;
+		}
+
+		if (hasFlag('color=16m') ||
+			hasFlag('color=full') ||
+			hasFlag('color=truecolor')) {
+			return 3;
+		}
+
+		if (hasFlag('color=256')) {
+			return 2;
+		}
+
+		if (haveStream && !streamIsTTY && forceColor === undefined) {
+			return 0;
+		}
+
+		const min = forceColor || 0;
+
+		if (env.TERM === 'dumb') {
+			return min;
+		}
+
+		if (process.platform === 'win32') {
+			// Windows 10 build 10586 is the first Windows release that supports 256 colors.
+			// Windows 10 build 14931 is the first release that supports 16m/TrueColor.
+			const osRelease = os.release().split('.');
+			if (
+				Number(osRelease[0]) >= 10 &&
+				Number(osRelease[2]) >= 10586
+			) {
+				return Number(osRelease[2]) >= 14931 ? 3 : 2;
+			}
+
+			return 1;
+		}
+
+		if ('CI' in env) {
+			if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
+				return 1;
+			}
+
+			return min;
+		}
+
+		if ('TEAMCITY_VERSION' in env) {
+			return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
+		}
+
+		if (env.COLORTERM === 'truecolor') {
+			return 3;
+		}
+
+		if ('TERM_PROGRAM' in env) {
+			const version = parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
+
+			switch (env.TERM_PROGRAM) {
+				case 'iTerm.app':
+					return version >= 3 ? 3 : 2;
+				case 'Apple_Terminal':
+					return 2;
+				// No default
+			}
+		}
+
+		if (/-256(color)?$/i.test(env.TERM)) {
+			return 2;
+		}
+
+		if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
+			return 1;
+		}
+
+		if ('COLORTERM' in env) {
+			return 1;
+		}
+
+		return min;
+	}
+
+	function getSupportLevel(stream) {
+		const level = supportsColor(stream, stream && stream.isTTY);
+		return translateLevel(level);
+	}
+
+	supportsColor_1 = {
+		supportsColor: getSupportLevel,
+		stdout: translateLevel(supportsColor(true, tty.isatty(1))),
+		stderr: translateLevel(supportsColor(true, tty.isatty(2)))
+	};
+	return supportsColor_1;
+}
+
 /**
  * Module dependencies.
  */
@@ -15043,7 +15202,7 @@ function requireNode () {
 	if (hasRequiredNode) return node.exports;
 	hasRequiredNode = 1;
 	(function (module, exports) {
-		const tty = require$$0$2;
+		const tty = require$$1$2;
 		const util = require$$1;
 
 		/**
@@ -15070,7 +15229,7 @@ function requireNode () {
 		try {
 			// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 			// eslint-disable-next-line import/no-extraneous-dependencies
-			const supportsColor = require('supports-color');
+			const supportsColor = requireSupportsColor();
 
 			if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 				exports.colors = [
@@ -18425,22 +18584,20 @@ class FigmaExtractor {
         this.cursorTheme = cursorTheme;
         this.targetDirectory = targetDirectory;
         this.client = Client$5({
-            personalAccessToken: apiKey,
+            personalAccessToken: apiKey
         });
-        this.figmaFile = this.client
-            .file(this.fileId)
-            .then((response) => response.data);
+        this.figmaFile = this.client.file(this.fileId).then((response) => response.data);
     }
     async export() {
         this.cursorTheme.variants = await this.getVariants();
         if (!existsSync(this.targetDirectory)) {
             mkdirSync(this.targetDirectory, { recursive: true });
         }
-        await promises.writeFile(path$1.join(this.targetDirectory, "cursor-theme.json"), JSON.stringify(this.cursorTheme, null, 2));
+        await promises.writeFile(path$1.join(this.targetDirectory, 'cursor-theme.json'), JSON.stringify(this.cursorTheme, null, 2));
         return (await this.figmaFile).version;
     }
     parseName(name) {
-        return Object.fromEntries(name.split(", ").map((part) => part.split("=")));
+        return Object.fromEntries(name.split(', ').map((part) => part.split('=')));
     }
     getOptions(description) {
         try {
@@ -18463,72 +18620,69 @@ class FigmaExtractor {
         return {
             file: filePath,
             animations: figmaSprite.config.animations,
-            flips: figmaSprite.config.flips,
+            flips: figmaSprite.config.flips
         };
     }
     async getSvgSize(svg) {
         const metadata = await sharp(Buffer.from(svg)).metadata();
         if (!metadata.width || !metadata.height) {
-            throw new Error("Invalid SVG size");
+            throw new Error('Invalid SVG size');
         }
         if (metadata.width !== metadata.height) {
-            throw new Error("SVG sizes are set but not equal");
+            throw new Error('SVG sizes are set but not equal');
         }
         return metadata.width;
     }
     async getVariants() {
         const variantMap = new Map();
         const spriteComponents = Object.entries((await this.figmaFile).components).filter(([, component]) => {
-            return (component.name.includes("cursor=") &&
-                component.name.includes("variant="));
+            return component.name.includes('cursor=') && component.name.includes('variant=');
         });
         const spriteComponentImageUrls = (await this.client.fileImages(this.fileId, {
             ids: spriteComponents.map(([id]) => id),
-            format: "svg",
+            format: 'svg',
             scale: 1,
             svg_include_id: true,
             svg_simplify_stroke: false,
-            use_absolute_bounds: true,
+            use_absolute_bounds: true
         })).data.images;
         const figmaSprites = spriteComponents.map(async ([id, component]) => {
             return {
                 config: this.getOptions(component.description),
                 properties: this.parseName(component.name),
-                svg: (await axios.get(spriteComponentImageUrls[id])).data,
+                svg: (await axios.get(spriteComponentImageUrls[id])).data
             };
         });
         for await (const figmaSprite of figmaSprites) {
             const { properties, config } = figmaSprite;
-            const name = properties.variant.split("/").slice(-1)[0];
+            const name = properties.variant.split('/').slice(-1)[0];
             if (!variantMap.has(properties.variant)) {
                 variantMap.set(properties.variant, {
                     name: name,
-                    cursors: [],
+                    cursors: []
                 });
             }
             const variant = variantMap.get(properties.variant);
             if (!variant) {
-                throw new Error("Variant not found");
+                throw new Error('Variant not found');
             }
             if (!variant.cursors.find((cursor) => cursor.name === properties.cursor)) {
                 variant.cursors.push({
                     name: properties.cursor,
-                    sprites: [],
+                    sprites: []
                 });
             }
             const cursor = variant.cursors.find((cursor) => cursor.name === properties.cursor);
             if (!cursor) {
-                throw new Error("Cursor not found");
+                throw new Error('Cursor not found');
             }
             if (config.aliases && config.aliases.length > 0) {
-                cursor.aliases = [
-                    ...new Set([...(cursor.aliases || []), ...config.aliases]),
-                ];
+                cursor.aliases = [...new Set([...(cursor.aliases || []), ...config.aliases])];
             }
             cursor.sprites.push(await this.buildSprite(figmaSprite));
         }
         variantMap.forEach((variant, name) => {
-            const parentName = name.substring(0, name.lastIndexOf("/"));
+            const parentName = name.substring(0, name.lastIndexOf('/'));
             const parent = variantMap.get(parentName);
             if (parent) {
                 parent.variants ??= [];
@@ -18536,7 +18690,7 @@ class FigmaExtractor {
             }
         });
         return Array.from(variantMap.entries())
-            .filter(([name]) => !name.includes("/"))
+            .filter(([name]) => !name.includes('/'))
             .map(([, variant]) => variant);
     }
 }
@@ -18607,7 +18761,7 @@ var __importStar$2 = (commonjsGlobal && commonjsGlobal.__importStar) || function
 };
 Object.defineProperty(command, "__esModule", { value: true });
 command.issue = command.issueCommand = void 0;
-const os$1 = __importStar$2(require$$0$4);
+const os$1 = __importStar$2(require$$0$2);
 const utils_1$1 = utils$1;
 /**
  * Commands
@@ -19304,7 +19458,7 @@ fileCommand.prepareKeyValueMessage = fileCommand.issueFileCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar$1(require$$6);
-const os = __importStar$1(require$$0$4);
+const os = __importStar$1(require$$0$2);
 const uuid_1 = require$$2;
 const utils_1 = utils$1;
 function issueFileCommand(command, message) {
@@ -19425,7 +19579,7 @@ function isLoopbackAddress(host) {
 
 var tunnel$2 = {};
 
-var tls$1 = require$$1$2;
+var tls$1 = require$$1$3;
 var http$2 = require$$2$1;
 var https$1 = require$$4;
 var events$1 = require$$4$1;
@@ -19987,7 +20141,7 @@ const assert$9 = require$$0$3;
 const { kDestroyed: kDestroyed$1, kBodyUsed: kBodyUsed$1 } = symbols$4;
 const { IncomingMessage } = require$$2$1;
 const stream$1 = stream$2;
-const net$2 = require$$0$5;
+const net$2 = require$$0$4;
 const { InvalidArgumentError: InvalidArgumentError$l } = errors$1;
 const { Blob: Blob$2 } = require$$7;
 const nodeUtil = require$$1;
@@ -20624,8 +20778,8 @@ function requireSbmh () {
 	 * Based heavily on the Streaming Boyer-Moore-Horspool C++ implementation
 	 * by Hongli Lai at: https://github.com/FooBarWidget/boyer-moore-horspool
 	 */
-	const EventEmitter = require$$0$6.EventEmitter;
-	const inherits = require$$1$3.inherits;
+	const EventEmitter = require$$0$5.EventEmitter;
+	const inherits = require$$1$4.inherits;
 
 	function SBMH (needle) {
 	  if (typeof needle === 'string') {
@@ -20834,8 +20988,8 @@ function requirePartStream () {
 	if (hasRequiredPartStream) return PartStream_1;
 	hasRequiredPartStream = 1;
 
-	const inherits = require$$1$3.inherits;
-	const ReadableStream = require$$0$7.Readable;
+	const inherits = require$$1$4.inherits;
+	const ReadableStream = require$$0$6.Readable;
 
 	function PartStream (opts) {
 	  ReadableStream.call(this, opts);
@@ -20879,8 +21033,8 @@ function requireHeaderParser () {
 	if (hasRequiredHeaderParser) return HeaderParser_1;
 	hasRequiredHeaderParser = 1;
 
-	const EventEmitter = require$$0$6.EventEmitter;
-	const inherits = require$$1$3.inherits;
+	const EventEmitter = require$$0$5.EventEmitter;
+	const inherits = require$$1$4.inherits;
 	const getLimit = requireGetLimit();
 
 	const StreamSearch = requireSbmh();
@@ -20987,8 +21141,8 @@ function requireDicer () {
 	if (hasRequiredDicer) return Dicer_1;
 	hasRequiredDicer = 1;
 
-	const WritableStream = require$$0$7.Writable;
-	const inherits = require$$1$3.inherits;
+	const WritableStream = require$$0$6.Writable;
+	const inherits = require$$1$4.inherits;
 
 	const StreamSearch = requireSbmh();
 
@@ -21564,8 +21718,8 @@ function requireMultipart () {
 	//  * support limits.fieldNameSize
 	//     -- this will require modifications to utils.parseParams
 
-	const { Readable } = require$$0$7;
-	const { inherits } = require$$1$3;
+	const { Readable } = require$$0$6;
+	const { inherits } = require$$1$4;
 
 	const Dicer = requireDicer();
 
@@ -22130,8 +22284,8 @@ function requireMain () {
 	if (hasRequiredMain) return main.exports;
 	hasRequiredMain = 1;
 
-	const WritableStream = require$$0$7.Writable;
-	const { inherits } = require$$1$3;
+	const WritableStream = require$$0$6.Writable;
+	const { inherits } = require$$1$4;
 	const Dicer = requireDicer();
 
 	const MultipartParser = requireMultipart();
@@ -22223,7 +22377,7 @@ function requireConstants$3 () {
 	if (hasRequiredConstants$3) return constants$4;
 	hasRequiredConstants$3 = 1;
 
-	const { MessageChannel, receiveMessageOnPort } = require$$0$8;
+	const { MessageChannel, receiveMessageOnPort } = require$$0$7;
 
 	const corsSafeListedMethods = ['GET', 'HEAD', 'POST'];
 	const corsSafeListedMethodsSet = new Set(corsSafeListedMethods);
@@ -26754,7 +26908,7 @@ let DispatcherBase$4 = class DispatcherBase extends Dispatcher$2 {
 
 var dispatcherBase = DispatcherBase$4;
 
-const net$1 = require$$0$5;
+const net$1 = require$$0$4;
 const assert$7 = require$$0$3;
 const util$g = util$j;
 const { InvalidArgumentError: InvalidArgumentError$i, ConnectTimeoutError } = errors$1;
@@ -26840,7 +26994,7 @@ function buildConnector$4 ({ allowH2, maxCachedSessions, socketPath, timeout, ..
     let socket;
     if (protocol === 'https:') {
       if (!tls) {
-        tls = require$$1$2;
+        tls = require$$1$3;
       }
       servername = servername || options.servername || util$g.getServerName(host) || null;
 
@@ -27489,7 +27643,7 @@ function requireLlhttp_simdWasm () {
 /* global WebAssembly */
 
 const assert$5 = require$$0$3;
-const net = require$$0$5;
+const net = require$$0$4;
 const http$1 = require$$2$1;
 const { pipeline: pipeline$1 } = stream$2;
 const util$e = util$j;
@@ -32610,7 +32764,7 @@ var pluralizer = class Pluralizer {
 };
 
 const { Transform } = stream$2;
-const { Console } = require$$1$4;
+const { Console } = require$$1$5;
 
 /**
  * Gets the output of `console.table(…)` as a string.
@@ -40755,7 +40909,7 @@ function requireEvents () {
 
 	const { webidl } = requireWebidl();
 	const { kEnumerableProperty } = util$j;
-	const { MessagePort } = require$$0$8;
+	const { MessagePort } = require$$0$7;
 
 	/**
 	 * @see https://html.spec.whatwg.org/multipage/comms.html#messageevent
@@ -41272,7 +41426,7 @@ function requireConnection () {
 	if (hasRequiredConnection) return connection;
 	hasRequiredConnection = 1;
 
-	const diagnosticsChannel = require$$0$9;
+	const diagnosticsChannel = require$$0$8;
 	const { uid, states } = requireConstants();
 	const {
 	  kReadyState,
@@ -41653,7 +41807,7 @@ function requireReceiver () {
 	hasRequiredReceiver = 1;
 
 	const { Writable } = stream$2;
-	const diagnosticsChannel = require$$0$9;
+	const diagnosticsChannel = require$$0$8;
 	const { parserStates, opcodes, states, emptyBuffer } = requireConstants();
 	const { kReadyState, kSentClose, kResponse, kReceivedClose } = requireSymbols();
 	const { isValidStatusCode, failWebsocketConnection, websocketMessageReceived } = requireUtil();
@@ -43645,7 +43799,7 @@ function requireSummary () {
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
 		exports.summary = exports.markdownSummary = exports.SUMMARY_DOCS_URL = exports.SUMMARY_ENV_VAR = void 0;
-		const os_1 = require$$0$4;
+		const os_1 = require$$0$2;
 		const fs_1 = require$$6;
 		const { access, appendFile, writeFile } = fs_1.promises;
 		exports.SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
@@ -44026,7 +44180,7 @@ function requireCore () {
 		const command_1 = command;
 		const file_command_1 = fileCommand;
 		const utils_1 = utils$1;
-		const os = __importStar(require$$0$4);
+		const os = __importStar(require$$0$2);
 		const path = __importStar(require$$1$1);
 		const oidc_utils_1 = requireOidcUtils();
 		/**
@@ -44337,19 +44491,19 @@ var coreExports = requireCore();
 async function run() {
     try {
         const cursor_theme = {
-            name: coreExports.getInput("theme_name", { required: true }),
-            variants: [],
+            name: coreExports.getInput('theme_name', { required: true }),
+            variants: []
         };
-        const author_name = coreExports.getInput("author_name", { required: false });
+        const author_name = coreExports.getInput('author_name', { required: false });
         if (author_name) {
             cursor_theme.author = author_name;
         }
-        const description = coreExports.getInput("description", { required: false });
+        const description = coreExports.getInput('description', { required: false });
         if (description) {
             cursor_theme.description = description;
         }
-        const exporter = new FigmaExtractor(coreExports.getInput("access_token", { required: true }), coreExports.getInput("file_key", { required: true }), cursor_theme, coreExports.getInput("output_directory", { required: true }));
-        coreExports.setOutput("version", await exporter.export());
+        const exporter = new FigmaExtractor(coreExports.getInput('access_token', { required: true }), coreExports.getInput('file_key', { required: true }), cursor_theme, coreExports.getInput('output_directory', { required: true }));
+        coreExports.setOutput('version', await exporter.export());
     }
     catch (error) {
         if (error instanceof Error) {

@@ -31083,7 +31083,9 @@ class SvgAnimator {
         this.applyAnimations(animations);
     }
     resetAnimations() {
-        this.runners.every((runner) => { runner.reset(); });
+        this.runners.every((runner) => {
+            runner.reset();
+        });
         for (const runner of this.runners) {
             runner.reset();
         }
@@ -31127,19 +31129,19 @@ class SvgAnimator {
         let runner = element;
         for (const { name, arguments: args } of instructions) {
             switch (name) {
-                case "animate":
+                case 'animate':
                     runner = runner.animate(args.duration, args.delay, args.when);
                     break;
-                case "rotate":
+                case 'rotate':
                     runner = runner.rotate(args.degrees);
                     break;
-                case "dx":
+                case 'dx':
                     runner = runner.dx(args.x);
                     break;
-                case "dy":
+                case 'dy':
                     runner = runner.dy(args.y);
                     break;
-                case "ease":
+                case 'ease':
                     runner = runner.ease(args.kind);
                     break;
                 default:
@@ -31168,7 +31170,7 @@ class SvgAnimator {
             }
             frames.push({
                 svg: SVG(this.element.svg()),
-                duration,
+                duration
             });
         }
         return frames;
@@ -31181,9 +31183,7 @@ const getRunnerTransform = (runner) => runner.transforms;
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 function mergeTransforms() {
     const runners = this._transformationRunners.runners;
-    const netTransform = runners
-        .map(getRunnerTransform)
-        .reduce(lmultiply, new Matrix());
+    const netTransform = runners.map(getRunnerTransform).reduce(lmultiply, new Matrix());
     this.transform(netTransform);
     this._transformationRunners.merge();
     if (this._transformationRunners.length() === 1) {
@@ -32129,164 +32129,160 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 const Type = TypeBuilder;
 
 const Animate = Type.Object({
-    name: Type.Literal("animate"),
+    name: Type.Literal('animate'),
     arguments: Type.Object({
         duration: Type.Number(),
         delay: Type.Number(),
         when: Type.Union([
-            Type.Literal("now"),
-            Type.Literal("absolute"),
-            Type.Literal("relative"),
-            Type.Literal("last"),
-        ]),
-    }),
+            Type.Literal('now'),
+            Type.Literal('absolute'),
+            Type.Literal('relative'),
+            Type.Literal('last')
+        ])
+    })
 });
 
 const Center = Type.Object({
-    name: Type.Literal("center"),
+    name: Type.Literal('center'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const CX = Type.Object({
-    name: Type.Literal("cx"),
+    name: Type.Literal('cx'),
     arguments: Type.Object({
-        x: Type.Number(),
-    }),
+        x: Type.Number()
+    })
 });
 
 const CY = Type.Object({
-    name: Type.Literal("cy"),
+    name: Type.Literal('cy'),
     arguments: Type.Object({
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const DMove = Type.Object({
-    name: Type.Literal("dmove"),
+    name: Type.Literal('dmove'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const DX = Type.Object({
-    name: Type.Literal("dx"),
+    name: Type.Literal('dx'),
     arguments: Type.Object({
-        x: Type.Number(),
-    }),
+        x: Type.Number()
+    })
 });
 
 const Dy = Type.Object({
-    name: Type.Literal("dy"),
+    name: Type.Literal('dy'),
     arguments: Type.Object({
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Ease = Type.Object({
-    name: Type.Literal("ease"),
+    name: Type.Literal('ease'),
     arguments: Type.Object({
         kind: Type.Union([
-            Type.Literal("<>", { description: "Ease in and out" }),
-            Type.Literal("-", { description: "Linear" }),
-            Type.Literal("<", { description: "Ease in" }),
-            Type.Literal(">", { description: "Ease out" }),
-        ], { description: "The easing function to use" }),
-    }),
+            Type.Literal('<>', { description: 'Ease in and out' }),
+            Type.Literal('-', { description: 'Linear' }),
+            Type.Literal('<', { description: 'Ease in' }),
+            Type.Literal('>', { description: 'Ease out' })
+        ], { description: 'The easing function to use' })
+    })
 });
 
 const Flip = Type.Object({
-    name: Type.Literal("flip"),
+    name: Type.Literal('flip'),
     arguments: Type.Object({
-        axis: Type.Union([
-            Type.Literal("x"),
-            Type.Literal("y"),
-            Type.Literal("both"),
-        ]),
-    }),
+        axis: Type.Union([Type.Literal('x'), Type.Literal('y'), Type.Literal('both')])
+    })
 });
 
 const Height = Type.Object({
-    name: Type.Literal("height"),
+    name: Type.Literal('height'),
     arguments: Type.Object({
-        height: Type.Number(),
-    }),
+        height: Type.Number()
+    })
 });
 
 const Move = Type.Object({
-    name: Type.Literal("move"),
+    name: Type.Literal('move'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Radius = Type.Object({
-    name: Type.Literal("radius"),
+    name: Type.Literal('radius'),
     arguments: Type.Object({
-        radius: Type.Number(),
-    }),
+        radius: Type.Number()
+    })
 });
 
 const Rotate = Type.Object({
-    name: Type.Literal("rotate"),
+    name: Type.Literal('rotate'),
     arguments: Type.Object({
-        degrees: Type.Number(),
-    }),
+        degrees: Type.Number()
+    })
 });
 
 const Scale = Type.Object({
-    name: Type.Literal("scale"),
+    name: Type.Literal('scale'),
     arguments: Type.Object({
-        factor: Type.Number(),
-    }),
+        factor: Type.Number()
+    })
 });
 
 const Size = Type.Object({
-    name: Type.Literal("size"),
+    name: Type.Literal('size'),
     arguments: Type.Object({
-        size: Type.Number(),
-    }),
+        size: Type.Number()
+    })
 });
 
 const Skew = Type.Object({
-    name: Type.Literal("skew"),
+    name: Type.Literal('skew'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Translate = Type.Object({
-    name: Type.Literal("translate"),
+    name: Type.Literal('translate'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Width = Type.Object({
-    name: Type.Literal("width"),
+    name: Type.Literal('width'),
     arguments: Type.Object({
-        width: Type.Number(),
-    }),
+        width: Type.Number()
+    })
 });
 
 const X = Type.Object({
-    name: Type.Literal("x"),
+    name: Type.Literal('x'),
     arguments: Type.Object({
-        x: Type.Number(),
-    }),
+        x: Type.Number()
+    })
 });
 
 const Y = Type.Object({
-    name: Type.Literal("y"),
+    name: Type.Literal('y'),
     arguments: Type.Object({
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const AnimationInstruction = Type.Union([
@@ -32309,27 +32305,27 @@ const AnimationInstruction = Type.Union([
     Translate,
     Width,
     X,
-    Y,
+    Y
 ]);
 const Animation = Type.Object({
     selector: Type.String(),
-    instructions: Type.Array(AnimationInstruction),
+    instructions: Type.Array(AnimationInstruction)
 });
 
 function isSelector(hotSpot) {
-    return typeof hotSpot === "string";
+    return typeof hotSpot === 'string';
 }
 function isCoordinates(hotSpot) {
-    return typeof hotSpot === "object";
+    return typeof hotSpot === 'object';
 }
 const Selector = Type.String({
-    title: "CSS selector",
-    description: "Select an element whose center should be used as the hotspot.",
-    examples: ["#hotspot"],
+    title: 'CSS selector',
+    description: 'Select an element whose center should be used as the hotspot.',
+    examples: ['#hotspot']
 });
 const Coordinates = Type.Object({
     x: Type.Number(),
-    y: Type.Number(),
+    y: Type.Number()
 });
 const HotSpot = Type.Union([Selector, Coordinates]);
 const Animations = Type.Array(Animation);
@@ -32337,23 +32333,23 @@ const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
     animations: Type.Optional(Animations),
-    hotSpot: Type.Optional(HotSpot),
+    hotSpot: Type.Optional(HotSpot)
 });
 const Cursor = Type.Object({
     name: Type.String(),
     aliases: Type.Optional(Type.Array(Type.String())),
-    sprites: Type.Array(Sprite),
+    sprites: Type.Array(Sprite)
 });
 const Variant = Type.Recursive((Variant) => Type.Object({
     name: Type.String(),
     cursors: Type.Array(Cursor),
-    variants: Type.Optional(Type.Array(Variant)),
-}), { $id: "Variant" });
+    variants: Type.Optional(Type.Array(Variant))
+}), { $id: 'Variant' });
 const CursorTheme = Type.Object({
     name: Type.String(),
     description: Type.Optional(Type.String()),
     author: Type.Optional(Type.String()),
-    variants: Type.Array(Variant),
+    variants: Type.Array(Variant)
 });
 
 var CommentSubtype;
@@ -32372,7 +32368,7 @@ function calculateSize(chunk) {
     if (isImage(chunk)) {
         return 36 + 4 * chunk.width * chunk.height;
     }
-    return 20 + Buffer.byteLength(chunk.string, "utf-8");
+    return 20 + Buffer.byteLength(chunk.string, 'utf-8');
 }
 function flipRedBlueAndPreMultiplyAlpha(buffer) {
     for (let i = 0; i < buffer.length; i += 4) {
@@ -32394,7 +32390,7 @@ function encode(chunks) {
         position += size;
     }
     const buffer = Buffer.alloc(position);
-    buffer.write("Xcur", 0, 4, "utf-8");
+    buffer.write('Xcur', 0, 4, 'utf-8');
     buffer.writeUInt32LE(16, 4);
     buffer.writeUInt32LE(1, 8);
     buffer.writeUInt32LE(chunks.length, 12);
@@ -32418,9 +32414,9 @@ function encode(chunks) {
             buffer.writeUInt32LE(0xfffe0001, offset + 4);
             buffer.writeUInt32LE(chunk.type, offset + 8);
             buffer.writeUInt32LE(1, offset + 12);
-            const stringByteLength = Buffer.byteLength(chunk.string, "utf-8");
+            const stringByteLength = Buffer.byteLength(chunk.string, 'utf-8');
             buffer.writeUInt32LE(stringByteLength, offset + 16);
-            buffer.write(chunk.string, offset + 20, "utf-8");
+            buffer.write(chunk.string, offset + 20, 'utf-8');
             offset += 20 + stringByteLength;
         }
         else if (isImage(chunk)) {
@@ -32449,7 +32445,7 @@ class CursorThemeBuilder {
     inputDirectory;
     constructor(themeFilePath, outputDirectory) {
         this.outputDirectory = outputDirectory;
-        this.cursorTheme = JSON.parse(readFileSync(themeFilePath, "utf8"));
+        this.cursorTheme = JSON.parse(readFileSync(themeFilePath, 'utf8'));
         this.inputDirectory = path.dirname(themeFilePath);
         this.validateTheme();
     }
@@ -32458,7 +32454,7 @@ class CursorThemeBuilder {
         if (!C.Check(this.cursorTheme)) {
             const errors = [...C.Errors(this.cursorTheme)];
             console.info(JSON.stringify(errors, null, 2));
-            throw new Error("Cursor theme json file is not valid!");
+            throw new Error('Cursor theme json file is not valid!');
         }
     }
     build() {
@@ -32468,38 +32464,38 @@ class CursorThemeBuilder {
     }
     slugify(...args) {
         return args
-            .flatMap((arg) => arg.split(" "))
-            .join("-")
+            .flatMap((arg) => arg.split(' '))
+            .join('-')
             .toLowerCase();
     }
     getVariantDirectory(variant, leftHanded) {
         const parts = [this.cursorTheme.name, variant.name];
         if (leftHanded) {
-            parts.push("left-handed");
+            parts.push('left-handed');
         }
         return path.join(this.outputDirectory, this.slugify(...parts));
     }
     createDirectoryAndIndex(variant, parent, leftHanded) {
         const variant_directory = this.getVariantDirectory(variant, leftHanded);
-        mkdirSync(path.join(variant_directory, "cursors"), { recursive: true });
+        mkdirSync(path.join(variant_directory, 'cursors'), { recursive: true });
         const index = {
-            "Icon Theme": {
-                Name: `${this.cursorTheme.name} (${variant.name}${leftHanded ? " left handed" : ""})`,
-            },
+            'Icon Theme': {
+                Name: `${this.cursorTheme.name} (${variant.name}${leftHanded ? ' left handed' : ''})`
+            }
         };
         if (this.cursorTheme.author) {
-            index["Icon Theme"].Author = this.cursorTheme.author;
+            index['Icon Theme'].Author = this.cursorTheme.author;
         }
         if (this.cursorTheme.description) {
-            index["Icon Theme"].Comment = this.cursorTheme.description;
+            index['Icon Theme'].Comment = this.cursorTheme.description;
         }
         if (leftHanded) {
-            index["Icon Theme"].Inherits = this.slugify(this.cursorTheme.name, variant.name);
+            index['Icon Theme'].Inherits = this.slugify(this.cursorTheme.name, variant.name);
         }
         else if (parent) {
-            index["Icon Theme"].Inherits = this.slugify(this.cursorTheme.name, parent.name);
+            index['Icon Theme'].Inherits = this.slugify(this.cursorTheme.name, parent.name);
         }
-        writeFileSync(path.join(variant_directory, "index.theme"), ini.stringify(index));
+        writeFileSync(path.join(variant_directory, 'index.theme'), ini.stringify(index));
     }
     buildVariant(variant, parent) {
         this.createDirectoryAndIndex(variant, parent);
@@ -32516,15 +32512,15 @@ class CursorThemeBuilder {
     }
     async render(svg, scale) {
         const sharpImage = sharp(Buffer.from(svg), {
-            density: 72 * scale,
+            density: 72 * scale
         });
         return sharpImage.raw().toBuffer();
     }
     writeCursorFile(chunks, cursor, variant, leftHanded) {
-        const cursorFile = path.join(this.getVariantDirectory(variant, leftHanded), "cursors", `${cursor.name}`);
+        const cursorFile = path.join(this.getVariantDirectory(variant, leftHanded), 'cursors', `${cursor.name}`);
         writeFileSync(cursorFile, encode(chunks));
         for (const alias of cursor.aliases ?? []) {
-            const aliasFile = path.join(this.getVariantDirectory(variant, leftHanded), "cursors", `${alias}`);
+            const aliasFile = path.join(this.getVariantDirectory(variant, leftHanded), 'cursors', `${alias}`);
             if (existsSync(aliasFile)) {
                 console.warn(`Alias file ${aliasFile} already exists`);
             }
@@ -32534,7 +32530,7 @@ class CursorThemeBuilder {
         }
     }
     getFile(file) {
-        return readFileSync(path.join(this.inputDirectory, file), "utf8");
+        return readFileSync(path.join(this.inputDirectory, file), 'utf8');
     }
     transformIntoLeftHandedFrames(sprite, frames) {
         if (!sprite.flips || !frames) {
@@ -32543,13 +32539,13 @@ class CursorThemeBuilder {
         const leftHandedFrames = frames.map((frame) => {
             const svg = SVG(frame.svg);
             for (const flip of sprite.flips ?? []) {
-                const elements = flip === "svg" ? svg.find("svg > g") : svg.find(flip);
+                const elements = flip === 'svg' ? svg.find('svg > g') : svg.find(flip);
                 for (const element of elements) {
-                    if (flip === "svg") {
-                        element.flip("x", svg.width() / 2);
+                    if (flip === 'svg') {
+                        element.flip('x', svg.width() / 2);
                     }
                     else {
-                        element.flip("x");
+                        element.flip('x');
                     }
                 }
             }
@@ -32564,7 +32560,7 @@ class CursorThemeBuilder {
             element.remove();
             return {
                 x: Math.floor(bb.x + bb.width / 2),
-                y: Math.floor(bb.y + bb.height / 2),
+                y: Math.floor(bb.y + bb.height / 2)
             };
         }
     }
@@ -32578,7 +32574,7 @@ class CursorThemeBuilder {
                 return coordinates;
             }
         }
-        const coordinates = this.extractHotSpot(svg, "#hotspot");
+        const coordinates = this.extractHotSpot(svg, '#hotspot');
         if (coordinates) {
             return coordinates;
         }
@@ -32608,7 +32604,7 @@ class CursorThemeBuilder {
                         delay: frame.duration,
                         xhot: hotspot.x * scale,
                         yhot: hotspot.y * scale,
-                        pixels: renderedImage,
+                        pixels: renderedImage
                     });
                 }
             }
@@ -32654,14 +32650,14 @@ class CursorThemeBuilder {
 
 async function run() {
     try {
-        const cursorThemeJson = coreExports.getInput("cursor_theme_json", {
-            required: true,
+        const cursorThemeJson = coreExports.getInput('cursor_theme_json', {
+            required: true
         });
         if (!existsSync(cursorThemeJson)) {
             throw new Error(`Cursor theme json file does not exist: ${cursorThemeJson}`);
         }
-        const outputDirectory = coreExports.getInput("output_directory", {
-            required: true,
+        const outputDirectory = coreExports.getInput('output_directory', {
+            required: true
         });
         const generator = new CursorThemeBuilder(cursorThemeJson, outputDirectory);
         generator.build();

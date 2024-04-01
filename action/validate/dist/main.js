@@ -31727,164 +31727,160 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 const Type = TypeBuilder;
 
 const Animate = Type.Object({
-    name: Type.Literal("animate"),
+    name: Type.Literal('animate'),
     arguments: Type.Object({
         duration: Type.Number(),
         delay: Type.Number(),
         when: Type.Union([
-            Type.Literal("now"),
-            Type.Literal("absolute"),
-            Type.Literal("relative"),
-            Type.Literal("last"),
-        ]),
-    }),
+            Type.Literal('now'),
+            Type.Literal('absolute'),
+            Type.Literal('relative'),
+            Type.Literal('last')
+        ])
+    })
 });
 
 const Center = Type.Object({
-    name: Type.Literal("center"),
+    name: Type.Literal('center'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const CX = Type.Object({
-    name: Type.Literal("cx"),
+    name: Type.Literal('cx'),
     arguments: Type.Object({
-        x: Type.Number(),
-    }),
+        x: Type.Number()
+    })
 });
 
 const CY = Type.Object({
-    name: Type.Literal("cy"),
+    name: Type.Literal('cy'),
     arguments: Type.Object({
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const DMove = Type.Object({
-    name: Type.Literal("dmove"),
+    name: Type.Literal('dmove'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const DX = Type.Object({
-    name: Type.Literal("dx"),
+    name: Type.Literal('dx'),
     arguments: Type.Object({
-        x: Type.Number(),
-    }),
+        x: Type.Number()
+    })
 });
 
 const Dy = Type.Object({
-    name: Type.Literal("dy"),
+    name: Type.Literal('dy'),
     arguments: Type.Object({
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Ease = Type.Object({
-    name: Type.Literal("ease"),
+    name: Type.Literal('ease'),
     arguments: Type.Object({
         kind: Type.Union([
-            Type.Literal("<>", { description: "Ease in and out" }),
-            Type.Literal("-", { description: "Linear" }),
-            Type.Literal("<", { description: "Ease in" }),
-            Type.Literal(">", { description: "Ease out" }),
-        ], { description: "The easing function to use" }),
-    }),
+            Type.Literal('<>', { description: 'Ease in and out' }),
+            Type.Literal('-', { description: 'Linear' }),
+            Type.Literal('<', { description: 'Ease in' }),
+            Type.Literal('>', { description: 'Ease out' })
+        ], { description: 'The easing function to use' })
+    })
 });
 
 const Flip = Type.Object({
-    name: Type.Literal("flip"),
+    name: Type.Literal('flip'),
     arguments: Type.Object({
-        axis: Type.Union([
-            Type.Literal("x"),
-            Type.Literal("y"),
-            Type.Literal("both"),
-        ]),
-    }),
+        axis: Type.Union([Type.Literal('x'), Type.Literal('y'), Type.Literal('both')])
+    })
 });
 
 const Height = Type.Object({
-    name: Type.Literal("height"),
+    name: Type.Literal('height'),
     arguments: Type.Object({
-        height: Type.Number(),
-    }),
+        height: Type.Number()
+    })
 });
 
 const Move = Type.Object({
-    name: Type.Literal("move"),
+    name: Type.Literal('move'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Radius = Type.Object({
-    name: Type.Literal("radius"),
+    name: Type.Literal('radius'),
     arguments: Type.Object({
-        radius: Type.Number(),
-    }),
+        radius: Type.Number()
+    })
 });
 
 const Rotate = Type.Object({
-    name: Type.Literal("rotate"),
+    name: Type.Literal('rotate'),
     arguments: Type.Object({
-        degrees: Type.Number(),
-    }),
+        degrees: Type.Number()
+    })
 });
 
 const Scale = Type.Object({
-    name: Type.Literal("scale"),
+    name: Type.Literal('scale'),
     arguments: Type.Object({
-        factor: Type.Number(),
-    }),
+        factor: Type.Number()
+    })
 });
 
 const Size = Type.Object({
-    name: Type.Literal("size"),
+    name: Type.Literal('size'),
     arguments: Type.Object({
-        size: Type.Number(),
-    }),
+        size: Type.Number()
+    })
 });
 
 const Skew = Type.Object({
-    name: Type.Literal("skew"),
+    name: Type.Literal('skew'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Translate = Type.Object({
-    name: Type.Literal("translate"),
+    name: Type.Literal('translate'),
     arguments: Type.Object({
         x: Type.Number(),
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const Width = Type.Object({
-    name: Type.Literal("width"),
+    name: Type.Literal('width'),
     arguments: Type.Object({
-        width: Type.Number(),
-    }),
+        width: Type.Number()
+    })
 });
 
 const X = Type.Object({
-    name: Type.Literal("x"),
+    name: Type.Literal('x'),
     arguments: Type.Object({
-        x: Type.Number(),
-    }),
+        x: Type.Number()
+    })
 });
 
 const Y = Type.Object({
-    name: Type.Literal("y"),
+    name: Type.Literal('y'),
     arguments: Type.Object({
-        y: Type.Number(),
-    }),
+        y: Type.Number()
+    })
 });
 
 const AnimationInstruction = Type.Union([
@@ -31907,57 +31903,58 @@ const AnimationInstruction = Type.Union([
     Translate,
     Width,
     X,
-    Y,
+    Y
 ]);
 const Animation = Type.Object({
     selector: Type.String(),
-    instructions: Type.Array(AnimationInstruction),
+    instructions: Type.Array(AnimationInstruction)
 });
 
-const HotSpotSelector = Type.String({
-    title: "CSS selector",
-    description: "Select an element whose center should be used as the hotspot.",
-    examples: ["#hotspot"],
+const Selector = Type.String({
+    title: 'CSS selector',
+    description: 'Select an element whose center should be used as the hotspot.',
+    examples: ['#hotspot']
 });
-const HotSpot = Type.Object({
+const Coordinates = Type.Object({
     x: Type.Number(),
-    y: Type.Number(),
+    y: Type.Number()
 });
+const HotSpot = Type.Union([Selector, Coordinates]);
 const Animations = Type.Array(Animation);
 const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
     animations: Type.Optional(Animations),
-    hotSpot: Type.Optional(Type.Union([HotSpot, HotSpotSelector])),
+    hotSpot: Type.Optional(HotSpot)
 });
 const Cursor = Type.Object({
     name: Type.String(),
     aliases: Type.Optional(Type.Array(Type.String())),
-    sprites: Type.Array(Sprite),
+    sprites: Type.Array(Sprite)
 });
 const Variant = Type.Recursive((Variant) => Type.Object({
     name: Type.String(),
     cursors: Type.Array(Cursor),
-    variants: Type.Optional(Type.Array(Variant)),
-}), { $id: "Variant" });
+    variants: Type.Optional(Type.Array(Variant))
+}), { $id: 'Variant' });
 const CursorTheme = Type.Object({
     name: Type.String(),
     description: Type.Optional(Type.String()),
     author: Type.Optional(Type.String()),
-    variants: Type.Array(Variant),
+    variants: Type.Array(Variant)
 });
 
 async function run() {
     try {
-        const cursorThemeJson = coreExports.getInput("cursor_theme_json", { required: true });
+        const cursorThemeJson = coreExports.getInput('cursor_theme_json', { required: true });
         if (!existsSync(cursorThemeJson)) {
             throw new Error(`Cursor theme json file does not exist: ${cursorThemeJson}`);
         }
-        const json = JSON.parse(readFileSync(cursorThemeJson, "utf8"));
+        const json = JSON.parse(readFileSync(cursorThemeJson, 'utf8'));
         const C = TypeCompiler.Compile(CursorTheme);
         if (!C.Check(json)) {
             coreExports.info(JSON.stringify([...C.Errors(json)], null, 2));
-            throw new Error("Cursor theme json file is not valid!");
+            throw new Error('Cursor theme json file is not valid!');
         }
     }
     catch (error) {
