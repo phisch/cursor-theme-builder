@@ -8,29 +8,20 @@ import svg from '@poppanator/sveltekit-svg';
 export default defineConfig({
 	plugins: [
 		sveltekit(),
-        svg(),
+		svg(),
 		{
-            name: 'generate-schema',
-            apply: 'build',
-            closeBundle() {
-                const directory = 'build/schemas';
-                fs.mkdirSync(directory, { recursive: true });
-                fs.writeFileSync(
-                    path.join(directory, 'CursorTheme'),
-                    JSON.stringify(CursorTheme, null, 2)
-                );
-                fs.writeFileSync(
-                    path.join(directory, 'Variant'),
-                    JSON.stringify(Variant, null, 2)
-                );
-                fs.writeFileSync(
-                    path.join(directory, 'Animations'),
-                    JSON.stringify(Animations, null, 2)
-                );
-            },
-        }
+			name: 'generate-schema',
+			apply: 'build',
+			closeBundle() {
+				const directory = 'build/schemas';
+				fs.mkdirSync(directory, { recursive: true });
+				fs.writeFileSync(path.join(directory, 'CursorTheme'), JSON.stringify(CursorTheme, null, 2));
+				fs.writeFileSync(path.join(directory, 'Variant'), JSON.stringify(Variant, null, 2));
+				fs.writeFileSync(path.join(directory, 'Animations'), JSON.stringify(Animations, null, 2));
+			}
+		}
 	],
-    test: {
+	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	}
 });

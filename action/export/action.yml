@@ -26,7 +26,7 @@ outputs:
     value: ${{ steps.export.outputs.version }}
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Setup pnpm
       uses: pnpm/action-setup@v3

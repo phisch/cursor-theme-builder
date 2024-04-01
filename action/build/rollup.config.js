@@ -1,18 +1,18 @@
-import typescript from "@rollup/plugin-typescript";
-import license from "rollup-plugin-license";
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import commonjsShim from "@rollup/plugin-esm-shim";
+import typescript from '@rollup/plugin-typescript';
+import license from 'rollup-plugin-license';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import commonjsShim from '@rollup/plugin-esm-shim';
 
 const config = [
 	{
-		input: "src/github-action/build.ts",
+		input: 'src/github-action/build.ts',
 		output: {
-			file: "action/build/dist/main.js",
-			format: "es",
+			file: 'action/build/dist/main.js',
+			format: 'es'
 		},
-		external: ["sharp", "@svgdotjs/svg.js", "svgdom"],
+		external: ['sharp', '@svgdotjs/svg.js', 'svgdom'],
 		plugins: [
 			typescript(),
 			resolve(),
@@ -22,13 +22,13 @@ const config = [
 			license({
 				thirdParty: {
 					output: {
-						file: "action/build/dist/licenses.txt"
+						file: 'action/build/dist/licenses.txt'
 					},
-					includePrivate: true,
-				},
-			}),
-		],
-	},
+					includePrivate: true
+				}
+			})
+		]
+	}
 ];
 
 export default config;

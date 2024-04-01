@@ -1,10 +1,10 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from '@sinclair/typebox';
 
 type Move = Static<typeof Move>;
 export const Move = Type.Object({
-	name: Type.Literal("move"),
+	name: Type.Literal('move'),
 	arguments: Type.Object({
 		x: Type.Number(),
-		y: Type.Number(),
-	}),
+		y: Type.Number()
+	})
 });

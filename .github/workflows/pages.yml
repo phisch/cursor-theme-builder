@@ -1,18 +1,18 @@
 name: Build and deploy static site and JSON schemas to GitHub Pages
 
 on:
-#  push:
-#    branches: ["master"]
+  #  push:
+  #    branches: ["master"]
   workflow_dispatch:
 
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4

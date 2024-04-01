@@ -1,7 +1,7 @@
 export enum CommentSubtype {
 	Copyright = 1,
 	License = 2,
-	Other = 3,
+	Other = 3
 }
 
 export type Comment = {
@@ -32,7 +32,7 @@ function calculateSize(chunk: Chunk): number {
 	if (isImage(chunk)) {
 		return 36 + 4 * chunk.width * chunk.height;
 	}
-	return 20 + Buffer.byteLength(chunk.string, "utf-8");
+	return 20 + Buffer.byteLength(chunk.string, 'utf-8');
 }
 
 function flipRedBlueAndPreMultiplyAlpha(buffer: Buffer): Buffer {
@@ -58,7 +58,7 @@ export function encode(chunks: Chunk[]): Buffer {
 
 	const buffer = Buffer.alloc(position);
 
-	buffer.write("Xcur", 0, 4, "utf-8");
+	buffer.write('Xcur', 0, 4, 'utf-8');
 	buffer.writeUInt32LE(16, 4);
 	buffer.writeUInt32LE(1, 8);
 	buffer.writeUInt32LE(chunks.length, 12);
@@ -83,9 +83,9 @@ export function encode(chunks: Chunk[]): Buffer {
 			buffer.writeUInt32LE(0xfffe0001, offset + 4);
 			buffer.writeUInt32LE(chunk.type, offset + 8);
 			buffer.writeUInt32LE(1, offset + 12);
-			const stringByteLength = Buffer.byteLength(chunk.string, "utf-8");
+			const stringByteLength = Buffer.byteLength(chunk.string, 'utf-8');
 			buffer.writeUInt32LE(stringByteLength, offset + 16);
-			buffer.write(chunk.string, offset + 20, "utf-8");
+			buffer.write(chunk.string, offset + 20, 'utf-8');
 			offset += 20 + stringByteLength;
 		} else if (isImage(chunk)) {
 			buffer.writeUInt32LE(36, offset);

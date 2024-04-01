@@ -5,15 +5,15 @@ import {
 	symlinkSync,
 	write,
 	writeFile,
-	writeFileSync,
-} from "node:fs";
-import path from "node:path";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
-import { type Element, SVG, type Svg, registerWindow } from "@svgdotjs/svg.js";
-import { stringify } from "ini";
-import sharp from "sharp";
-import { createSVGWindow } from "svgdom";
-import { type Frame, SvgAnimator } from "../animator/svg";
+	writeFileSync
+} from 'node:fs';
+import path from 'node:path';
+import { TypeCompiler } from '@sinclair/typebox/compiler';
+import { type Element, SVG, type Svg, registerWindow } from '@svgdotjs/svg.js';
+import { stringify } from 'ini';
+import sharp from 'sharp';
+import { createSVGWindow } from 'svgdom';
+import { type Frame, SvgAnimator } from '../animator/svg';
 import {
 	type Coordinates,
 	type Cursor,
@@ -23,16 +23,16 @@ import {
 	type Sprite,
 	type Variant,
 	isCoordinates,
-	isSelector,
-} from "../models/cursor-theme";
-import { type Chunk, type Image, encode } from "../x11/xcursor";
+	isSelector
+} from '../models/cursor-theme';
+import { type Chunk, type Image, encode } from '../x11/xcursor';
 
 const window = createSVGWindow();
 const document = window.document;
 registerWindow(window, document);
 
 type IndexFile = {
-	"Icon Theme": {
+	'Icon Theme': {
 		Name: string;
 		Comment?: string;
 		Author?: string;
@@ -46,9 +46,9 @@ export class CursorThemeBuilder {
 
 	constructor(
 		themeFilePath: string,
-		private outputDirectory: string,
+		private outputDirectory: string
 	) {
-		this.cursorTheme = JSON.parse(readFileSync(themeFilePath, "utf8"));
+		this.cursorTheme = JSON.parse(readFileSync(themeFilePath, 'utf8'));
 		this.inputDirectory = path.dirname(themeFilePath);
 		this.validateTheme();
 	}
@@ -58,7 +58,7 @@ export class CursorThemeBuilder {
 		if (!C.Check(this.cursorTheme)) {
 			const errors = [...C.Errors(this.cursorTheme)];
 			console.info(JSON.stringify(errors, null, 2));
-			throw new Error("Cursor theme json file is not valid!");
+			throw new Error('Cursor theme json file is not valid!');
 		}
 	}
 
@@ -70,67 +70,50 @@ export class CursorThemeBuilder {
 
 	private slugify(...args: string[]) {
 		return args
-			.flatMap((arg) => arg.split(" "))
-			.join("-")
+			.flatMap((arg) => arg.split(' '))
+			.join('-')
 			.toLowerCase();
 	}
 
 	private getVariantDirectory(variant: Variant, leftHanded?: boolean) {
 		const parts = [this.cursorTheme.name, variant.name];
 		if (leftHanded) {
-			parts.push("left-handed");
+			parts.push('left-handed');
 		}
-		return path.join(
-			this.outputDirectory,
-			this.slugify(...parts),
-		);
+		return path.join(this.outputDirectory, this.slugify(...parts));
 	}
 
-	private createDirectoryAndIndex(
-		variant: Variant,
-		parent?: Variant,
-		leftHanded?: boolean,
-	) {
+	private createDirectoryAndIndex(variant: Variant, parent?: Variant, leftHanded?: boolean) {
 		const variant_directory = this.getVariantDirectory(variant, leftHanded);
-		mkdirSync(path.join(variant_directory, "cursors"), { recursive: true });
+		mkdirSync(path.join(variant_directory, 'cursors'), { recursive: true });
 
 		const index: IndexFile = {
-			"Icon Theme": {
-				Name: `${this.cursorTheme.name} (${variant.name}${leftHanded ? " left handed" : ""
-					})`,
-			},
+			'Icon Theme': {
+				Name: `${this.cursorTheme.name} (${variant.name}${leftHanded ? ' left handed' : ''})`
+			}
 		};
 
 		if (this.cursorTheme.author) {
-			index["Icon Theme"].Author = this.cursorTheme.author;
+			index['Icon Theme'].Author = this.cursorTheme.author;
 		}
 
 		if (this.cursorTheme.description) {
-			index["Icon Theme"].Comment = this.cursorTheme.description;
+			index['Icon Theme'].Comment = this.cursorTheme.description;
 		}
 
 		if (leftHanded) {
-			index["Icon Theme"].Inherits = this.slugify(
-				this.cursorTheme.name,
-				variant.name,
-			);
+			index['Icon Theme'].Inherits = this.slugify(this.cursorTheme.name, variant.name);
 		} else if (parent) {
-			index["Icon Theme"].Inherits = this.slugify(
-				this.cursorTheme.name,
-				parent.name,
-			);
+			index['Icon Theme'].Inherits = this.slugify(this.cursorTheme.name, parent.name);
 		}
 
-		writeFileSync(
-			path.join(variant_directory, "index.theme"),
-			stringify(index),
-		);
+		writeFileSync(path.join(variant_directory, 'index.theme'), stringify(index));
 	}
 
 	private buildVariant(variant: Variant, parent?: Variant) {
 		this.createDirectoryAndIndex(variant, parent);
 		const leftHanded = variant.cursors.some((cursor) =>
-			cursor.sprites.some((sprite) => sprite.flips),
+			cursor.sprites.some((sprite) => sprite.flips)
 		);
 		if (leftHanded) {
 			this.createDirectoryAndIndex(variant, parent, true);
@@ -145,29 +128,24 @@ export class CursorThemeBuilder {
 
 	private async render(svg: string, scale: number): Promise<Buffer> {
 		const sharpImage = sharp(Buffer.from(svg), {
-			density: 72 * scale,
+			density: 72 * scale
 		});
 		return sharpImage.raw().toBuffer();
 	}
 
-	private writeCursorFile(
-		chunks: Chunk[],
-		cursor: Cursor,
-		variant: Variant,
-		leftHanded?: boolean,
-	) {
+	private writeCursorFile(chunks: Chunk[], cursor: Cursor, variant: Variant, leftHanded?: boolean) {
 		const cursorFile = path.join(
 			this.getVariantDirectory(variant, leftHanded),
-			"cursors",
-			`${cursor.name}`,
+			'cursors',
+			`${cursor.name}`
 		);
 		writeFileSync(cursorFile, encode(chunks));
 
 		for (const alias of cursor.aliases ?? []) {
 			const aliasFile = path.join(
 				this.getVariantDirectory(variant, leftHanded),
-				"cursors",
-				`${alias}`,
+				'cursors',
+				`${alias}`
 			);
 			if (existsSync(aliasFile)) {
 				console.warn(`Alias file ${aliasFile} already exists`);
@@ -178,25 +156,22 @@ export class CursorThemeBuilder {
 	}
 
 	private getFile(file: string) {
-		return readFileSync(path.join(this.inputDirectory, file), "utf8");
+		return readFileSync(path.join(this.inputDirectory, file), 'utf8');
 	}
 
-	private transformIntoLeftHandedFrames(
-		sprite: Sprite,
-		frames?: Frame[]
-	): Frame[] | undefined {
+	private transformIntoLeftHandedFrames(sprite: Sprite, frames?: Frame[]): Frame[] | undefined {
 		if (!sprite.flips || !frames) {
 			return;
 		}
 		const leftHandedFrames = frames.map((frame) => {
 			const svg = SVG(frame.svg);
 			for (const flip of sprite.flips ?? []) {
-				const elements = flip === "svg" ? svg.find("svg > g") : svg.find(flip);
+				const elements = flip === 'svg' ? svg.find('svg > g') : svg.find(flip);
 				for (const element of elements) {
-					if (flip === "svg") {
-						element.flip("x", svg.width() as number / 2);
+					if (flip === 'svg') {
+						element.flip('x', (svg.width() as number) / 2);
 					} else {
-						element.flip("x");
+						element.flip('x');
 					}
 				}
 			}
@@ -205,17 +180,14 @@ export class CursorThemeBuilder {
 		return leftHandedFrames;
 	}
 
-	private extractHotSpot(
-		svg: Element,
-		selector: Selector,
-	): Coordinates | undefined {
+	private extractHotSpot(svg: Element, selector: Selector): Coordinates | undefined {
 		const element = svg.findOne(selector);
 		if (element) {
 			const bb = SVG(element).bbox();
 			element.remove();
 			return {
 				x: Math.floor(bb.x + bb.width / 2),
-				y: Math.floor(bb.y + bb.height / 2),
+				y: Math.floor(bb.y + bb.height / 2)
 			};
 		}
 	}
@@ -232,7 +204,7 @@ export class CursorThemeBuilder {
 			}
 		}
 
-		const coordinates = this.extractHotSpot(svg, "#hotspot");
+		const coordinates = this.extractHotSpot(svg, '#hotspot');
 		if (coordinates) {
 			return coordinates;
 		}
@@ -261,16 +233,16 @@ export class CursorThemeBuilder {
 					const svg = SVG(frame.svg.svg());
 					const hotspot = this.possiblyExtractHotspot(svg, sprite.hotSpot);
 					if (leftHanded) {
-						hotspot.x = frame.svg.width() as number - hotspot.x;
+						hotspot.x = (frame.svg.width() as number) - hotspot.x;
 					}
 					const renderedImage = await this.render(svg.svg(), scale);
 					chunks.push({
-						width: frame.svg.width() as number * scale,
-						height: frame.svg.height() as number * scale,
+						width: (frame.svg.width() as number) * scale,
+						height: (frame.svg.height() as number) * scale,
 						delay: frame.duration,
 						xhot: hotspot.x * scale,
 						yhot: hotspot.y * scale,
-						pixels: renderedImage,
+						pixels: renderedImage
 					});
 				}
 			}
@@ -284,39 +256,23 @@ export class CursorThemeBuilder {
 		const frameMap = cursor.sprites.reduce((map, sprite) => {
 			const element = SVG(this.getFile(sprite.file));
 			sizes.add(element.width() as number);
-			const frames = new SvgAnimator(
-				element,
-				sprite.animations,
-			).getAnimationFrames();
+			const frames = new SvgAnimator(element, sprite.animations).getAnimationFrames();
 			map.set(sprite, frames);
 			return map;
 		}, new Map<Sprite, Frame[]>());
 
 		const scaleMap = this.determineScaleMap(sizes, new Set([1, 2, 3, 4]));
 
-		const chunks = await this.createChunks(
-			frameMap,
-			cursor.sprites,
-			scaleMap,
-			false
-		);
+		const chunks = await this.createChunks(frameMap, cursor.sprites, scaleMap, false);
 		this.writeCursorFile(chunks, cursor, variant);
 
 		if (cursor.sprites.find((sprite) => sprite.flips)) {
-			const chunks = await this.createChunks(
-				frameMap,
-				cursor.sprites,
-				scaleMap,
-				true
-			);
+			const chunks = await this.createChunks(frameMap, cursor.sprites, scaleMap, true);
 			this.writeCursorFile(chunks, cursor, variant, true);
 		}
 	}
 
-	private determineScaleMap(
-		sizes: Set<number>,
-		scales: Set<number>,
-	): Map<number, Set<number>> {
+	private determineScaleMap(sizes: Set<number>, scales: Set<number>): Map<number, Set<number>> {
 		const scaleMap = new Map<number, Set<number>>();
 		const usedSizes = new Set<number>();
 		const sortedScales = Array.from(scales).sort((a, b) => a - b);

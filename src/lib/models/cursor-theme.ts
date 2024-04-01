@@ -1,25 +1,25 @@
-import { type Static, Type } from "@sinclair/typebox";
-import { Animation } from "./animation/animation";
+import { type Static, Type } from '@sinclair/typebox';
+import { Animation } from './animation/animation';
 
 export function isSelector(hotSpot?: HotSpot): hotSpot is Selector {
-	return typeof hotSpot === "string";
+	return typeof hotSpot === 'string';
 }
 
 export function isCoordinates(hotSpot?: HotSpot): hotSpot is Coordinates {
-	return typeof hotSpot === "object";
+	return typeof hotSpot === 'object';
 }
 
 export type Selector = Static<typeof Selector>;
 export const Selector = Type.String({
-	title: "CSS selector",
-	description: "Select an element whose center should be used as the hotspot.",
-	examples: ["#hotspot"],
+	title: 'CSS selector',
+	description: 'Select an element whose center should be used as the hotspot.',
+	examples: ['#hotspot']
 });
 
 export type Coordinates = Static<typeof Coordinates>;
 export const Coordinates = Type.Object({
 	x: Type.Number(),
-	y: Type.Number(),
+	y: Type.Number()
 });
 
 export type HotSpot = Static<typeof HotSpot>;
@@ -33,14 +33,14 @@ export const Sprite = Type.Object({
 	file: Type.String(),
 	flips: Type.Optional(Type.Array(Type.String())),
 	animations: Type.Optional(Animations),
-	hotSpot: Type.Optional(HotSpot),
+	hotSpot: Type.Optional(HotSpot)
 });
 
 export type Cursor = Static<typeof Cursor>;
 export const Cursor = Type.Object({
 	name: Type.String(),
 	aliases: Type.Optional(Type.Array(Type.String())),
-	sprites: Type.Array(Sprite),
+	sprites: Type.Array(Sprite)
 });
 
 export type Variant = Static<typeof Variant>;
@@ -49,9 +49,9 @@ export const Variant = Type.Recursive(
 		Type.Object({
 			name: Type.String(),
 			cursors: Type.Array(Cursor),
-			variants: Type.Optional(Type.Array(Variant)),
+			variants: Type.Optional(Type.Array(Variant))
 		}),
-	{ $id: "Variant" },
+	{ $id: 'Variant' }
 );
 
 export type CursorTheme = Static<typeof CursorTheme>;
@@ -59,5 +59,5 @@ export const CursorTheme = Type.Object({
 	name: Type.String(),
 	description: Type.Optional(Type.String()),
 	author: Type.Optional(Type.String()),
-	variants: Type.Array(Variant),
+	variants: Type.Array(Variant)
 });
