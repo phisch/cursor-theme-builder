@@ -3,24 +3,29 @@ import {
 	mkdirSync,
 	readFileSync,
 	symlinkSync,
+	write,
+	writeFile,
 	writeFileSync,
 } from "node:fs";
 import path from "node:path";
 import { TypeCompiler } from "@sinclair/typebox/compiler";
-import { SVG, registerWindow } from "@svgdotjs/svg.js";
+import { type Element, SVG, type Svg, registerWindow } from "@svgdotjs/svg.js";
 import { stringify } from "ini";
 import sharp from "sharp";
 import { createSVGWindow } from "svgdom";
 import { type Frame, SvgAnimator } from "../animator/svg";
-import { type Chunk, type Image, encode } from "../x11/xcursor";
 import {
+	type Coordinates,
 	type Cursor,
 	CursorTheme,
+	type HotSpot,
+	type Selector,
 	type Sprite,
 	type Variant,
-	isHotSpot,
-	isHotSpotSelector,
+	isCoordinates,
+	isSelector,
 } from "../models/cursor-theme";
+import { type Chunk, type Image, encode } from "../x11/xcursor";
 
 const window = createSVGWindow();
 const document = window.document;
@@ -65,20 +70,19 @@ export class CursorThemeBuilder {
 
 	private slugify(...args: string[]) {
 		return args
-			.map((arg) => arg.split(" "))
-			.flat()
+			.flatMap((arg) => arg.split(" "))
 			.join("-")
 			.toLowerCase();
 	}
 
 	private getVariantDirectory(variant: Variant, leftHanded?: boolean) {
+		const parts = [this.cursorTheme.name, variant.name];
+		if (leftHanded) {
+			parts.push("left-handed");
+		}
 		return path.join(
 			this.outputDirectory,
-			this.slugify(
-				this.cursorTheme.name,
-				variant.name,
-				leftHanded ? "left-handed" : "",
-			),
+			this.slugify(...parts),
 		);
 	}
 
@@ -92,9 +96,8 @@ export class CursorThemeBuilder {
 
 		const index: IndexFile = {
 			"Icon Theme": {
-				Name: `${this.cursorTheme.name} (${variant.name}${
-					leftHanded ? " left handed" : ""
-				})`,
+				Name: `${this.cursorTheme.name} (${variant.name}${leftHanded ? " left handed" : ""
+					})`,
 			},
 		};
 
@@ -140,59 +143,11 @@ export class CursorThemeBuilder {
 		}
 	}
 
-	private buildLeftHandedFrames(
-		animationFrameMap: Map<Sprite, Frame[]>,
-	): Map<Sprite, Frame[]> {
-		const leftHandedAnimationFrameMap = new Map<Sprite, Frame[]>();
-		for (const [sprite, frames] of animationFrameMap) {
-			if (sprite.flips) {
-				const leftHandedFrames = frames.map((frame) => {
-					const svg = SVG(frame.svg);
-					for (const flip of sprite.flips ?? []) {
-						const elements = svg.find(flip);
-						for (const element of elements) {
-							element.flip("x");
-						}
-					}
-					return { svg: svg, duration: frame.duration } as Frame;
-				});
-				leftHandedAnimationFrameMap.set(sprite, leftHandedFrames);
-			}
-		}
-		return leftHandedAnimationFrameMap;
-	}
-
-	private setHotspotFromSelector(frame: Frame, selector: string) {
-		const hotspotElement = frame.svg.findOne(selector);
-		if (hotspotElement) {
-			const x = hotspotElement.attr("cx");
-			const y = hotspotElement.attr("cy");
-			const width = hotspotElement.attr("width");
-			const height = hotspotElement.attr("height");
-			hotspotElement.remove();
-			frame.hotSpot = {
-				x: Math.floor(x + width / 2),
-				y: Math.floor(y + height / 2),
-			};
-		}
-	}
-
-	private async renderFrame(frame: Frame, scale: number): Promise<Image> {
-		const sharpImage = sharp(Buffer.from(frame.svg.svg()), {
+	private async render(svg: string, scale: number): Promise<Buffer> {
+		const sharpImage = sharp(Buffer.from(svg), {
 			density: 72 * scale,
 		});
-		const meta = await sharpImage.metadata();
-		if (!meta.width || !meta.height) {
-			throw new Error("Width or height is 0 or undefined");
-		}
-		return {
-			width: meta.width,
-			height: meta.height,
-			delay: frame.duration,
-			xhot: frame.hotSpot?.x ?? 0,
-			yhot: frame.hotSpot?.y ?? 0,
-			pixels: await sharpImage.raw().toBuffer(),
-		};
+		return sharpImage.raw().toBuffer();
 	}
 
 	private writeCursorFile(
@@ -226,31 +181,101 @@ export class CursorThemeBuilder {
 		return readFileSync(path.join(this.inputDirectory, file), "utf8");
 	}
 
-	private withHotSpot(frames: Frame[], sprite: Sprite) {
-		return frames.map((frame) => {
-			if (isHotSpot(sprite.hotSpot)) {
-				frame.hotSpot = sprite.hotSpot;
-			} else if (isHotSpotSelector(sprite.hotSpot)) {
-				this.setHotspotFromSelector(frame, sprite.hotSpot);
+	private transformIntoLeftHandedFrames(
+		sprite: Sprite,
+		frames?: Frame[]
+	): Frame[] | undefined {
+		if (!sprite.flips || !frames) {
+			return;
+		}
+		const leftHandedFrames = frames.map((frame) => {
+			const svg = SVG(frame.svg);
+			for (const flip of sprite.flips ?? []) {
+				const elements = flip === "svg" ? svg.find("svg > g") : svg.find(flip);
+				for (const element of elements) {
+					if (flip === "svg") {
+						element.flip("x", svg.width() as number / 2);
+					} else {
+						element.flip("x");
+					}
+				}
 			}
-			return frame;
+			return { svg: svg, duration: frame.duration } as Frame;
 		});
+		return leftHandedFrames;
 	}
 
-	private framesToChunks(
-		frames: Frame[],
+	private extractHotSpot(
+		svg: Element,
+		selector: Selector,
+	): Coordinates | undefined {
+		const element = svg.findOne(selector);
+		if (element) {
+			const bb = SVG(element).bbox();
+			element.remove();
+			return {
+				x: Math.floor(bb.x + bb.width / 2),
+				y: Math.floor(bb.y + bb.height / 2),
+			};
+		}
+	}
+
+	private possiblyExtractHotspot(svg: Element, hotSpot?: HotSpot): Coordinates {
+		if (isCoordinates(hotSpot)) {
+			return hotSpot;
+		}
+
+		if (isSelector(hotSpot)) {
+			const coordinates = this.extractHotSpot(svg, hotSpot);
+			if (coordinates) {
+				return coordinates;
+			}
+		}
+
+		const coordinates = this.extractHotSpot(svg, "#hotspot");
+		if (coordinates) {
+			return coordinates;
+		}
+
+		return { x: 0, y: 0 };
+	}
+
+	private async createChunks(
+		frameMap: Map<Sprite, Frame[]>,
+		sprites: Sprite[],
 		scaleMap: Map<number, Set<number>>,
+		leftHanded: boolean
 	): Promise<Image[]> {
-		return Promise.all(
-			frames.flatMap((frame) => {
+		const chunks: Image[] = [];
+		for (const sprite of sprites) {
+			const frames = leftHanded
+				? this.transformIntoLeftHandedFrames(sprite, frameMap.get(sprite))
+				: frameMap.get(sprite);
+			if (!frames) {
+				continue;
+			}
+
+			for (const frame of frames) {
 				const scales = scaleMap.get(frame.svg.width() as number) ?? new Set();
-				return Array.from(scales).map(async (scale) => {
-					return await this.renderFrame(frame, scale);
-				});
-			}),
-		).then((chunks) => {
-			return chunks.sort((a, b) => a.width - b.width);
-		});
+				for (const scale of scales) {
+					const svg = SVG(frame.svg.svg());
+					const hotspot = this.possiblyExtractHotspot(svg, sprite.hotSpot);
+					if (leftHanded) {
+						hotspot.x = frame.svg.width() as number - hotspot.x;
+					}
+					const renderedImage = await this.render(svg.svg(), scale);
+					chunks.push({
+						width: frame.svg.width() as number * scale,
+						height: frame.svg.height() as number * scale,
+						delay: frame.duration,
+						xhot: hotspot.x * scale,
+						yhot: hotspot.y * scale,
+						pixels: renderedImage,
+					});
+				}
+			}
+		}
+		return chunks.sort((a, b) => a.width - b.width);
 	}
 
 	private async buildCursor(cursor: Cursor, variant: Variant) {
@@ -259,34 +284,32 @@ export class CursorThemeBuilder {
 		const frameMap = cursor.sprites.reduce((map, sprite) => {
 			const element = SVG(this.getFile(sprite.file));
 			sizes.add(element.width() as number);
-			const frames = new SvgAnimator(element, sprite.animations).getAnimationFrames();
+			const frames = new SvgAnimator(
+				element,
+				sprite.animations,
+			).getAnimationFrames();
 			map.set(sprite, frames);
 			return map;
 		}, new Map<Sprite, Frame[]>());
 
-		const frames: Frame[] = cursor.sprites.flatMap((sprite) =>
-			// biome-ignore lint/style/noNonNullAssertion: <explanation>
-			this.withHotSpot(frameMap.get(sprite)!, sprite),
-		);
-
 		const scaleMap = this.determineScaleMap(sizes, new Set([1, 2, 3, 4]));
-		const chunks = await this.framesToChunks(frames, scaleMap);
+
+		const chunks = await this.createChunks(
+			frameMap,
+			cursor.sprites,
+			scaleMap,
+			false
+		);
 		this.writeCursorFile(chunks, cursor, variant);
 
 		if (cursor.sprites.find((sprite) => sprite.flips)) {
-			const frameMapLeftHanded = this.buildLeftHandedFrames(frameMap);
-			const framesLeftHanded: Frame[] = cursor.sprites.flatMap((sprite) =>
-				this.withHotSpot(
-					// biome-ignore lint/style/noNonNullAssertion: <explanation>
-					frameMapLeftHanded.get(sprite) ?? frameMap.get(sprite)!,
-					sprite,
-				),
-			);
-			const chunksLeftHanded = await this.framesToChunks(
-				framesLeftHanded,
+			const chunks = await this.createChunks(
+				frameMap,
+				cursor.sprites,
 				scaleMap,
+				true
 			);
-			this.writeCursorFile(chunksLeftHanded, cursor, variant, true);
+			this.writeCursorFile(chunks, cursor, variant, true);
 		}
 	}
 

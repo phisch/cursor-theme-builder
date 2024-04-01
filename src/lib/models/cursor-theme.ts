@@ -1,34 +1,29 @@
 import { type Static, Type } from "@sinclair/typebox";
 import { Animation } from "./animation/animation";
 
-export function isHotSpot(
-	hotSpot?: HotSpot | HotSpotSelector,
-): hotSpot is HotSpot {
-	return (
-		hotSpot !== undefined &&
-		(hotSpot as HotSpot).x !== undefined &&
-		(hotSpot as HotSpot).y !== undefined
-	);
-}
-
-export function isHotSpotSelector(
-	hotSpot?: HotSpot | HotSpotSelector,
-): hotSpot is HotSpotSelector {
+export function isSelector(hotSpot?: HotSpot): hotSpot is Selector {
 	return typeof hotSpot === "string";
 }
 
-export type HotSpotSelector = Static<typeof HotSpotSelector>;
-export const HotSpotSelector = Type.String({
+export function isCoordinates(hotSpot?: HotSpot): hotSpot is Coordinates {
+	return typeof hotSpot === "object";
+}
+
+export type Selector = Static<typeof Selector>;
+export const Selector = Type.String({
 	title: "CSS selector",
 	description: "Select an element whose center should be used as the hotspot.",
 	examples: ["#hotspot"],
 });
 
-export type HotSpot = Static<typeof HotSpot>;
-export const HotSpot = Type.Object({
+export type Coordinates = Static<typeof Coordinates>;
+export const Coordinates = Type.Object({
 	x: Type.Number(),
 	y: Type.Number(),
 });
+
+export type HotSpot = Static<typeof HotSpot>;
+export const HotSpot = Type.Union([Selector, Coordinates]);
 
 export type Animations = Static<typeof Animations>;
 export const Animations = Type.Array(Animation);
@@ -38,7 +33,7 @@ export const Sprite = Type.Object({
 	file: Type.String(),
 	flips: Type.Optional(Type.Array(Type.String())),
 	animations: Type.Optional(Animations),
-	hotSpot: Type.Optional(Type.Union([HotSpot, HotSpotSelector])),
+	hotSpot: Type.Optional(HotSpot),
 });
 
 export type Cursor = Static<typeof Cursor>;

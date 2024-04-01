@@ -31191,90 +31191,6 @@ function mergeTransforms() {
     }
 }
 
-var CommentSubtype;
-(function (CommentSubtype) {
-    CommentSubtype[CommentSubtype["Copyright"] = 1] = "Copyright";
-    CommentSubtype[CommentSubtype["License"] = 2] = "License";
-    CommentSubtype[CommentSubtype["Other"] = 3] = "Other";
-})(CommentSubtype || (CommentSubtype = {}));
-function isComment(chunk) {
-    return chunk.string !== undefined;
-}
-function isImage(chunk) {
-    return chunk.pixels !== undefined;
-}
-function calculateSize(chunk) {
-    if (isImage(chunk)) {
-        return 36 + 4 * chunk.width * chunk.height;
-    }
-    return 20 + Buffer.byteLength(chunk.string, "utf-8");
-}
-function flipRedBlueAndPreMultiplyAlpha(buffer) {
-    for (let i = 0; i < buffer.length; i += 4) {
-        const alpha = buffer[i + 3];
-        const red = Math.round(buffer[i] * (alpha / 255));
-        const blue = Math.round(buffer[i + 2] * (alpha / 255));
-        buffer[i] = blue;
-        buffer[i + 1] = Math.round(buffer[i + 1] * (alpha / 255));
-        buffer[i + 2] = red;
-    }
-    return buffer;
-}
-function encode(chunks) {
-    const chunkPositionMap = new Map();
-    let position = 16 + 12 * chunks.length;
-    for (const chunk of chunks) {
-        chunkPositionMap.set(chunk, position);
-        const size = calculateSize(chunk);
-        position += size;
-    }
-    const buffer = Buffer.alloc(position);
-    buffer.write("Xcur", 0, 4, "utf-8");
-    buffer.writeUInt32LE(16, 4);
-    buffer.writeUInt32LE(1, 8);
-    buffer.writeUInt32LE(chunks.length, 12);
-    let offset = 16;
-    for (const chunk of chunks) {
-        if (isComment(chunk)) {
-            buffer.writeUInt32LE(0xfffe0001, offset);
-            buffer.writeUInt32LE(chunk.type, offset + 4);
-        }
-        else if (isImage(chunk)) {
-            buffer.writeUInt32LE(0xfffd0002, offset);
-            buffer.writeUInt32LE(chunk.width, offset + 4);
-        }
-        // todo: check if ?? 0 is correct here
-        buffer.writeUInt32LE(chunkPositionMap.get(chunk) ?? 0, offset + 8);
-        offset += 12;
-    }
-    for (const chunk of chunks) {
-        if (isComment(chunk)) {
-            buffer.writeUInt32LE(20, offset);
-            buffer.writeUInt32LE(0xfffe0001, offset + 4);
-            buffer.writeUInt32LE(chunk.type, offset + 8);
-            buffer.writeUInt32LE(1, offset + 12);
-            const stringByteLength = Buffer.byteLength(chunk.string, "utf-8");
-            buffer.writeUInt32LE(stringByteLength, offset + 16);
-            buffer.write(chunk.string, offset + 20, "utf-8");
-            offset += 20 + stringByteLength;
-        }
-        else if (isImage(chunk)) {
-            buffer.writeUInt32LE(36, offset);
-            buffer.writeUInt32LE(0xfffd0002, offset + 4);
-            buffer.writeUInt32LE(chunk.width, offset + 8);
-            buffer.writeUInt32LE(1, offset + 12);
-            buffer.writeUInt32LE(chunk.width, offset + 16);
-            buffer.writeUInt32LE(chunk.height, offset + 20);
-            buffer.writeUInt32LE(chunk.xhot, offset + 24);
-            buffer.writeUInt32LE(chunk.yhot, offset + 28);
-            buffer.writeUInt32LE(chunk.delay, offset + 32);
-            flipRedBlueAndPreMultiplyAlpha(chunk.pixels).copy(buffer, offset + 36);
-            offset += 36 + chunk.pixels.length;
-        }
-    }
-    return buffer;
-}
-
 // prettier-ignore
 function FromRest$4(T) {
     return T.map(L => AwaitedResolve(L));
@@ -32400,29 +32316,28 @@ const Animation = Type.Object({
     instructions: Type.Array(AnimationInstruction),
 });
 
-function isHotSpot(hotSpot) {
-    return (hotSpot !== undefined &&
-        hotSpot.x !== undefined &&
-        hotSpot.y !== undefined);
-}
-function isHotSpotSelector(hotSpot) {
+function isSelector(hotSpot) {
     return typeof hotSpot === "string";
 }
-const HotSpotSelector = Type.String({
+function isCoordinates(hotSpot) {
+    return typeof hotSpot === "object";
+}
+const Selector = Type.String({
     title: "CSS selector",
     description: "Select an element whose center should be used as the hotspot.",
     examples: ["#hotspot"],
 });
-const HotSpot = Type.Object({
+const Coordinates = Type.Object({
     x: Type.Number(),
     y: Type.Number(),
 });
+const HotSpot = Type.Union([Selector, Coordinates]);
 const Animations = Type.Array(Animation);
 const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
     animations: Type.Optional(Animations),
-    hotSpot: Type.Optional(Type.Union([HotSpot, HotSpotSelector])),
+    hotSpot: Type.Optional(HotSpot),
 });
 const Cursor = Type.Object({
     name: Type.String(),
@@ -32440,6 +32355,90 @@ const CursorTheme = Type.Object({
     author: Type.Optional(Type.String()),
     variants: Type.Array(Variant),
 });
+
+var CommentSubtype;
+(function (CommentSubtype) {
+    CommentSubtype[CommentSubtype["Copyright"] = 1] = "Copyright";
+    CommentSubtype[CommentSubtype["License"] = 2] = "License";
+    CommentSubtype[CommentSubtype["Other"] = 3] = "Other";
+})(CommentSubtype || (CommentSubtype = {}));
+function isComment(chunk) {
+    return chunk.string !== undefined;
+}
+function isImage(chunk) {
+    return chunk.pixels !== undefined;
+}
+function calculateSize(chunk) {
+    if (isImage(chunk)) {
+        return 36 + 4 * chunk.width * chunk.height;
+    }
+    return 20 + Buffer.byteLength(chunk.string, "utf-8");
+}
+function flipRedBlueAndPreMultiplyAlpha(buffer) {
+    for (let i = 0; i < buffer.length; i += 4) {
+        const alpha = buffer[i + 3];
+        const red = Math.round(buffer[i] * (alpha / 255));
+        const blue = Math.round(buffer[i + 2] * (alpha / 255));
+        buffer[i] = blue;
+        buffer[i + 1] = Math.round(buffer[i + 1] * (alpha / 255));
+        buffer[i + 2] = red;
+    }
+    return buffer;
+}
+function encode(chunks) {
+    const chunkPositionMap = new Map();
+    let position = 16 + 12 * chunks.length;
+    for (const chunk of chunks) {
+        chunkPositionMap.set(chunk, position);
+        const size = calculateSize(chunk);
+        position += size;
+    }
+    const buffer = Buffer.alloc(position);
+    buffer.write("Xcur", 0, 4, "utf-8");
+    buffer.writeUInt32LE(16, 4);
+    buffer.writeUInt32LE(1, 8);
+    buffer.writeUInt32LE(chunks.length, 12);
+    let offset = 16;
+    for (const chunk of chunks) {
+        if (isComment(chunk)) {
+            buffer.writeUInt32LE(0xfffe0001, offset);
+            buffer.writeUInt32LE(chunk.type, offset + 4);
+        }
+        else if (isImage(chunk)) {
+            buffer.writeUInt32LE(0xfffd0002, offset);
+            buffer.writeUInt32LE(chunk.width, offset + 4);
+        }
+        // todo: check if ?? 0 is correct here
+        buffer.writeUInt32LE(chunkPositionMap.get(chunk) ?? 0, offset + 8);
+        offset += 12;
+    }
+    for (const chunk of chunks) {
+        if (isComment(chunk)) {
+            buffer.writeUInt32LE(20, offset);
+            buffer.writeUInt32LE(0xfffe0001, offset + 4);
+            buffer.writeUInt32LE(chunk.type, offset + 8);
+            buffer.writeUInt32LE(1, offset + 12);
+            const stringByteLength = Buffer.byteLength(chunk.string, "utf-8");
+            buffer.writeUInt32LE(stringByteLength, offset + 16);
+            buffer.write(chunk.string, offset + 20, "utf-8");
+            offset += 20 + stringByteLength;
+        }
+        else if (isImage(chunk)) {
+            buffer.writeUInt32LE(36, offset);
+            buffer.writeUInt32LE(0xfffd0002, offset + 4);
+            buffer.writeUInt32LE(chunk.width, offset + 8);
+            buffer.writeUInt32LE(1, offset + 12);
+            buffer.writeUInt32LE(chunk.width, offset + 16);
+            buffer.writeUInt32LE(chunk.height, offset + 20);
+            buffer.writeUInt32LE(chunk.xhot, offset + 24);
+            buffer.writeUInt32LE(chunk.yhot, offset + 28);
+            buffer.writeUInt32LE(chunk.delay, offset + 32);
+            flipRedBlueAndPreMultiplyAlpha(chunk.pixels).copy(buffer, offset + 36);
+            offset += 36 + chunk.pixels.length;
+        }
+    }
+    return buffer;
+}
 
 const window$1 = createSVGWindow();
 const document = window$1.document;
@@ -32469,13 +32468,16 @@ class CursorThemeBuilder {
     }
     slugify(...args) {
         return args
-            .map((arg) => arg.split(" "))
-            .flat()
+            .flatMap((arg) => arg.split(" "))
             .join("-")
             .toLowerCase();
     }
     getVariantDirectory(variant, leftHanded) {
-        return path.join(this.outputDirectory, this.slugify(this.cursorTheme.name, variant.name, leftHanded ? "left-handed" : ""));
+        const parts = [this.cursorTheme.name, variant.name];
+        if (leftHanded) {
+            parts.push("left-handed");
+        }
+        return path.join(this.outputDirectory, this.slugify(...parts));
     }
     createDirectoryAndIndex(variant, parent, leftHanded) {
         const variant_directory = this.getVariantDirectory(variant, leftHanded);
@@ -32512,55 +32514,11 @@ class CursorThemeBuilder {
             this.buildVariant(child_variant, variant);
         }
     }
-    buildLeftHandedFrames(animationFrameMap) {
-        const leftHandedAnimationFrameMap = new Map();
-        for (const [sprite, frames] of animationFrameMap) {
-            if (sprite.flips) {
-                const leftHandedFrames = frames.map((frame) => {
-                    const svg = SVG(frame.svg);
-                    for (const flip of sprite.flips ?? []) {
-                        const elements = svg.find(flip);
-                        for (const element of elements) {
-                            element.flip("x");
-                        }
-                    }
-                    return { svg: svg, duration: frame.duration };
-                });
-                leftHandedAnimationFrameMap.set(sprite, leftHandedFrames);
-            }
-        }
-        return leftHandedAnimationFrameMap;
-    }
-    setHotspotFromSelector(frame, selector) {
-        const hotspotElement = frame.svg.findOne(selector);
-        if (hotspotElement) {
-            const x = hotspotElement.attr("cx");
-            const y = hotspotElement.attr("cy");
-            const width = hotspotElement.attr("width");
-            const height = hotspotElement.attr("height");
-            hotspotElement.remove();
-            frame.hotSpot = {
-                x: Math.floor(x + width / 2),
-                y: Math.floor(y + height / 2),
-            };
-        }
-    }
-    async renderFrame(frame, scale) {
-        const sharpImage = sharp(Buffer.from(frame.svg.svg()), {
+    async render(svg, scale) {
+        const sharpImage = sharp(Buffer.from(svg), {
             density: 72 * scale,
         });
-        const meta = await sharpImage.metadata();
-        if (!meta.width || !meta.height) {
-            throw new Error("Width or height is 0 or undefined");
-        }
-        return {
-            width: meta.width,
-            height: meta.height,
-            delay: frame.duration,
-            xhot: frame.hotSpot?.x ?? 0,
-            yhot: frame.hotSpot?.y ?? 0,
-            pixels: await sharpImage.raw().toBuffer(),
-        };
+        return sharpImage.raw().toBuffer();
     }
     writeCursorFile(chunks, cursor, variant, leftHanded) {
         const cursorFile = path.join(this.getVariantDirectory(variant, leftHanded), "cursors", `${cursor.name}`);
@@ -32578,26 +32536,84 @@ class CursorThemeBuilder {
     getFile(file) {
         return readFileSync(path.join(this.inputDirectory, file), "utf8");
     }
-    withHotSpot(frames, sprite) {
-        return frames.map((frame) => {
-            if (isHotSpot(sprite.hotSpot)) {
-                frame.hotSpot = sprite.hotSpot;
+    transformIntoLeftHandedFrames(sprite, frames) {
+        if (!sprite.flips || !frames) {
+            return;
+        }
+        const leftHandedFrames = frames.map((frame) => {
+            const svg = SVG(frame.svg);
+            for (const flip of sprite.flips ?? []) {
+                const elements = flip === "svg" ? svg.find("svg > g") : svg.find(flip);
+                for (const element of elements) {
+                    if (flip === "svg") {
+                        element.flip("x", svg.width() / 2);
+                    }
+                    else {
+                        element.flip("x");
+                    }
+                }
             }
-            else if (isHotSpotSelector(sprite.hotSpot)) {
-                this.setHotspotFromSelector(frame, sprite.hotSpot);
-            }
-            return frame;
+            return { svg: svg, duration: frame.duration };
         });
+        return leftHandedFrames;
     }
-    framesToChunks(frames, scaleMap) {
-        return Promise.all(frames.flatMap((frame) => {
-            const scales = scaleMap.get(frame.svg.width()) ?? new Set();
-            return Array.from(scales).map(async (scale) => {
-                return await this.renderFrame(frame, scale);
-            });
-        })).then((chunks) => {
-            return chunks.sort((a, b) => a.width - b.width);
-        });
+    extractHotSpot(svg, selector) {
+        const element = svg.findOne(selector);
+        if (element) {
+            const bb = SVG(element).bbox();
+            element.remove();
+            return {
+                x: Math.floor(bb.x + bb.width / 2),
+                y: Math.floor(bb.y + bb.height / 2),
+            };
+        }
+    }
+    possiblyExtractHotspot(svg, hotSpot) {
+        if (isCoordinates(hotSpot)) {
+            return hotSpot;
+        }
+        if (isSelector(hotSpot)) {
+            const coordinates = this.extractHotSpot(svg, hotSpot);
+            if (coordinates) {
+                return coordinates;
+            }
+        }
+        const coordinates = this.extractHotSpot(svg, "#hotspot");
+        if (coordinates) {
+            return coordinates;
+        }
+        return { x: 0, y: 0 };
+    }
+    async createChunks(frameMap, sprites, scaleMap, leftHanded) {
+        const chunks = [];
+        for (const sprite of sprites) {
+            const frames = leftHanded
+                ? this.transformIntoLeftHandedFrames(sprite, frameMap.get(sprite))
+                : frameMap.get(sprite);
+            if (!frames) {
+                continue;
+            }
+            for (const frame of frames) {
+                const scales = scaleMap.get(frame.svg.width()) ?? new Set();
+                for (const scale of scales) {
+                    const svg = SVG(frame.svg.svg());
+                    const hotspot = this.possiblyExtractHotspot(svg, sprite.hotSpot);
+                    if (leftHanded) {
+                        hotspot.x = frame.svg.width() - hotspot.x;
+                    }
+                    const renderedImage = await this.render(svg.svg(), scale);
+                    chunks.push({
+                        width: frame.svg.width() * scale,
+                        height: frame.svg.height() * scale,
+                        delay: frame.duration,
+                        xhot: hotspot.x * scale,
+                        yhot: hotspot.y * scale,
+                        pixels: renderedImage,
+                    });
+                }
+            }
+        }
+        return chunks.sort((a, b) => a.width - b.width);
     }
     async buildCursor(cursor, variant) {
         const sizes = new Set();
@@ -32608,19 +32624,12 @@ class CursorThemeBuilder {
             map.set(sprite, frames);
             return map;
         }, new Map());
-        const frames = cursor.sprites.flatMap((sprite) => 
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        this.withHotSpot(frameMap.get(sprite), sprite));
         const scaleMap = this.determineScaleMap(sizes, new Set([1, 2, 3, 4]));
-        const chunks = await this.framesToChunks(frames, scaleMap);
+        const chunks = await this.createChunks(frameMap, cursor.sprites, scaleMap, false);
         this.writeCursorFile(chunks, cursor, variant);
         if (cursor.sprites.find((sprite) => sprite.flips)) {
-            const frameMapLeftHanded = this.buildLeftHandedFrames(frameMap);
-            const framesLeftHanded = cursor.sprites.flatMap((sprite) => this.withHotSpot(
-            // biome-ignore lint/style/noNonNullAssertion: <explanation>
-            frameMapLeftHanded.get(sprite) ?? frameMap.get(sprite), sprite));
-            const chunksLeftHanded = await this.framesToChunks(framesLeftHanded, scaleMap);
-            this.writeCursorFile(chunksLeftHanded, cursor, variant, true);
+            const chunks = await this.createChunks(frameMap, cursor.sprites, scaleMap, true);
+            this.writeCursorFile(chunks, cursor, variant, true);
         }
     }
     determineScaleMap(sizes, scales) {
