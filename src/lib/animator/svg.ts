@@ -1,6 +1,7 @@
 import { type Element, Matrix, Runner, SVG, Timeline } from '@svgdotjs/svg.js';
 import type { Animation, AnimationInstruction } from '../models/animation/animation';
 import type { Animations } from '$lib/models/cursor-theme';
+import { getEasingFunction } from './ease';
 
 export type Frame = {
 	svg: Element;
@@ -77,7 +78,10 @@ export class SvgAnimator {
 		for (const { name, arguments: args } of instructions) {
 			switch (name) {
 				case 'animate':
-					runner = (runner as Element).animate(args.duration, args.delay, args.when);
+					runner = (runner as Element).animate(args.duration, args.delay, 'absolute');
+					if (args.ease) {
+						runner = (runner as Runner).ease(getEasingFunction(args.ease));
+					}
 					break;
 				case 'rotate':
 					runner = (runner as Element).rotate(args.degrees);
@@ -87,9 +91,6 @@ export class SvgAnimator {
 					break;
 				case 'dy':
 					runner = (runner as Element).dy(args.y);
-					break;
-				case 'ease':
-					runner = (runner as Runner).ease(args.kind);
 					break;
 				default:
 					throw new Error(`Unknown animation instruction: ${name}`);

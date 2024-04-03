@@ -6,7 +6,6 @@ import { CY } from './instruction/cy';
 import { DMove } from './instruction/dmove';
 import { DX } from './instruction/dx';
 import { Dy } from './instruction/dy';
-import { Ease } from './instruction/ease';
 import { Flip } from './instruction/flip';
 import { Height } from './instruction/height';
 import { Move } from './instruction/move';
@@ -29,7 +28,6 @@ export const AnimationInstruction = Type.Union([
 	DMove,
 	DX,
 	Dy,
-	Ease,
 	Flip,
 	Height,
 	Move,
