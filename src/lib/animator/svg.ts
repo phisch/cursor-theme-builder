@@ -1,7 +1,8 @@
-import { type Element, Matrix, Runner, SVG, Timeline } from '@svgdotjs/svg.js';
+import { type Element, Matrix, Runner, SVG, Timeline, Circle } from '@svgdotjs/svg.js';
 import type { Animation, AnimationInstruction } from '../models/animation/animation';
 import type { Animations } from '$lib/models/cursor-theme';
 import { getEasingFunction } from './ease';
+import { isRadiiArguments, isRadiusArguments } from '$lib/models/animation/instruction/radius';
 
 export type Frame = {
 	svg: Element;
@@ -103,6 +104,22 @@ export class SvgAnimator {
 					break;
 				case 'flip':
 					runner = (runner as Element).flip(args.axis, args.offset);
+					break;
+				case 'height':
+					runner = (runner as Element).height(args.height);
+					break;
+				case 'move':
+					runner = (runner as Element).move(args.x, args.y);
+					break;
+				case 'radius':
+					if (isRadiusArguments(args)) {
+						runner = (runner as Circle).radius(args.radius);
+					} else if (isRadiiArguments(args)) {
+						runner = (runner as Circle).radius(args.rx, args.ry);
+					}
+					break;
+				case 'width':
+					runner = (runner as Element).width(args.width);
 					break;
 				case 'rotate':
 					runner = (runner as Element).rotate(args.degrees);
