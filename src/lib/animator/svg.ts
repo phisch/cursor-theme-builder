@@ -101,6 +101,9 @@ export class SvgAnimator {
 				case 'dy':
 					runner = (runner as Element).dy(args.y);
 					break;
+				case 'flip':
+					runner = (runner as Element).flip(args.axis, args.offset);
+					break;
 				case 'rotate':
 					runner = (runner as Element).rotate(args.degrees);
 					break;
