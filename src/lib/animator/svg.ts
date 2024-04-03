@@ -86,6 +86,12 @@ export class SvgAnimator {
 				case 'center':
 					runner = (runner as Element).center(args.x, args.y);
 					break;
+				case 'cx':
+					runner = (runner as Element).cx(args.x);
+					break;
+				case 'cy':
+					runner = (runner as Element).cy(args.y);
+					break;
 				case 'rotate':
 					runner = (runner as Element).rotate(args.degrees);
 					break;
