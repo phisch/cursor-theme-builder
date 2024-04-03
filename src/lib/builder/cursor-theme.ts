@@ -78,7 +78,7 @@ export class CursorThemeBuilder {
 	private getVariantDirectory(variant: Variant, leftHanded?: boolean) {
 		const parts = [this.cursorTheme.name, variant.name];
 		if (leftHanded) {
-			parts.push('left-handed');
+			parts.push('left');
 		}
 		return path.join(this.outputDirectory, this.slugify(...parts));
 	}
