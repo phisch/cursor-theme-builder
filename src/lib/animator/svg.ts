@@ -3,6 +3,10 @@ import type { Animation, AnimationInstruction } from '../models/animation/animat
 import type { Animations } from '$lib/models/cursor-theme';
 import { getEasingFunction } from './ease';
 import { isRadiiArguments, isRadiusArguments } from '$lib/models/animation/instruction/radius';
+import {
+	isDualAxisScaleArguments,
+	isSingleFactorScaleArguments
+} from '$lib/models/animation/instruction/scale';
 
 export type Frame = {
 	svg: Element;
@@ -122,7 +126,14 @@ export class SvgAnimator {
 					runner = (runner as Element).width(args.width);
 					break;
 				case 'rotate':
-					runner = (runner as Element).rotate(args.degrees);
+					runner = (runner as Element).rotate(args.degrees, args.cx, args.cy);
+					break;
+				case 'scale':
+					if (isSingleFactorScaleArguments(args)) {
+						runner = (runner as Element).scale(args.factor);
+					} else if (isDualAxisScaleArguments(args)) {
+						runner = (runner as Element).scale(args.x, args.y);
+					}
 					break;
 				default:
 					throw new Error(`Unknown animation instruction: ${name}`);
