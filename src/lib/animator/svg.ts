@@ -83,6 +83,9 @@ export class SvgAnimator {
 						runner = (runner as Runner).ease(getEasingFunction(args.ease));
 					}
 					break;
+				case 'center':
+					runner = (runner as Element).center(args.x, args.y);
+					break;
 				case 'rotate':
 					runner = (runner as Element).rotate(args.degrees);
 					break;
