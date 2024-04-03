@@ -23,4 +23,3 @@ jobs:
         with:
           cursor_theme_json: './assets/cursor-theme.json'
 ```
-

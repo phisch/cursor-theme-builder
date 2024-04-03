@@ -36,7 +36,7 @@ jobs:
         run: |
           rm -rf $OUTPUT_DIRECTORY
           mv $EXPORT_DIRECTORY $OUTPUT_DIRECTORY
-          
+
       - name: Commit and push updated assets
         uses: EndBug/add-and-commit@v9
         with:
@@ -66,40 +66,34 @@ Here is an example containing `aliases`, `flips` and `animations`:
 
 ```json
 {
-  "aliases": [
-    "foo",
-    "bar"
-  ],
-  "flips": [
-    "svg",
-    "#spinner"
-  ],
-  "animations": [
-    {
-      "selector": ".selector",
-      "animations": [
-        {
-          "selector": "#spinner",
-          "instructions": [
-            {
-              "name": "animate",
-              "arguments": {
-                "delay": 0,
-                "duration": 1000,
-                "when": "now"
-              }
-            },
-            {
-              "name": "rotate",
-              "arguments": {
-                "degrees": 360
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"aliases": ["foo", "bar"],
+	"flips": ["svg", "#spinner"],
+	"animations": [
+		{
+			"selector": ".selector",
+			"animations": [
+				{
+					"selector": "#spinner",
+					"instructions": [
+						{
+							"name": "animate",
+							"arguments": {
+								"delay": 0,
+								"duration": 1000,
+								"when": "now"
+							}
+						},
+						{
+							"name": "rotate",
+							"arguments": {
+								"degrees": 360
+							}
+						}
+					]
+				}
+			]
+		}
+	]
 }
 ```
 

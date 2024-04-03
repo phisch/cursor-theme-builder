@@ -24,9 +24,11 @@
 		min-height: 100vh;
 		overflow: auto;
 		margin: 0;
-		background: rgb(20,20,24);
+		background: rgb(20, 20, 24);
 		color: rgb(250, 250, 255);
-		font: 16px 'Arial', sans-serif;
+		font:
+			16px 'Arial',
+			sans-serif;
 	}
 
 	:global(body > div > *) {
@@ -39,5 +41,4 @@
 	:global(#cursor-animator) {
 		margin: 2em auto;
 	}
-	
 </style>

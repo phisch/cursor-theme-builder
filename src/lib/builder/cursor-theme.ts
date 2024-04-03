@@ -1,10 +1,4 @@
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	symlinkSync,
-	writeFileSync
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { type Element, SVG, registerWindow } from '@svgdotjs/svg.js';
