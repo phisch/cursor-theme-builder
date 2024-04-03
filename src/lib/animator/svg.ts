@@ -92,14 +92,17 @@ export class SvgAnimator {
 				case 'cy':
 					runner = (runner as Element).cy(args.y);
 					break;
-				case 'rotate':
-					runner = (runner as Element).rotate(args.degrees);
+				case 'dmove':
+					runner = (runner as Element).dmove(args.x, args.y);
 					break;
 				case 'dx':
 					runner = (runner as Element).dx(args.x);
 					break;
 				case 'dy':
 					runner = (runner as Element).dy(args.y);
+					break;
+				case 'rotate':
+					runner = (runner as Element).rotate(args.degrees);
 					break;
 				default:
 					throw new Error(`Unknown animation instruction: ${name}`);
