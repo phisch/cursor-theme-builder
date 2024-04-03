@@ -40,6 +40,10 @@ Drag and drop a SVG file on top of the animated cursor to replace the loaded one
 
 The available animations are **currently** a bit limited, but I plan on adding most of the SVG.js functions in the future.
 
+## Aliases
+
+Aliases are a way to define multiple names for a cursor. Due to cursor themes history, many applications expect a cursor to have a specific name. Aliases allow you to define multiple names for a cursor, so it can be used in more applications.
+
 ## GitHub Actions
 
 Thre are 3 GitHub Actions in this repository, each of them has its own documentation:
