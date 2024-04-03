@@ -16,7 +16,7 @@ monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
 		{
 			fileMatch: ['theme.json'],
 			schema: CursorTheme,
-			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/CursorTheme'
+			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/CursorTheme.json'
 		},
 		{
 			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/Variant',
@@ -24,7 +24,7 @@ monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
 		},
 		{
 			fileMatch: ['animations.json'],
-			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/Animations',
+			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/Animations.json',
 			schema: Animations
 		}
 	]

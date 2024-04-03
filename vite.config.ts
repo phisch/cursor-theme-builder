@@ -15,9 +15,9 @@ export default defineConfig({
 			closeBundle() {
 				const directory = 'build/schemas';
 				fs.mkdirSync(directory, { recursive: true });
-				fs.writeFileSync(path.join(directory, 'CursorTheme'), JSON.stringify(CursorTheme, null, 2));
+				fs.writeFileSync(path.join(directory, 'CursorTheme.json'), JSON.stringify(CursorTheme, null, 2));
 				fs.writeFileSync(path.join(directory, 'Variant'), JSON.stringify(Variant, null, 2));
-				fs.writeFileSync(path.join(directory, 'Animations'), JSON.stringify(Animations, null, 2));
+				fs.writeFileSync(path.join(directory, 'Animations.json'), JSON.stringify(Animations, null, 2));
 			}
 		}
 	],

@@ -18,7 +18,6 @@
 
 	onMount(() => {
 		animator = new SvgAnimator(SVG(element), animations);
-		//animator.loop();
 	});
 
 	function animate() {
@@ -126,7 +125,7 @@
 <style>
 	div[role='img'] {
 		background: rgb(50, 50, 50);
-		background: repeating-conic-gradient(rgba(0, 0, 0, 0.8) 0% 25%, rgba(0, 0, 0, 0.6) 0% 50%) 0% /
+		background: repeating-conic-gradient(rgba(255, 255, 255, 0.8) 0% 25%, rgba(255, 255, 255, 0.6) 0% 50%) 0% /
 			40px 40px;
 		border: none;
 	}

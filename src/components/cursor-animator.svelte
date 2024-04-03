@@ -11,8 +11,8 @@
 <style lang="scss">
 	#cursor-animator {
 		border: 1px solid black;
-		min-height: 30vh;
-		max-height: 60vh;
+		min-height: 40vh;
+		max-height: 50vh;
 		resize: vertical;
 		display: flex;
 		flex-direction: row;
@@ -22,7 +22,7 @@
 		}
 
 		:global(div) {
-			flex: 3;
+			flex: 1.5;
 		}
 	}
 </style>

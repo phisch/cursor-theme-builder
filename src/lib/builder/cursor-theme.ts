@@ -3,13 +3,11 @@ import {
 	mkdirSync,
 	readFileSync,
 	symlinkSync,
-	write,
-	writeFile,
 	writeFileSync
 } from 'node:fs';
 import path from 'node:path';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
-import { type Element, SVG, type Svg, registerWindow } from '@svgdotjs/svg.js';
+import { type Element, SVG, registerWindow } from '@svgdotjs/svg.js';
 import { stringify } from 'ini';
 import sharp from 'sharp';
 import { createSVGWindow } from 'svgdom';
