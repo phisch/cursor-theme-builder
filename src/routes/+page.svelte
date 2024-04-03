@@ -2,8 +2,8 @@
 	import CursorAnimator from '../components/cursor-animator.svelte';
 </script>
 
-<h1>Cursor Theme Generator</h1>
-<p>This page documents and demonstrates the cursor theme generator.</p>
+<h1>Cursor Theme Builder</h1>
+<p>This page documents and demonstrates the cursor theme builder.</p>
 
 <h2>SVG Animator</h2>
 <p>One of the most banger features, is support to define animations for cursor sprites.</p>

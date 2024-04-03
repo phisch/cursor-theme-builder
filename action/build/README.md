@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        uses: phisch/cursor-theme-generator/action/build@master
+        uses: phisch/cursor-theme-builder/action/build@master
         with:
           cursor_theme_json: assets/cursor-theme.json
           output_directory: ${{ env.BUILD_DIRECTORY }}/themes

@@ -1,5 +1,5 @@
 name: 'Figma Cursor Theme Asset Export'
-description: 'Downloads cursor theme sprites and generates a `cursor-theme.json` that can be used by the cursor theme generator.'
+description: 'Downloads cursor theme sprites and generates a `cursor-theme.json` that can be used by the cursor theme builder.'
 inputs:
   access_token:
     description: 'Your personal Figma access token.'

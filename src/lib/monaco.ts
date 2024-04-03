@@ -16,15 +16,15 @@ monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
 		{
 			fileMatch: ['theme.json'],
 			schema: CursorTheme,
-			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/CursorTheme.json'
+			uri: 'https://phisch.github.io/cursor-theme-builder/schemas/CursorTheme.json'
 		},
 		{
-			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/Variant',
+			uri: 'https://phisch.github.io/cursor-theme-builder/schemas/Variant',
 			schema: Variant
 		},
 		{
 			fileMatch: ['animations.json'],
-			uri: 'https://phisch.github.io/cursor-theme-generator/schemas/Animations.json',
+			uri: 'https://phisch.github.io/cursor-theme-builder/schemas/Animations.json',
 			schema: Animations
 		}
 	]

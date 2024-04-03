@@ -32659,8 +32659,8 @@ async function run() {
         const outputDirectory = coreExports.getInput('output_directory', {
             required: true
         });
-        const generator = new CursorThemeBuilder(cursorThemeJson, outputDirectory);
-        generator.build();
+        const builder = new CursorThemeBuilder(cursorThemeJson, outputDirectory);
+        builder.build();
     }
     catch (error) {
         if (error instanceof Error) {

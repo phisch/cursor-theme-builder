@@ -16,9 +16,9 @@ async function run() {
 			required: true
 		});
 
-		const generator = new CursorThemeBuilder(cursorThemeJson, outputDirectory);
+		const builder = new CursorThemeBuilder(cursorThemeJson, outputDirectory);
 
-		generator.build();
+		builder.build();
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			core.setFailed(error.message);

@@ -19,7 +19,7 @@ jobs:
 
       - name: Validate
         id: figma_export
-        uses: phisch/cursor-theme-generator/action/validate@master
+        uses: phisch/cursor-theme-builder/action/validate@master
         with:
           cursor_theme_json: './assets/cursor-theme.json'
 ```
