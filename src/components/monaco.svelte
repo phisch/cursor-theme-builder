@@ -2,30 +2,30 @@
 	import { onDestroy, onMount } from 'svelte';
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 	import animations from '../store/animations';
-	import { Animations } from '$lib/models/cursor-theme';
 	import { TypeCompiler } from '@sinclair/typebox/compiler';
+	import { AnimationList } from '$lib/models/animation/animation';
 
 	let editor: Monaco.editor.IStandaloneCodeEditor;
 	let monaco: typeof Monaco;
 	let editorContainer: HTMLElement;
 	let markers: Monaco.editor.IMarker[] = [];
-	const validator = TypeCompiler.Compile(Animations);
+	const validator = TypeCompiler.Compile(AnimationList);
 
-	const defaultAnimations: Animations = [
+	const defaultAnimations: AnimationList = [
 		{
 			selector: '#spinner',
 			instructions: [
 				{
 					name: 'animate',
-					arguments: {
+					args: {
 						delay: 0,
 						duration: 1000,
-						when: 'now'
+						ease: 'in-out-cubic'
 					}
 				},
 				{
 					name: 'rotate',
-					arguments: {
+					args: {
 						degrees: 360
 					}
 				}
@@ -65,7 +65,7 @@
 
 		model.onDidChangeDecorations(() => {
 			markers = monaco.editor.getModelMarkers({ owner: 'json' });
-			update();
+			//update();
 		});
 		model.onDidChangeContent(() => {
 			markers = monaco.editor.getModelMarkers({ owner: 'json' });

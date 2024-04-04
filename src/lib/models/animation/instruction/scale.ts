@@ -1,28 +1,33 @@
 import { type Static, Type } from '@sinclair/typebox';
 
-export function isSingleFactorScaleArguments(value: any): value is SingleFactorScaleArguments {
-	return value.factor !== undefined;
+export function isSingleFactorScale(scale: Scale): scale is SingleFactorScale {
+	return scale.name === 'scale';
 }
 
-export function isDualAxisScaleArguments(value: any): value is DualAxisScaleArguments {
-	return value.x !== undefined && value.y !== undefined;
+export function isDualAxisScale(scale: Scale): scale is DualAxisScale {
+	return scale.name === 'scale';
 }
 
-type SingleFactorScaleArguments = Static<typeof SingleFactorScaleArguments>;
-const SingleFactorScaleArguments = Type.Object({
-	factor: Type.Number({
-		description: 'The scaling factor on both axes.'
+type SingleFactorScale = Static<typeof SingleFactorScale>;
+export const SingleFactorScale = Type.Object({
+	name: Type.Literal('scale', {
+		description: 'Scale the element by a single factor.'
+	}),
+	args: Type.Object({
+		factor: Type.Number({ description: 'The scaling factor on both axes.' })
 	})
 });
 
-type DualAxisScaleArguments = Static<typeof DualAxisScaleArguments>;
-const DualAxisScaleArguments = Type.Object({
-	x: Type.Number({ description: 'The scaling factor on the x-axis.' }),
-	y: Type.Number({ description: 'The scaling factor on the y-axis.' })
+type DualAxisScale = Static<typeof DualAxisScale>;
+export const DualAxisScale = Type.Object({
+	name: Type.Literal('scale', {
+		description: 'Scale the element by different factors on each axis.'
+	}),
+	args: Type.Object({
+		x: Type.Number({ description: 'The scaling factor on the x-axis.' }),
+		y: Type.Number({ description: 'The scaling factor on the y-axis.' })
+	})
 });
 
 type Scale = Static<typeof Scale>;
-export const Scale = Type.Object({
-	name: Type.Literal('scale'),
-	arguments: Type.Union([SingleFactorScaleArguments, DualAxisScaleArguments])
-});
+export const Scale = Type.Union([SingleFactorScale, DualAxisScale]);

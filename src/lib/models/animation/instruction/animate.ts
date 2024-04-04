@@ -41,23 +41,25 @@ export const Ease = Type.Union(
 
 type Animate = Static<typeof Animate>;
 export const Animate = Type.Object({
-	name: Type.Literal('animate'),
-	arguments: Type.Object({
+	name: Type.Literal('animate', {
+		description: 'Animate the element.'
+	}),
+	args: Type.Object({
 		duration: Type.Number({
-			description: 'duration of the animation in milliseconds'
+			description: 'Duration of the animation in milliseconds.'
 		}),
 		delay: Type.Optional(
 			Type.Number({
-				description: 'delay in milliseconds before this animation should start'
+				description: 'Delay in milliseconds before this animation should start.'
 			})
 		),
 		when: Type.Optional(
 			Type.Union([
 				Type.Literal('absolute', {
-					description: 'animation starts at an absolute time on the timeline'
+					description: 'Animation starts at an absolute time on the timeline.'
 				}),
 				Type.Literal('after', {
-					description: 'animation starts after the previous animation ends'
+					description: 'Animation starts after the previous animation ends.'
 				})
 			])
 		),

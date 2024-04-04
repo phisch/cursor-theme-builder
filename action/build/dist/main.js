@@ -31072,123 +31072,197 @@ var ini = {
   unsafe,
 };
 
-class SvgAnimator {
-    element;
-    timeline = new Timeline();
-    runners = [];
-    animatedElements = [];
-    fps = 25;
-    constructor(element, animations) {
-        this.element = element;
-        this.applyAnimations(animations);
-    }
-    resetAnimations() {
-        this.runners.every((runner) => {
-            runner.reset();
-        });
-        for (const runner of this.runners) {
-            runner.reset();
-        }
-        this.runners = [];
-        this.timeline.finish();
-        this.timeline = new Timeline();
-    }
-    applyAnimations(animations) {
-        this.resetAnimations();
-        for (const animation of animations ?? []) {
-            this.applyAnimation(this.element, animation);
-        }
-    }
-    applyAnimation(element, animation) {
-        try {
-            const affectedElement = element.find(animation.selector);
-            const runners = [];
-            for (const e of affectedElement) {
-                if (!this.animatedElements.includes(e)) {
-                    this.animatedElements.push(e);
-                }
-                e.timeline(this.timeline);
-                runners.push(...this.applyInstructions(e, animation.instructions));
-            }
-            this.runners.push(...runners);
-        }
-        catch (e) {
-            if (e instanceof Error) {
-                console.warn(`Selector '${animation.selector}' is not valid, can't apply animation on it.`);
-                console.warn(e.message);
-            }
-        }
-    }
-    loop() {
-        for (const runner of this.runners) {
-            runner.loop();
-        }
-    }
-    applyInstructions(element, instructions) {
-        const runners = [];
-        let runner = element;
-        for (const { name, arguments: args } of instructions) {
-            switch (name) {
-                case 'animate':
-                    runner = runner.animate(args.duration, args.delay, args.when);
-                    break;
-                case 'rotate':
-                    runner = runner.rotate(args.degrees);
-                    break;
-                case 'dx':
-                    runner = runner.dx(args.x);
-                    break;
-                case 'dy':
-                    runner = runner.dy(args.y);
-                    break;
-                case 'ease':
-                    runner = runner.ease(args.kind);
-                    break;
-                default:
-                    throw new Error(`Unknown animation instruction: ${name}`);
-            }
-            if (runner instanceof Runner) {
-                runners.push(runner);
-            }
-        }
-        return runners;
-    }
-    getAnimationFrames() {
-        if (this.animatedElements.length === 0) {
-            return [{ svg: this.element, duration: 0 }];
-        }
-        const frames = [];
-        const animationDuration = this.timeline.getEndTime();
-        const frameCount = Math.ceil((animationDuration / 1000) * this.fps);
-        for (let i = 0; i < frameCount; i++) {
-            const frame_start = Math.floor((i / this.fps) * 1000);
-            const frame_end = Math.min(Math.floor(((i + 1) / this.fps) * 1000), animationDuration);
-            const duration = frame_end - frame_start;
-            this.timeline.time(frame_start);
-            for (const element of this.animatedElements) {
-                mergeTransforms.call(element);
-            }
-            frames.push({
-                svg: SVG(this.element.svg()),
-                duration
-            });
-        }
-        return frames;
+function getEasingFunction(ease) {
+    switch (ease) {
+        case 'in-sine':
+            return easeInSine;
+        case 'out-sine':
+            return easeOutSine;
+        case 'in-out-sine':
+            return easeInOutSine;
+        case 'in-quad':
+            return easeInQuad;
+        case 'out-quad':
+            return easeOutQuad;
+        case 'in-out-quad':
+            return easeInOutQuad;
+        case 'in-cubic':
+            return easeInCubic;
+        case 'out-cubic':
+            return easeOutCubic;
+        case 'in-out-cubic':
+            return easeInOutCubic;
+        case 'in-quart':
+            return easeInQuart;
+        case 'out-quart':
+            return easeOutQuart;
+        case 'in-out-quart':
+            return easeInOutQuart;
+        case 'in-quint':
+            return easeInQuint;
+        case 'out-quint':
+            return easeOutQuint;
+        case 'in-out-quint':
+            return easeInOutQuint;
+        case 'in-expo':
+            return easeInExpo;
+        case 'out-expo':
+            return easeOutExpo;
+        case 'in-out-expo':
+            return easeInOutExpo;
+        case 'in-circ':
+            return easeInCirc;
+        case 'out-circ':
+            return easeOutCirc;
+        case 'in-out-circ':
+            return easeInOutCirc;
+        case 'in-back':
+            return easeInBack;
+        case 'out-back':
+            return easeOutBack;
+        case 'in-out-back':
+            return easeInOutBack;
+        case 'in-elastic':
+            return easeInElastic;
+        case 'out-elastic':
+            return easeOutElastic;
+        case 'in-out-elastic':
+            return easeInOutElastic;
+        case 'in-bounce':
+            return easeInBounce;
+        case 'out-bounce':
+            return easeOutBounce;
+        case 'in-out-bounce':
+            return easeInOutBounce;
     }
 }
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-const lmultiply = (last, curr) => last.lmultiplyO(curr);
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-const getRunnerTransform = (runner) => runner.transforms;
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-function mergeTransforms() {
-    const runners = this._transformationRunners.runners;
-    const netTransform = runners.map(getRunnerTransform).reduce(lmultiply, new Matrix());
-    this.transform(netTransform);
-    this._transformationRunners.merge();
-    if (this._transformationRunners.length() === 1) {
-        this._frameId = null;
+function easeInSine(x) {
+    return 1 - Math.cos((x * Math.PI) / 2);
+}
+function easeOutSine(x) {
+    return Math.sin((x * Math.PI) / 2);
+}
+function easeInOutSine(x) {
+    return -(Math.cos(Math.PI * x) - 1) / 2;
+}
+function easeInQuad(x) {
+    return x * x;
+}
+function easeOutQuad(x) {
+    return 1 - (1 - x) * (1 - x);
+}
+function easeInOutQuad(x) {
+    return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+}
+function easeInCubic(x) {
+    return x * x * x;
+}
+function easeOutCubic(x) {
+    return 1 - Math.pow(1 - x, 3);
+}
+function easeInOutCubic(x) {
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+function easeInQuart(x) {
+    return x * x * x * x;
+}
+function easeOutQuart(x) {
+    return 1 - Math.pow(1 - x, 4);
+}
+function easeInOutQuart(x) {
+    return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
+}
+function easeInQuint(x) {
+    return x * x * x * x * x;
+}
+function easeOutQuint(x) {
+    return 1 - Math.pow(1 - x, 5);
+}
+function easeInOutQuint(x) {
+    return x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2;
+}
+function easeInExpo(x) {
+    return x === 0 ? 0 : Math.pow(2, 10 * x - 10);
+}
+function easeOutExpo(x) {
+    return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+}
+function easeInOutExpo(x) {
+    return x === 0
+        ? 0
+        : x === 1
+            ? 1
+            : x < 0.5
+                ? Math.pow(2, 20 * x - 10) / 2
+                : (2 - Math.pow(2, -20 * x + 10)) / 2;
+}
+function easeInCirc(x) {
+    return 1 - Math.sqrt(1 - Math.pow(x, 2));
+}
+function easeOutCirc(x) {
+    return Math.sqrt(1 - Math.pow(x - 1, 2));
+}
+function easeInOutCirc(x) {
+    return x < 0.5
+        ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
+        : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2;
+}
+function easeInBack(x) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return c3 * x * x * x - c1 * x * x;
+}
+function easeOutBack(x) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+}
+function easeInOutBack(x) {
+    const c1 = 1.70158;
+    const c2 = c1 * 1.525;
+    return x < 0.5
+        ? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+        : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+}
+function easeInElastic(x) {
+    const c4 = (2 * Math.PI) / 3;
+    return x === 0 ? 0 : x === 1 ? 1 : -Math.pow(2, 10 * x - 10) * Math.sin((x * 10 - 10.75) * c4);
+}
+function easeOutElastic(x) {
+    const c4 = (2 * Math.PI) / 3;
+    return x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
+}
+function easeInOutElastic(x) {
+    const c5 = (2 * Math.PI) / 4.5;
+    return x === 0
+        ? 0
+        : x === 1
+            ? 1
+            : x < 0.5
+                ? -(Math.pow(2, 20 * x - 10) * Math.sin((20 * x - 11.125) * c5)) / 2
+                : (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * c5)) / 2 + 1;
+}
+function easeInBounce(x) {
+    return 1 - easeOutBounce(1 - x);
+}
+function easeOutBounce(x) {
+    const n1 = 7.5625;
+    const d1 = 2.75;
+    if (x < 1 / d1) {
+        return n1 * x * x;
     }
+    else if (x < 2 / d1) {
+        return n1 * (x -= 1.5 / d1) * x + 0.75;
+    }
+    else if (x < 2.5 / d1) {
+        return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    }
+    else {
+        return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    }
+}
+function easeInOutBounce(x) {
+    return x < 0.5 ? (1 - easeOutBounce(1 - 2 * x)) / 2 : (1 + easeOutBounce(2 * x - 1)) / 2;
 }
 
 // prettier-ignore
@@ -32128,160 +32202,469 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 /** JavaScript Type Builder with Static Resolution for TypeScript */
 const Type = TypeBuilder;
 
+function isCircleRadius(radius) {
+    return radius.name === 'radius';
+}
+function isEllipseRadius(radius) {
+    return radius.name === 'radius';
+}
+const CircleRadius = Type.Object({
+    name: Type.Literal('radius', {
+        description: 'Set a circles radius, or a rectangles corner radius.'
+    }),
+    args: Type.Object({
+        radius: Type.Number({
+            description: 'Radius of the circle, or the corner radius of a rectangle.'
+        })
+    })
+});
+const EllipseRadius = Type.Object({
+    name: Type.Literal('radius', {
+        description: 'Set the radius for the x and y axis of an ellipse.'
+    }),
+    args: Type.Object({
+        rx: Type.Number({
+            description: 'Radius of the x-axis of an ellipse.'
+        }),
+        ry: Type.Number({
+            description: 'Radius of the y-axis of an ellipse.'
+        })
+    })
+});
+const Radius = Type.Union([CircleRadius, EllipseRadius]);
+
+function isSingleFactorScale(scale) {
+    return scale.name === 'scale';
+}
+function isDualAxisScale(scale) {
+    return scale.name === 'scale';
+}
+const SingleFactorScale = Type.Object({
+    name: Type.Literal('scale', {
+        description: 'Scale the element by a single factor.'
+    }),
+    args: Type.Object({
+        factor: Type.Number({ description: 'The scaling factor on both axes.' })
+    })
+});
+const DualAxisScale = Type.Object({
+    name: Type.Literal('scale', {
+        description: 'Scale the element by different factors on each axis.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The scaling factor on the x-axis.' }),
+        y: Type.Number({ description: 'The scaling factor on the y-axis.' })
+    })
+});
+const Scale = Type.Union([SingleFactorScale, DualAxisScale]);
+
+class SvgAnimator {
+    element;
+    timeline = new Timeline();
+    runners = [];
+    animatedElements = [];
+    fps = 25;
+    constructor(element, animations) {
+        this.element = element;
+        this.applyAnimations(animations);
+    }
+    resetAnimations() {
+        this.runners.every((runner) => {
+            runner.reset();
+        });
+        for (const runner of this.runners) {
+            runner.reset();
+        }
+        this.runners = [];
+        this.timeline.finish();
+        this.timeline = new Timeline();
+    }
+    applyAnimations(animations) {
+        this.resetAnimations();
+        for (const animation of animations ?? []) {
+            this.applyAnimation(this.element, animation);
+        }
+    }
+    applyAnimation(element, animation) {
+        try {
+            const affectedElement = element.find(animation.selector);
+            const runners = [];
+            for (const e of affectedElement) {
+                if (!this.animatedElements.includes(e)) {
+                    this.animatedElements.push(e);
+                }
+                e.timeline(this.timeline);
+                runners.push(...this.applyInstructions(e, animation.instructions));
+            }
+            this.runners.push(...runners);
+        }
+        catch (e) {
+            if (e instanceof Error) {
+                console.warn(`Selector '${animation.selector}' is not valid, can't apply animation on it.`);
+                console.warn(e.message);
+            }
+        }
+    }
+    loop() {
+        for (const runner of this.runners) {
+            runner.loop();
+        }
+    }
+    applyInstructions(element, instructions) {
+        const runners = [];
+        let runner = element;
+        for (const func of instructions) {
+            switch (func.name) {
+                case 'animate':
+                    runner = runner.animate(func.args.duration, func.args.delay, func.args.when);
+                    if (func.args.ease) {
+                        runner = runner.ease(getEasingFunction(func.args.ease));
+                    }
+                    break;
+                case 'center':
+                    runner = runner.center(func.args.x, func.args.y);
+                    break;
+                case 'cx':
+                    runner = runner.cx(func.args.x);
+                    break;
+                case 'cy':
+                    runner = runner.cy(func.args.y);
+                    break;
+                case 'dmove':
+                    runner = runner.dmove(func.args.x, func.args.y);
+                    break;
+                case 'dx':
+                    runner = runner.dx(func.args.x);
+                    break;
+                case 'dy':
+                    runner = runner.dy(func.args.y);
+                    break;
+                case 'flip':
+                    runner = runner.flip(func.args.axis, func.args.offset);
+                    break;
+                case 'height':
+                    runner = runner.height(func.args.height);
+                    break;
+                case 'move':
+                    runner = runner.move(func.args.x, func.args.y);
+                    break;
+                case 'radius':
+                    if (isCircleRadius(func)) {
+                        runner = runner.radius(func.args.radius);
+                    }
+                    else if (isEllipseRadius(func)) {
+                        runner = runner.radius(func.args.rx, func.args.ry);
+                    }
+                    break;
+                case 'width':
+                    runner = runner.width(func.args.width);
+                    break;
+                case 'rotate':
+                    runner = runner.rotate(func.args.degrees, func.args.cx, func.args.cy);
+                    break;
+                case 'scale':
+                    if (isSingleFactorScale(func)) {
+                        runner = runner.scale(func.args.factor);
+                    }
+                    else if (isDualAxisScale(func)) {
+                        runner = runner.scale(func.args.x, func.args.y);
+                    }
+                    break;
+                case 'size':
+                    if (!func.args.width && !func.args.height) {
+                        console.warn('Size instruction requires at least one of width or height to be set.');
+                        continue;
+                    }
+                    runner = runner.size(func.args.width, func.args.height);
+                    break;
+                case 'skew':
+                    runner = runner.skew(func.args.x, func.args.y, func.args.cx, func.args.cy);
+                    break;
+                case 'translate':
+                    runner = runner.translate(func.args.x, func.args.y);
+                    break;
+                case 'x':
+                    runner = runner.x(func.args.x);
+                    break;
+                case 'y':
+                    runner = runner.y(func.args.y);
+                    break;
+                default:
+                    throw new Error(`Unknown animation instruction: ${func.name}`);
+            }
+            if (runner instanceof Runner) {
+                runners.push(runner);
+            }
+        }
+        return runners;
+    }
+    getAnimationFrames() {
+        if (this.animatedElements.length === 0) {
+            return [{ svg: this.element, duration: 0 }];
+        }
+        const frames = [];
+        const animationDuration = this.timeline.getEndTime();
+        const frameCount = Math.ceil((animationDuration / 1000) * this.fps);
+        for (let i = 0; i < frameCount; i++) {
+            const frame_start = Math.floor((i / this.fps) * 1000);
+            const frame_end = Math.min(Math.floor(((i + 1) / this.fps) * 1000), animationDuration);
+            const duration = frame_end - frame_start;
+            this.timeline.time(frame_start);
+            for (const element of this.animatedElements) {
+                mergeTransforms.call(element);
+            }
+            frames.push({
+                svg: SVG(this.element.svg()),
+                duration
+            });
+        }
+        return frames;
+    }
+}
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+const lmultiply = (last, curr) => last.lmultiplyO(curr);
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+const getRunnerTransform = (runner) => runner.transforms;
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+function mergeTransforms() {
+    const runners = this._transformationRunners.runners;
+    const netTransform = runners.map(getRunnerTransform).reduce(lmultiply, new Matrix());
+    this.transform(netTransform);
+    this._transformationRunners.merge();
+    if (this._transformationRunners.length() === 1) {
+        this._frameId = null;
+    }
+}
+
+const Ease = Type.Union([
+    Type.Literal('in-sine'),
+    Type.Literal('out-sine'),
+    Type.Literal('in-out-sine'),
+    Type.Literal('in-quad'),
+    Type.Literal('out-quad'),
+    Type.Literal('in-out-quad'),
+    Type.Literal('in-cubic'),
+    Type.Literal('out-cubic'),
+    Type.Literal('in-out-cubic'),
+    Type.Literal('in-quart'),
+    Type.Literal('out-quart'),
+    Type.Literal('in-out-quart'),
+    Type.Literal('in-quint'),
+    Type.Literal('out-quint'),
+    Type.Literal('in-out-quint'),
+    Type.Literal('in-expo'),
+    Type.Literal('out-expo'),
+    Type.Literal('in-out-expo'),
+    Type.Literal('in-circ'),
+    Type.Literal('out-circ'),
+    Type.Literal('in-out-circ'),
+    Type.Literal('in-back'),
+    Type.Literal('out-back'),
+    Type.Literal('in-out-back'),
+    Type.Literal('in-elastic'),
+    Type.Literal('out-elastic'),
+    Type.Literal('in-out-elastic'),
+    Type.Literal('in-bounce'),
+    Type.Literal('out-bounce'),
+    Type.Literal('in-out-bounce')
+], {
+    description: 'which easing function to use for the animation'
+});
 const Animate = Type.Object({
-    name: Type.Literal('animate'),
-    arguments: Type.Object({
-        duration: Type.Number(),
-        delay: Type.Number(),
-        when: Type.Union([
-            Type.Literal('now'),
-            Type.Literal('absolute'),
-            Type.Literal('relative'),
-            Type.Literal('last')
-        ])
+    name: Type.Literal('animate', {
+        description: 'Animate the element.'
+    }),
+    args: Type.Object({
+        duration: Type.Number({
+            description: 'Duration of the animation in milliseconds.'
+        }),
+        delay: Type.Optional(Type.Number({
+            description: 'Delay in milliseconds before this animation should start.'
+        })),
+        when: Type.Optional(Type.Union([
+            Type.Literal('absolute', {
+                description: 'Animation starts at an absolute time on the timeline.'
+            }),
+            Type.Literal('after', {
+                description: 'Animation starts after the previous animation ends.'
+            })
+        ])),
+        ease: Type.Optional(Ease)
     })
 });
 
 const Center = Type.Object({
-    name: Type.Literal('center'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('center', {
+        description: 'Move the element by its center to the specified coordinates.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' }),
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
     })
 });
 
 const CX = Type.Object({
-    name: Type.Literal('cx'),
-    arguments: Type.Object({
-        x: Type.Number()
+    name: Type.Literal('cx', {
+        description: 'Move the element by its center in the x direction only.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' })
     })
 });
 
 const CY = Type.Object({
-    name: Type.Literal('cy'),
-    arguments: Type.Object({
-        y: Type.Number()
+    name: Type.Literal('cy', {
+        description: 'Move the element by its center in the y direction only.'
+    }),
+    args: Type.Object({
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
     })
 });
 
 const DMove = Type.Object({
-    name: Type.Literal('dmove'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('dmove', {
+        description: 'Shift the element in both the x and y directions relative to its current position.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The distance to move the element along the x-axis.' }),
+        y: Type.Number({ description: 'The distance to move the element along the y-axis.' })
     })
 });
 
 const DX = Type.Object({
-    name: Type.Literal('dx'),
-    arguments: Type.Object({
-        x: Type.Number()
+    name: Type.Literal('dx', {
+        description: 'Shift the element in the x direction relative to its current position'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The distance to move the element along the x-axis.' })
     })
 });
 
 const Dy = Type.Object({
-    name: Type.Literal('dy'),
-    arguments: Type.Object({
-        y: Type.Number()
-    })
-});
-
-const Ease = Type.Object({
-    name: Type.Literal('ease'),
-    arguments: Type.Object({
-        kind: Type.Union([
-            Type.Literal('<>', { description: 'Ease in and out' }),
-            Type.Literal('-', { description: 'Linear' }),
-            Type.Literal('<', { description: 'Ease in' }),
-            Type.Literal('>', { description: 'Ease out' })
-        ], { description: 'The easing function to use' })
+    name: Type.Literal('dy', {
+        description: 'Shift the element in the y direction relative to its current position.'
+    }),
+    args: Type.Object({
+        y: Type.Number({ description: 'Distance to move the element along the y-axis.' })
     })
 });
 
 const Flip = Type.Object({
-    name: Type.Literal('flip'),
-    arguments: Type.Object({
-        axis: Type.Union([Type.Literal('x'), Type.Literal('y'), Type.Literal('both')])
+    name: Type.Literal('flip', {
+        description: 'Flip the element along an axis.'
+    }),
+    args: Type.Object({
+        axis: Type.Union([Type.Literal('x'), Type.Literal('y'), Type.Literal('both')], {
+            description: 'Axis to flip the element along.'
+        }),
+        offset: Type.Optional(Type.Number({
+            description: 'Offset to flip the element along. Defaults to the center of the bounding box.'
+        }))
     })
 });
 
 const Height = Type.Object({
-    name: Type.Literal('height'),
-    arguments: Type.Object({
-        height: Type.Number()
+    name: Type.Literal('height', {
+        description: 'Set the height of the element.'
+    }),
+    args: Type.Object({
+        height: Type.Number({ description: 'Height to set the element to.' })
     })
 });
 
 const Move = Type.Object({
-    name: Type.Literal('move'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
-    })
-});
-
-const Radius = Type.Object({
-    name: Type.Literal('radius'),
-    arguments: Type.Object({
-        radius: Type.Number()
+    name: Type.Literal('move', {
+        description: 'Move the element by its upper-left corner to the specified coordinates.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' }),
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
     })
 });
 
 const Rotate = Type.Object({
-    name: Type.Literal('rotate'),
-    arguments: Type.Object({
-        degrees: Type.Number()
-    })
-});
-
-const Scale = Type.Object({
-    name: Type.Literal('scale'),
-    arguments: Type.Object({
-        factor: Type.Number()
+    name: Type.Literal('rotate', {
+        description: 'Rotate the element. Omitting cx and cy will rotate around the center of the elements bounding box.'
+    }),
+    args: Type.Object({
+        degrees: Type.Number({ description: 'The number of degrees to rotate the element.' }),
+        cx: Type.Optional(Type.Number({ description: 'Center of rotation on the x-axis.' })),
+        cy: Type.Optional(Type.Number({ description: 'Center of rotation on the y-axis.' }))
     })
 });
 
 const Size = Type.Object({
-    name: Type.Literal('size'),
-    arguments: Type.Object({
-        size: Type.Number()
+    name: Type.Literal('size', {
+        description: 'Change the size of the element.'
+    }),
+    args: Type.Object({
+        width: Type.Optional(Type.Number({
+            description: 'The width of the element. Omitting this will change the width proportionally to the height.'
+        })),
+        height: Type.Optional(Type.Number({
+            description: 'The height of the element. Omitting this will change the height proportionally to the width.'
+        }))
     })
 });
 
 const Skew = Type.Object({
     name: Type.Literal('skew'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    args: Type.Object({
+        x: Type.Optional(Type.Number({ description: 'Skew degrees along the x-axis.' })),
+        y: Type.Optional(Type.Number({ description: 'Skew degrees along the y-axis.' })),
+        cx: Type.Optional(Type.Number({ description: 'The x-coordinate of the center of the skew.' })),
+        cy: Type.Optional(Type.Number({ description: 'The y-coordinate of the center of the skew.' }))
     })
 });
 
 const Translate = Type.Object({
-    name: Type.Literal('translate'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('translate', {
+        description: 'Reposition the element by translating it along the x and y axes.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The distance to translate the element along the x-axis.' }),
+        y: Type.Number({ description: 'The distance to translate the element along the y-axis.' })
     })
 });
 
 const Width = Type.Object({
-    name: Type.Literal('width'),
-    arguments: Type.Object({
-        width: Type.Number()
+    name: Type.Literal('width', {
+        description: 'Set the width of the element.'
+    }),
+    args: Type.Object({
+        width: Type.Number({ description: 'The width of the element.' })
     })
 });
 
 const X = Type.Object({
-    name: Type.Literal('x'),
-    arguments: Type.Object({
-        x: Type.Number()
+    name: Type.Literal('x', {
+        description: 'Move the element by its upper-left corner to the specified x-coordinate.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' })
     })
 });
 
 const Y = Type.Object({
-    name: Type.Literal('y'),
-    arguments: Type.Object({
-        y: Type.Number()
+    name: Type.Literal('y', {
+        description: 'Move the element by its upper-left corner to the specified y-coordinate.'
+    }),
+    args: Type.Object({
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
+    })
+});
+
+const Hide = Type.Object({
+    name: Type.Literal('hide', {
+        description: 'Hide the element.',
+        args: Type.Optional(Type.Null())
+    })
+});
+
+const Show = Type.Object({
+    name: Type.Literal('show', {
+        description: 'Show the element.',
+        args: Type.Optional(Type.Null())
     })
 });
 
@@ -32293,13 +32676,14 @@ const AnimationInstruction = Type.Union([
     DMove,
     DX,
     Dy,
-    Ease,
     Flip,
     Height,
+    Hide,
     Move,
     Radius,
     Rotate,
     Scale,
+    Show,
     Size,
     Skew,
     Translate,
@@ -32311,6 +32695,7 @@ const Animation = Type.Object({
     selector: Type.String(),
     instructions: Type.Array(AnimationInstruction)
 });
+const AnimationList = Type.Array(Animation);
 
 function isSelector(hotSpot) {
     return typeof hotSpot === 'string';
@@ -32328,11 +32713,10 @@ const Coordinates = Type.Object({
     y: Type.Number()
 });
 const HotSpot = Type.Union([Selector, Coordinates]);
-const Animations = Type.Array(Animation);
 const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
-    animations: Type.Optional(Animations),
+    animations: Type.Optional(AnimationList),
     hotSpot: Type.Optional(HotSpot)
 });
 const Cursor = Type.Object({

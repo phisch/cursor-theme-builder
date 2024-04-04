@@ -1,5 +1,5 @@
 import { type Static, Type } from '@sinclair/typebox';
-import { Animation } from './animation/animation';
+import { AnimationList } from './animation/animation';
 
 export function isSelector(hotSpot?: HotSpot): hotSpot is Selector {
 	return typeof hotSpot === 'string';
@@ -25,14 +25,11 @@ export const Coordinates = Type.Object({
 export type HotSpot = Static<typeof HotSpot>;
 export const HotSpot = Type.Union([Selector, Coordinates]);
 
-export type Animations = Static<typeof Animations>;
-export const Animations = Type.Array(Animation);
-
 export type Sprite = Static<typeof Sprite>;
 export const Sprite = Type.Object({
 	file: Type.String(),
 	flips: Type.Optional(Type.Array(Type.String())),
-	animations: Type.Optional(Animations),
+	animations: Type.Optional(AnimationList),
 	hotSpot: Type.Optional(HotSpot)
 });
 

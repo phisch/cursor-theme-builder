@@ -77,15 +77,14 @@ Here is an example containing `aliases`, `flips` and `animations`:
 					"instructions": [
 						{
 							"name": "animate",
-							"arguments": {
-								"delay": 0,
+							"args": {
 								"duration": 1000,
-								"when": "now"
+								"ease": "in-out-cubic"
 							}
 						},
 						{
 							"name": "rotate",
-							"arguments": {
+							"args": {
 								"degrees": 360
 							}
 						}

@@ -3,9 +3,9 @@ import { type Static, Type } from '@sinclair/typebox';
 type Dy = Static<typeof Dy>;
 export const Dy = Type.Object({
 	name: Type.Literal('dy', {
-		description: 'shift the element in the y direction relative to its current position'
+		description: 'Shift the element in the y direction relative to its current position.'
 	}),
-	arguments: Type.Object({
-		y: Type.Number()
+	args: Type.Object({
+		y: Type.Number({ description: 'Distance to move the element along the y-axis.' })
 	})
 });

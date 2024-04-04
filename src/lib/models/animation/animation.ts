@@ -18,6 +18,8 @@ import { Translate } from './instruction/translate';
 import { Width } from './instruction/width';
 import { X } from './instruction/x';
 import { Y } from './instruction/y';
+import { Hide } from './instruction/hide';
+import { Show } from './instruction/show';
 
 export type AnimationInstruction = Static<typeof AnimationInstruction>;
 export const AnimationInstruction = Type.Union([
@@ -30,10 +32,12 @@ export const AnimationInstruction = Type.Union([
 	Dy,
 	Flip,
 	Height,
+	Hide,
 	Move,
 	Radius,
 	Rotate,
 	Scale,
+	Show,
 	Size,
 	Skew,
 	Translate,
@@ -47,3 +51,6 @@ export const Animation = Type.Object({
 	selector: Type.String(),
 	instructions: Type.Array(AnimationInstruction)
 });
+
+export type AnimationList = Static<typeof AnimationList>;
+export const AnimationList = Type.Array(Animation);

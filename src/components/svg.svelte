@@ -2,14 +2,17 @@
 	import { SvgAnimator } from '$lib/animator/svg';
 	import { SVG } from '@svgdotjs/svg.js';
 	import animationsStore from '../store/animations';
-	import type { Animations } from '$lib/models/cursor-theme';
 	import { onMount } from 'svelte';
+	import type { AnimationList } from '$lib/models/animation/animation';
 
-	let animations: Animations = [];
+	let animations: AnimationList = [];
+
+	let untouchedElement: SVGSVGElement;
 
 	let element: SVGSVGElement;
 	$: {
 		if (element) {
+			untouchedElement = element.cloneNode(true) as SVGSVGElement;
 			animate();
 		}
 	}
@@ -22,6 +25,8 @@
 
 	function animate() {
 		if (!animator) return;
+		// restore element to its original state
+		element.innerHTML = untouchedElement.innerHTML;
 		animator.applyAnimations(animations);
 		animator.loop();
 	}

@@ -3,10 +3,10 @@ import { type Static, Type } from '@sinclair/typebox';
 type Center = Static<typeof Center>;
 export const Center = Type.Object({
 	name: Type.Literal('center', {
-		description: 'move the element by its center to the specified coordinates'
+		description: 'Move the element by its center to the specified coordinates.'
 	}),
-	arguments: Type.Object({
-		x: Type.Number(),
-		y: Type.Number()
+	args: Type.Object({
+		x: Type.Number({ description: 'The x-coordinate to move the element to.' }),
+		y: Type.Number({ description: 'The y-coordinate to move the element to.' })
 	})
 });

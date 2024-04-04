@@ -2,8 +2,9 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Animations, CursorTheme, Variant } from './src/lib/models/cursor-theme';
+import { CursorTheme, Variant } from './src/lib/models/cursor-theme';
 import svg from '@poppanator/sveltekit-svg';
+import { AnimationList } from './src/lib/models/animation/animation';
 
 export default defineConfig({
 	plugins: [
@@ -22,7 +23,7 @@ export default defineConfig({
 				fs.writeFileSync(path.join(directory, 'Variant'), JSON.stringify(Variant, null, 2));
 				fs.writeFileSync(
 					path.join(directory, 'Animations.json'),
-					JSON.stringify(Animations, null, 2)
+					JSON.stringify(AnimationList, null, 2)
 				);
 			}
 		}

@@ -1,12 +1,8 @@
-import { type Element, Matrix, Runner, SVG, Timeline, Circle } from '@svgdotjs/svg.js';
-import type { Animation, AnimationInstruction } from '../models/animation/animation';
-import type { Animations } from '$lib/models/cursor-theme';
+import { type Element, Matrix, Runner, SVG, Timeline, Circle, Ellipse } from '@svgdotjs/svg.js';
+import type { Animation, AnimationInstruction, AnimationList } from '../models/animation/animation';
 import { getEasingFunction } from './ease';
-import { isRadiiArguments, isRadiusArguments } from '$lib/models/animation/instruction/radius';
-import {
-	isDualAxisScaleArguments,
-	isSingleFactorScaleArguments
-} from '$lib/models/animation/instruction/scale';
+import { isCircleRadius, isEllipseRadius } from '$lib/models/animation/instruction/radius';
+import { isDualAxisScale, isSingleFactorScale } from '$lib/models/animation/instruction/scale';
 
 export type Frame = {
 	svg: Element;
@@ -24,7 +20,7 @@ export class SvgAnimator {
 
 	constructor(
 		private element: Element,
-		animations?: Animations
+		animations?: AnimationList
 	) {
 		this.applyAnimations(animations);
 	}
@@ -80,63 +76,82 @@ export class SvgAnimator {
 		const runners: Runner[] = [];
 		let runner: Element | Runner = element;
 
-		for (const { name, arguments: args } of instructions) {
-			switch (name) {
+		for (const func of instructions) {
+			switch (func.name) {
 				case 'animate':
-					runner = (runner as Element).animate(args.duration, args.delay, 'absolute');
-					if (args.ease) {
-						runner = (runner as Runner).ease(getEasingFunction(args.ease));
+					runner = (runner as Element).animate(func.args.duration, func.args.delay, func.args.when);
+					if (func.args.ease) {
+						runner = (runner as Runner).ease(getEasingFunction(func.args.ease));
 					}
 					break;
 				case 'center':
-					runner = (runner as Element).center(args.x, args.y);
+					runner = (runner as Element).center(func.args.x, func.args.y);
 					break;
 				case 'cx':
-					runner = (runner as Element).cx(args.x);
+					runner = (runner as Element).cx(func.args.x);
 					break;
 				case 'cy':
-					runner = (runner as Element).cy(args.y);
+					runner = (runner as Element).cy(func.args.y);
 					break;
 				case 'dmove':
-					runner = (runner as Element).dmove(args.x, args.y);
+					runner = (runner as Element).dmove(func.args.x, func.args.y);
 					break;
 				case 'dx':
-					runner = (runner as Element).dx(args.x);
+					runner = (runner as Element).dx(func.args.x);
 					break;
 				case 'dy':
-					runner = (runner as Element).dy(args.y);
+					runner = (runner as Element).dy(func.args.y);
 					break;
 				case 'flip':
-					runner = (runner as Element).flip(args.axis, args.offset);
+					runner = (runner as Element).flip(func.args.axis, func.args.offset);
 					break;
 				case 'height':
-					runner = (runner as Element).height(args.height);
+					runner = (runner as Element).height(func.args.height);
 					break;
 				case 'move':
-					runner = (runner as Element).move(args.x, args.y);
+					runner = (runner as Element).move(func.args.x, func.args.y);
 					break;
 				case 'radius':
-					if (isRadiusArguments(args)) {
-						runner = (runner as Circle).radius(args.radius);
-					} else if (isRadiiArguments(args)) {
-						runner = (runner as Circle).radius(args.rx, args.ry);
+					if (isCircleRadius(func)) {
+						runner = (runner as Circle).radius(func.args.radius);
+					} else if (isEllipseRadius(func)) {
+						runner = (runner as Ellipse).radius(func.args.rx, func.args.ry);
 					}
 					break;
 				case 'width':
-					runner = (runner as Element).width(args.width);
+					runner = (runner as Element).width(func.args.width);
 					break;
 				case 'rotate':
-					runner = (runner as Element).rotate(args.degrees, args.cx, args.cy);
+					runner = (runner as Element).rotate(func.args.degrees, func.args.cx, func.args.cy);
 					break;
 				case 'scale':
-					if (isSingleFactorScaleArguments(args)) {
-						runner = (runner as Element).scale(args.factor);
-					} else if (isDualAxisScaleArguments(args)) {
-						runner = (runner as Element).scale(args.x, args.y);
+					if (isSingleFactorScale(func)) {
+						runner = (runner as Element).scale(func.args.factor);
+					} else if (isDualAxisScale(func)) {
+						runner = (runner as Element).scale(func.args.x, func.args.y);
 					}
 					break;
+				case 'size':
+					if (!func.args.width && !func.args.height) {
+						console.warn('Size instruction requires at least one of width or height to be set.');
+						continue;
+					}
+					runner = (runner as Element).size(func.args.width, func.args.height);
+					break;
+				case 'skew':
+					runner = (runner as Element).skew(func.args.x, func.args.y, func.args.cx, func.args.cy);
+					break;
+				case 'translate':
+					runner = (runner as Element).translate(func.args.x, func.args.y);
+					break;
+				case 'x':
+					runner = (runner as Element).x(func.args.x);
+					break;
+				case 'y':
+					runner = (runner as Element).y(func.args.y);
+					break;
 				default:
-					throw new Error(`Unknown animation instruction: ${name}`);
+					throw new Error(`Unknown animation instruction: ${func.name}`);
 			}
 
 			if (runner instanceof Runner) {

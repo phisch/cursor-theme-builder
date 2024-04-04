@@ -31726,160 +31726,279 @@ var TypeBuilder = /*#__PURE__*/Object.freeze({
 /** JavaScript Type Builder with Static Resolution for TypeScript */
 const Type = TypeBuilder;
 
+const Ease = Type.Union([
+    Type.Literal('in-sine'),
+    Type.Literal('out-sine'),
+    Type.Literal('in-out-sine'),
+    Type.Literal('in-quad'),
+    Type.Literal('out-quad'),
+    Type.Literal('in-out-quad'),
+    Type.Literal('in-cubic'),
+    Type.Literal('out-cubic'),
+    Type.Literal('in-out-cubic'),
+    Type.Literal('in-quart'),
+    Type.Literal('out-quart'),
+    Type.Literal('in-out-quart'),
+    Type.Literal('in-quint'),
+    Type.Literal('out-quint'),
+    Type.Literal('in-out-quint'),
+    Type.Literal('in-expo'),
+    Type.Literal('out-expo'),
+    Type.Literal('in-out-expo'),
+    Type.Literal('in-circ'),
+    Type.Literal('out-circ'),
+    Type.Literal('in-out-circ'),
+    Type.Literal('in-back'),
+    Type.Literal('out-back'),
+    Type.Literal('in-out-back'),
+    Type.Literal('in-elastic'),
+    Type.Literal('out-elastic'),
+    Type.Literal('in-out-elastic'),
+    Type.Literal('in-bounce'),
+    Type.Literal('out-bounce'),
+    Type.Literal('in-out-bounce')
+], {
+    description: 'which easing function to use for the animation'
+});
 const Animate = Type.Object({
-    name: Type.Literal('animate'),
-    arguments: Type.Object({
-        duration: Type.Number(),
-        delay: Type.Number(),
-        when: Type.Union([
-            Type.Literal('now'),
-            Type.Literal('absolute'),
-            Type.Literal('relative'),
-            Type.Literal('last')
-        ])
+    name: Type.Literal('animate', {
+        description: 'Animate the element.'
+    }),
+    args: Type.Object({
+        duration: Type.Number({
+            description: 'Duration of the animation in milliseconds.'
+        }),
+        delay: Type.Optional(Type.Number({
+            description: 'Delay in milliseconds before this animation should start.'
+        })),
+        when: Type.Optional(Type.Union([
+            Type.Literal('absolute', {
+                description: 'Animation starts at an absolute time on the timeline.'
+            }),
+            Type.Literal('after', {
+                description: 'Animation starts after the previous animation ends.'
+            })
+        ])),
+        ease: Type.Optional(Ease)
     })
 });
 
 const Center = Type.Object({
-    name: Type.Literal('center'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('center', {
+        description: 'Move the element by its center to the specified coordinates.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' }),
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
     })
 });
 
 const CX = Type.Object({
-    name: Type.Literal('cx'),
-    arguments: Type.Object({
-        x: Type.Number()
+    name: Type.Literal('cx', {
+        description: 'Move the element by its center in the x direction only.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' })
     })
 });
 
 const CY = Type.Object({
-    name: Type.Literal('cy'),
-    arguments: Type.Object({
-        y: Type.Number()
+    name: Type.Literal('cy', {
+        description: 'Move the element by its center in the y direction only.'
+    }),
+    args: Type.Object({
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
     })
 });
 
 const DMove = Type.Object({
-    name: Type.Literal('dmove'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('dmove', {
+        description: 'Shift the element in both the x and y directions relative to its current position.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The distance to move the element along the x-axis.' }),
+        y: Type.Number({ description: 'The distance to move the element along the y-axis.' })
     })
 });
 
 const DX = Type.Object({
-    name: Type.Literal('dx'),
-    arguments: Type.Object({
-        x: Type.Number()
+    name: Type.Literal('dx', {
+        description: 'Shift the element in the x direction relative to its current position'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The distance to move the element along the x-axis.' })
     })
 });
 
 const Dy = Type.Object({
-    name: Type.Literal('dy'),
-    arguments: Type.Object({
-        y: Type.Number()
-    })
-});
-
-const Ease = Type.Object({
-    name: Type.Literal('ease'),
-    arguments: Type.Object({
-        kind: Type.Union([
-            Type.Literal('<>', { description: 'Ease in and out' }),
-            Type.Literal('-', { description: 'Linear' }),
-            Type.Literal('<', { description: 'Ease in' }),
-            Type.Literal('>', { description: 'Ease out' })
-        ], { description: 'The easing function to use' })
+    name: Type.Literal('dy', {
+        description: 'Shift the element in the y direction relative to its current position.'
+    }),
+    args: Type.Object({
+        y: Type.Number({ description: 'Distance to move the element along the y-axis.' })
     })
 });
 
 const Flip = Type.Object({
-    name: Type.Literal('flip'),
-    arguments: Type.Object({
-        axis: Type.Union([Type.Literal('x'), Type.Literal('y'), Type.Literal('both')])
+    name: Type.Literal('flip', {
+        description: 'Flip the element along an axis.'
+    }),
+    args: Type.Object({
+        axis: Type.Union([Type.Literal('x'), Type.Literal('y'), Type.Literal('both')], {
+            description: 'Axis to flip the element along.'
+        }),
+        offset: Type.Optional(Type.Number({
+            description: 'Offset to flip the element along. Defaults to the center of the bounding box.'
+        }))
     })
 });
 
 const Height = Type.Object({
-    name: Type.Literal('height'),
-    arguments: Type.Object({
-        height: Type.Number()
+    name: Type.Literal('height', {
+        description: 'Set the height of the element.'
+    }),
+    args: Type.Object({
+        height: Type.Number({ description: 'Height to set the element to.' })
     })
 });
 
 const Move = Type.Object({
-    name: Type.Literal('move'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('move', {
+        description: 'Move the element by its upper-left corner to the specified coordinates.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' }),
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
     })
 });
 
-const Radius = Type.Object({
-    name: Type.Literal('radius'),
-    arguments: Type.Object({
-        radius: Type.Number()
+const CircleRadius = Type.Object({
+    name: Type.Literal('radius', {
+        description: 'Set a circles radius, or a rectangles corner radius.'
+    }),
+    args: Type.Object({
+        radius: Type.Number({
+            description: 'Radius of the circle, or the corner radius of a rectangle.'
+        })
     })
 });
+const EllipseRadius = Type.Object({
+    name: Type.Literal('radius', {
+        description: 'Set the radius for the x and y axis of an ellipse.'
+    }),
+    args: Type.Object({
+        rx: Type.Number({
+            description: 'Radius of the x-axis of an ellipse.'
+        }),
+        ry: Type.Number({
+            description: 'Radius of the y-axis of an ellipse.'
+        })
+    })
+});
+const Radius = Type.Union([CircleRadius, EllipseRadius]);
 
 const Rotate = Type.Object({
-    name: Type.Literal('rotate'),
-    arguments: Type.Object({
-        degrees: Type.Number()
+    name: Type.Literal('rotate', {
+        description: 'Rotate the element. Omitting cx and cy will rotate around the center of the elements bounding box.'
+    }),
+    args: Type.Object({
+        degrees: Type.Number({ description: 'The number of degrees to rotate the element.' }),
+        cx: Type.Optional(Type.Number({ description: 'Center of rotation on the x-axis.' })),
+        cy: Type.Optional(Type.Number({ description: 'Center of rotation on the y-axis.' }))
     })
 });
 
-const Scale = Type.Object({
-    name: Type.Literal('scale'),
-    arguments: Type.Object({
-        factor: Type.Number()
+const SingleFactorScale = Type.Object({
+    name: Type.Literal('scale', {
+        description: 'Scale the element by a single factor.'
+    }),
+    args: Type.Object({
+        factor: Type.Number({ description: 'The scaling factor on both axes.' })
     })
 });
+const DualAxisScale = Type.Object({
+    name: Type.Literal('scale', {
+        description: 'Scale the element by different factors on each axis.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The scaling factor on the x-axis.' }),
+        y: Type.Number({ description: 'The scaling factor on the y-axis.' })
+    })
+});
+const Scale = Type.Union([SingleFactorScale, DualAxisScale]);
 
 const Size = Type.Object({
-    name: Type.Literal('size'),
-    arguments: Type.Object({
-        size: Type.Number()
+    name: Type.Literal('size', {
+        description: 'Change the size of the element.'
+    }),
+    args: Type.Object({
+        width: Type.Optional(Type.Number({
+            description: 'The width of the element. Omitting this will change the width proportionally to the height.'
+        })),
+        height: Type.Optional(Type.Number({
+            description: 'The height of the element. Omitting this will change the height proportionally to the width.'
+        }))
     })
 });
 
 const Skew = Type.Object({
     name: Type.Literal('skew'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    args: Type.Object({
+        x: Type.Optional(Type.Number({ description: 'Skew degrees along the x-axis.' })),
+        y: Type.Optional(Type.Number({ description: 'Skew degrees along the y-axis.' })),
+        cx: Type.Optional(Type.Number({ description: 'The x-coordinate of the center of the skew.' })),
+        cy: Type.Optional(Type.Number({ description: 'The y-coordinate of the center of the skew.' }))
     })
 });
 
 const Translate = Type.Object({
-    name: Type.Literal('translate'),
-    arguments: Type.Object({
-        x: Type.Number(),
-        y: Type.Number()
+    name: Type.Literal('translate', {
+        description: 'Reposition the element by translating it along the x and y axes.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The distance to translate the element along the x-axis.' }),
+        y: Type.Number({ description: 'The distance to translate the element along the y-axis.' })
     })
 });
 
 const Width = Type.Object({
-    name: Type.Literal('width'),
-    arguments: Type.Object({
-        width: Type.Number()
+    name: Type.Literal('width', {
+        description: 'Set the width of the element.'
+    }),
+    args: Type.Object({
+        width: Type.Number({ description: 'The width of the element.' })
     })
 });
 
 const X = Type.Object({
-    name: Type.Literal('x'),
-    arguments: Type.Object({
-        x: Type.Number()
+    name: Type.Literal('x', {
+        description: 'Move the element by its upper-left corner to the specified x-coordinate.'
+    }),
+    args: Type.Object({
+        x: Type.Number({ description: 'The x-coordinate to move the element to.' })
     })
 });
 
 const Y = Type.Object({
-    name: Type.Literal('y'),
-    arguments: Type.Object({
-        y: Type.Number()
+    name: Type.Literal('y', {
+        description: 'Move the element by its upper-left corner to the specified y-coordinate.'
+    }),
+    args: Type.Object({
+        y: Type.Number({ description: 'The y-coordinate to move the element to.' })
+    })
+});
+
+const Hide = Type.Object({
+    name: Type.Literal('hide', {
+        description: 'Hide the element.',
+        args: Type.Optional(Type.Null())
+    })
+});
+
+const Show = Type.Object({
+    name: Type.Literal('show', {
+        description: 'Show the element.',
+        args: Type.Optional(Type.Null())
     })
 });
 
@@ -31891,13 +32010,14 @@ const AnimationInstruction = Type.Union([
     DMove,
     DX,
     Dy,
-    Ease,
     Flip,
     Height,
+    Hide,
     Move,
     Radius,
     Rotate,
     Scale,
+    Show,
     Size,
     Skew,
     Translate,
@@ -31909,6 +32029,7 @@ const Animation = Type.Object({
     selector: Type.String(),
     instructions: Type.Array(AnimationInstruction)
 });
+const AnimationList = Type.Array(Animation);
 
 const Selector = Type.String({
     title: 'CSS selector',
@@ -31920,11 +32041,10 @@ const Coordinates = Type.Object({
     y: Type.Number()
 });
 const HotSpot = Type.Union([Selector, Coordinates]);
-const Animations = Type.Array(Animation);
 const Sprite = Type.Object({
     file: Type.String(),
     flips: Type.Optional(Type.Array(Type.String())),
-    animations: Type.Optional(Animations),
+    animations: Type.Optional(AnimationList),
     hotSpot: Type.Optional(HotSpot)
 });
 const Cursor = Type.Object({
