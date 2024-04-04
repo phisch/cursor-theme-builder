@@ -30,6 +30,9 @@ Each selected element is flipped around its bounding box's center, except for th
 
 This project uses [SVG.js](https://svgjs.dev/docs/3.0/) to animate cursor sprites. The JSON schema provides a shallow abstraction that allows to select elements from the SVG and call SVG.js functions on them.
 
+> [!WARNING]
+> The TypeScript types for SVG.js are not perfect, and have proven to be a bit buggy. I don't intend in fixing this, which means that the animations are a bit limited, or some instructions might not work as expected.
+
 There is also a sub-schema for animations, which is available at `https://phisch.github.io/cursor-theme-builder/schemas/Animations.json`.
 
 You can use the (currently a bit buggy) [web interface](https://phisch.github.io/cursor-theme-builder/) to create animations. It supports auto-completion and validation, and updates the animated cursor in real-time.

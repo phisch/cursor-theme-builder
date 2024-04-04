@@ -70,27 +70,22 @@ Here is an example containing `aliases`, `flips` and `animations`:
 	"flips": ["svg", "#spinner"],
 	"animations": [
 		{
-			"selector": ".selector",
-			"animations": [
-				{
-					"selector": "#spinner",
-					"instructions": [
-						{
-							"name": "animate",
-							"args": {
-								"duration": 1000,
-								"ease": "in-out-cubic"
-							}
-						},
-						{
-							"name": "rotate",
-							"args": {
-								"degrees": 360
-							}
-						}
-					]
-				}
-			]
+			"selector": "#spinner",
+			"instructions": [
+        {
+          "name": "animate",
+          "args": {
+            "duration": 1500,
+            "ease": "in-out-cubic"
+          }
+        },
+        {
+          "name": "rotate",
+          "args": {
+            "degrees": 720
+          }
+        }
+      ]
 		}
 	]
 }
