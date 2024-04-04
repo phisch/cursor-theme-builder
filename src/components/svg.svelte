@@ -25,7 +25,6 @@
 
 	function animate() {
 		if (!animator) return;
-		// restore element to its original state
 		element.innerHTML = untouchedElement.innerHTML;
 		animator.applyAnimations(animations);
 		animator.loop();

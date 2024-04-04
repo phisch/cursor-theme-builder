@@ -108,6 +108,9 @@ export class SvgAnimator {
 				case 'height':
 					runner = (runner as Element).height(func.args.height);
 					break;
+				case 'hide':
+					runner = (runner as Element).hide();
+					break;
 				case 'move':
 					runner = (runner as Element).move(func.args.x, func.args.y);
 					break;
@@ -131,6 +134,9 @@ export class SvgAnimator {
 						runner = (runner as Element).scale(func.args.x, func.args.y);
 					}
 					break;
+				case 'show':
+					runner = (runner as Element).show();
+					break;
 				case 'size':
 					if (!func.args.width && !func.args.height) {
 						console.warn('Size instruction requires at least one of width or height to be set.');
@@ -150,8 +156,6 @@ export class SvgAnimator {
 				case 'y':
 					runner = (runner as Element).y(func.args.y);
 					break;
-				default:
-					throw new Error(`Unknown animation instruction: ${func.name}`);
 			}
 
 			if (runner instanceof Runner) {

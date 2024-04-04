@@ -11,6 +11,8 @@
 	let markers: Monaco.editor.IMarker[] = [];
 	const validator = TypeCompiler.Compile(AnimationList);
 
+	let value: string;
+
 	const defaultAnimations: AnimationList = [
 		{
 			selector: '#spinner',
@@ -36,10 +38,13 @@
 	function update() {
 		if (editor && markers.length === 0) {
 			try {
-				const newAnimations = JSON.parse(editor.getValue());
+				const newValue = editor.getValue();
+				if (newValue === value) return;
+				const newAnimations = JSON.parse(newValue);
 				if (validator.Check(newAnimations)) {
 					animations.set(newAnimations);
 				}
+				value = newValue;
 			} catch (error) {
 				return;
 			}
@@ -65,7 +70,7 @@
 
 		model.onDidChangeDecorations(() => {
 			markers = monaco.editor.getModelMarkers({ owner: 'json' });
-			//update();
+			update();
 		});
 		model.onDidChangeContent(() => {
 			markers = monaco.editor.getModelMarkers({ owner: 'json' });
