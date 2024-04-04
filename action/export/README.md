@@ -23,7 +23,7 @@ jobs:
 
       - name: Export
         id: figma_export
-        uses: phisch/cursor-theme-builder/action/export@master
+        uses: phisch/cursor-theme-builder/action/export@v1.0
         with:
           access_token: ${{ secrets.FIGMA_ACCESS_TOKEN }}
           file_key: ${{ secrets.FIGMA_FILE_KEY }}
