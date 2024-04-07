@@ -35,13 +35,8 @@ This project uses [SVG.js](https://svgjs.dev/docs/3.0/) to animate cursor sprite
 
 There is also a sub-schema for animations, which is available at `https://phisch.github.io/cursor-theme-builder/schemas/Animations.json`.
 
-You can use the (currently a bit buggy) [web interface](https://phisch.github.io/cursor-theme-builder/) to create animations. It supports auto-completion and validation, and updates the animated cursor in real-time.
+You can use the [web interface](https://phisch.github.io/cursor-theme-builder/) to create animations. It supports auto-completion and validation, and updates the animated cursor in real-time.
 Drag and drop a SVG file on top of the animated cursor to replace the loaded one.
-
-> [!NOTE]
-> Since the animation can sometimes get out of sync, just copy your JSON, reload the page and paste it back in. Sorry for the inconvenience, the project is still in development, and SVG.js isn't really made for this use case.
-
-The available animations are **currently** a bit limited, but I plan on adding most of the SVG.js functions in the future.
 
 ## Aliases
 
