@@ -32925,7 +32925,7 @@ class CursorThemeBuilder {
             return;
         }
         const leftHandedFrames = frames.map((frame) => {
-            const svg = SVG(frame.svg);
+            const svg = SVG(frame.svg.svg());
             for (const flip of sprite.flips ?? []) {
                 const elements = flip === 'svg' ? svg.find('svg > g') : svg.find(flip);
                 for (const element of elements) {
