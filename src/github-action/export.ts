@@ -9,12 +9,12 @@ async function run() {
 			variants: []
 		};
 
-		const author_name = core.getInput('author_name', { required: false });
+		const author_name = core.getInput('theme_author', { required: false });
 		if (author_name) {
 			cursor_theme.author = author_name;
 		}
 
-		const description = core.getInput('description', { required: false });
+		const description = core.getInput('theme_comment', { required: false });
 		if (description) {
 			cursor_theme.description = description;
 		}

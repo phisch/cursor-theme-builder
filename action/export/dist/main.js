@@ -44494,11 +44494,11 @@ async function run() {
             name: coreExports.getInput('theme_name', { required: true }),
             variants: []
         };
-        const author_name = coreExports.getInput('author_name', { required: false });
+        const author_name = coreExports.getInput('theme_author', { required: false });
         if (author_name) {
             cursor_theme.author = author_name;
         }
-        const description = coreExports.getInput('description', { required: false });
+        const description = coreExports.getInput('theme_comment', { required: false });
         if (description) {
             cursor_theme.description = description;
         }
