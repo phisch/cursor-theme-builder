@@ -32982,15 +32982,14 @@ class CursorThemeBuilder {
                 for (const scale of scales) {
                     const svg = SVG(frame.svg.svg());
                     const hotspot = this.possiblyExtractHotspot(svg, sprite.hotSpot);
-                    if (leftHanded) {
-                        hotspot.x = frame.svg.width() - hotspot.x;
-                    }
+                    const width = frame.svg.width() * scale;
                     const renderedImage = await this.render(svg.svg(), scale);
                     chunks.push({
-                        width: frame.svg.width() * scale,
+                        width,
                         height: frame.svg.height() * scale,
                         delay: frame.duration,
-                        xhot: hotspot.x * scale,
+                        // mirror the hotspot pixel in the scaled image, not in the sprite
+                        xhot: leftHanded ? width - 1 - hotspot.x * scale : hotspot.x * scale,
                         yhot: hotspot.y * scale,
                         pixels: renderedImage
                     });
