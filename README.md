@@ -38,6 +38,13 @@ There is also a sub-schema for animations, which is available at `https://phisch
 You can use the [web interface](https://phisch.github.io/cursor-theme-builder/) to create animations. It supports auto-completion and validation, and updates the animated cursor in real-time.
 Drag and drop a SVG file on top of the animated cursor to replace the loaded one.
 
+## Output formats
+
+Every variant is built into both two cursor formats:
+
+- `cursors/`: XCursor files, rendered at 1x, 2x, 3x and 4x of each sprite's size. Used by X11 and most Wayland clients.
+- `cursors_scalable/`: SVG cursors as introduced by KDE Plasma 6.2 and GNOME 51. Each cursor gets a directory with its SVG frames and a `metadata.json` with hotspot and size. The largest sprite of a cursor is used as the scalable cursor.
+
 ## Aliases
 
 Aliases are a way to define multiple names for a cursor. Due to cursor themes history, many applications expect a cursor to have a specific name. Aliases allow you to define multiple names for a cursor, so it can be used in more applications.

@@ -32866,6 +32866,7 @@ class CursorThemeBuilder {
     createDirectoryAndIndex(variant, parent, leftHanded) {
         const variant_directory = this.getVariantDirectory(variant, leftHanded);
         mkdirSync(path.join(variant_directory, 'cursors'), { recursive: true });
+        mkdirSync(path.join(variant_directory, 'cursors_scalable'), { recursive: true });
         const index = {
             'Icon Theme': {
                 Name: `${this.cursorTheme.name} (${variant.name}${leftHanded ? ' left handed' : ''})`
@@ -32892,7 +32893,7 @@ class CursorThemeBuilder {
             this.createDirectoryAndIndex(variant, parent, true);
         }
         for (const cursor of variant.cursors) {
-            this.buildCursor(cursor, variant);
+            this.buildCursor(cursor, variant, leftHanded);
         }
         for (const child_variant of variant.variants ?? []) {
             this.buildVariant(child_variant, variant);
@@ -32907,8 +32908,11 @@ class CursorThemeBuilder {
     writeCursorFile(chunks, cursor, variant, leftHanded) {
         const cursorFile = path.join(this.getVariantDirectory(variant, leftHanded), 'cursors', `${cursor.name}`);
         writeFileSync(cursorFile, encode(chunks));
+        this.writeAliases(path.dirname(cursorFile), cursor);
+    }
+    writeAliases(directory, cursor) {
         for (const alias of cursor.aliases ?? []) {
-            const aliasFile = path.join(this.getVariantDirectory(variant, leftHanded), 'cursors', `${alias}`);
+            const aliasFile = path.join(directory, alias);
             if (existsSync(aliasFile)) {
                 console.warn(`Alias file ${aliasFile} already exists`);
             }
@@ -32916,6 +32920,34 @@ class CursorThemeBuilder {
                 symlinkSync(cursor.name, aliasFile);
             }
         }
+    }
+    // Writes the SVG cursor format introduced by KDE Plasma 6.2 and GNOME 51:
+    // cursors_scalable/<name>/metadata.json listing the SVG frames of the cursor.
+    writeScalableCursor(frames, sprite, cursor, variant, leftHanded) {
+        const scalableDirectory = path.join(this.getVariantDirectory(variant, leftHanded), 'cursors_scalable');
+        const cursorDirectory = path.join(scalableDirectory, cursor.name);
+        mkdirSync(cursorDirectory, { recursive: true });
+        const metadata = frames.map((frame, index) => {
+            const svg = SVG(frame.svg.svg());
+            const size = frame.svg.width();
+            const hotspot = this.possiblyExtractHotspot(svg, sprite.hotSpot);
+            if (leftHanded && sprite.flips) {
+                hotspot.x = size - 1 - hotspot.x;
+            }
+            const filename = frames.length > 1
+                ? `${cursor.name}-${String(index + 1).padStart(2, '0')}.svg`
+                : `${cursor.name}.svg`;
+            writeFileSync(path.join(cursorDirectory, filename), svg.svg());
+            return {
+                filename,
+                ...(frames.length > 1 ? { delay: frame.duration } : {}),
+                hotspot_x: hotspot.x,
+                hotspot_y: hotspot.y,
+                nominal_size: size
+            };
+        });
+        writeFileSync(path.join(cursorDirectory, 'metadata.json'), JSON.stringify(metadata, null, 2) + '\n');
+        this.writeAliases(scalableDirectory, cursor);
     }
     getFile(file) {
         return readFileSync(path.join(this.inputDirectory, file), 'utf8');
@@ -32998,7 +33030,7 @@ class CursorThemeBuilder {
         }
         return chunks.sort((a, b) => a.width - b.width);
     }
-    async buildCursor(cursor, variant) {
+    async buildCursor(cursor, variant, leftHandedVariant) {
         const sizes = new Set();
         const frameMap = cursor.sprites.reduce((map, sprite) => {
             const element = SVG(this.getFile(sprite.file));
@@ -33010,9 +33042,24 @@ class CursorThemeBuilder {
         const scaleMap = this.determineScaleMap(sizes, new Set([1, 2, 3, 4]));
         const chunks = await this.createChunks(frameMap, cursor.sprites, scaleMap, false);
         this.writeCursorFile(chunks, cursor, variant);
+        // The scalable format holds a single SVG per frame, use the most detailed sprite.
+        const [largestSprite, largestFrames] = [...frameMap.entries()].reduce((largest, entry) => entry[1][0].svg.width() > largest[1][0].svg.width() ? entry : largest);
+        this.writeScalableCursor(largestFrames, largestSprite, cursor, variant);
+        if (!leftHandedVariant) {
+            return;
+        }
         if (cursor.sprites.find((sprite) => sprite.flips)) {
             const chunks = await this.createChunks(frameMap, cursor.sprites, scaleMap, true);
             this.writeCursorFile(chunks, cursor, variant, true);
+            const leftHandedFrames = this.transformIntoLeftHandedFrames(largestSprite, largestFrames);
+            if (leftHandedFrames) {
+                this.writeScalableCursor(leftHandedFrames, largestSprite, cursor, variant, true);
+            }
+        }
+        else {
+            // GNOME ignores index.theme inheritance for scalable cursors, so the
+            // left handed variant needs the unflipped cursors as well.
+            this.writeScalableCursor(largestFrames, largestSprite, cursor, variant, true);
         }
     }
     determineScaleMap(sizes, scales) {
