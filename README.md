@@ -56,9 +56,3 @@ Thre are 3 GitHub Actions in this repository, each of them has its own documenta
 - [validate](./action/validate/README.md): Validates a cursor theme JSON file against the schema
 - [export](./action/export/README.md): Exports a JSON file and SVG assets from a particular Figma file
 - [build](./action/build/README.md): Builds a cursor theme from a JSON file and SVG assets
-
-### Desktop Makers
-
-<a href="https://discord.gg/RqKTeA4uxW" title="Desktop Makers Discord"><img align="left" width="72" alt="type=discord" src="https://user-images.githubusercontent.com/1282767/161089772-d7ad28bf-76eb-4951-b0f0-985afd5ea57a.png"></a>
-
-I am actively working on this and other cool projects on the [Desktop Makers Discord](https://discord.gg/RqKTeA4uxW). It aims to be a community for communities of Linux desktop related projects. If you want to share your projects progress, collaborate with, or contribute to great projects, this might be the right place for you.
