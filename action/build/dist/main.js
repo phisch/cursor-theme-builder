@@ -32404,7 +32404,7 @@ class SvgAnimator {
     }
     getAnimationFrames() {
         if (this.animatedElements.length === 0) {
-            return [{ svg: this.element, duration: 0 }];
+            return [{ svg: this.element, duration: 1 }];
         }
         const frames = [];
         const animationDuration = this.timeline.getEndTime();
